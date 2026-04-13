@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantex · Dashboard Produção</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #091628;
+    --card:      #0d2040;
+    --border:    #1a3356;
+    --green:     #1D9E75;
+    --yellow:    #EF9F27;
+    --green2:    #5DCAA5;
+    --green3:    #27C77A;
+    --text:      #c8d8ea;
+    --muted:     #6888a8;
+    --gold:      #EF9F27;
+    --silver:    #B4B2A9;
+    --bronze:    #CD7F32;
+    --bar0:      #1e3a55;
+    --header-h:  64px;
+    --footer-h:  64px;
+  }
+
+  /* ── TEMA CLARO ────────────────────────────────────────────── */
+  :root.light {
+    --bg:     #dce8f4;
+    --card:   #f0f6fc;
+    --border: #7aaad0;
+    --text:   #071428;
+    --muted:  #1e4268;
+    --bar0:   #7aa0c0;
+  }
+
+  /* Header e footer com fundo próprio no claro */
+  :root.light #header,
+  :root.light #footer {
+    background: #0d2040;
+    border-color: #1a3356;
+  }
+  /* Texto do header fixo em claro sobre fundo escuro */
+  :root.light .hd-title         { color: #7aaad0; }
+  :root.light .hd-month         { color: #ffffff; }
+  :root.light .hd-days          { color: #7aaad0; }
+  :root.light .hd-total         { color: #7aaad0; }
+  :root.light .hd-total span    { color: #27C77A; }
+  :root.light .hd-clock         { color: #ffffff; }
+  :root.light .hd-shift         { color: #7aaad0; }
+  :root.light .ft-label         { color: #7aaad0; }
+  :root.light .ft-rank-name     { color: #c8d8ea; }
+  :root.light .ft-rank-pct      { color: #7aaad0; }
+  :root.light #ft-update        { color: #4a6888; }
+  :root.light .ft-sep           { background: #1a3356; }
+  :root.light #theme-btn        { border-color: #3a6a9a; color: #c8d8ea; }
+
+  /* Cards do grid em azul escuro (destaque sobre fundo claro) */
+  :root.light .mcard {
+    background: #0d2040;
+    border-color: #2a5080;
+  }
+  :root.light .mcard-name       { color: #7aaad0; }
+  :root.light .shift-col        { background: rgba(255,255,255,.06); border-color: #2a5080; }
+  :root.light .shift-label      { color: #7aaad0; }
+  :root.light .shift-total      { color: #ffffff; }
+  :root.light .shift-meta       { color: #7aaad0; }
+  :root.light .shift-meta span  { color: #c8d8ea; }
+  :root.light .bar-wrap         { background: rgba(255,255,255,.12); }
+  :root.light .rank-badge       { border-color: #2a5080; color: #7aaad0; }
+  :root.light .bonus-value      { color: #27C77A; }
+  :root.light .bb0              { background: rgba(255,255,255,.07); color: #7aaad0; }
+
+  /* ── LOGO ──────────────────────────────────────────────────── */
+  #logo-wrap { display: flex; align-items: center; }
+  #header-logo { height: 48px; width: auto; }
+
+  /* ── BOTÃO DE TEMA ─────────────────────────────────────────── */
+  #theme-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: .2rem .55rem;
+    font-size: .7rem;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    line-height: 1.6;
+  }
+  #theme-btn:hover { border-color: var(--green); color: var(--green); }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ── KEYFRAMES ─────────────────────────────────────────────── */
+  @keyframes pulse-border {
+    0%,100% { box-shadow: 0 0 0 0 rgba(39,199,122,.55), 0 0 18px 2px rgba(39,199,122,.18); }
+    50%      { box-shadow: 0 0 0 4px rgba(39,199,122,.2),  0 0 32px 6px rgba(39,199,122,.32); }
+  }
+  @keyframes pulse-bar {
+    0%,100% { opacity: 1; }
+    50%      { opacity: .7; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HEADER ────────────────────────────────────────────────── */
+  #header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 100;
+  }
+  .hd-left { display: flex; align-items: center; gap: .75rem; }
+  .badge-pantex {
+    background: rgba(29,158,117,.15);
+    color: var(--green);
+    font-size: .6rem; font-weight: 700; letter-spacing: .18em;
+    padding: .28rem .7rem; border-radius: 4px;
+    border: 1px solid rgba(29,158,117,.3);
+  }
+  .hd-title { font-size: .78rem; font-weight: 600; letter-spacing: .1em; color: var(--muted); }
+
+  .hd-center { text-align: center; }
+  .hd-month { font-size: 1rem; font-weight: 700; color: #fff; letter-spacing: .06em; }
+  .hd-days  { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+
+  .hd-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .hd-total { font-size: .7rem; color: var(--muted); }
+  .hd-total span { color: var(--green); font-weight: 700; font-size: .85rem; }
+  .hd-clock { font-size: 1.05rem; font-weight: 700; color: #fff; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+  .hd-shift { font-size: .65rem; color: var(--muted); letter-spacing: .07em; }
+
+  /* ── GRID ──────────────────────────────────────────────────── */
+  #grid {
+    position: fixed;
+    top: var(--header-h); left: 0; right: 0; bottom: var(--footer-h);
+    padding: 1rem 1rem .75rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: .75rem;
+  }
+
+  /* ── MACHINE CARD ──────────────────────────────────────────── */
+  .mcard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .65rem .75rem .6rem;
+    display: flex; flex-direction: column; gap: .45rem;
+    position: relative;
+    transition: border-color .5s ease, box-shadow .5s ease;
+    animation: fade-in .4s ease both;
+    overflow: hidden;
+  }
+  .mcard.tier3 {
+    border-color: var(--green3) !important;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+  .mcard.rank1 {
+    border-color: var(--gold);
+    border-width: 2px;
+    box-shadow: 0 0 12px 2px rgba(239,159,39,.25);
+  }
+  .mcard.rank2 {
+    border-color: var(--silver);
+    border-width: 2px;
+    box-shadow: 0 0 10px 1px rgba(180,178,169,.18);
+  }
+  .mcard.rank3 {
+    border-color: var(--bronze);
+    border-width: 2px;
+    box-shadow: 0 0 10px 1px rgba(205,127,50,.18);
+  }
+
+  .mcard-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .mcard-name {
+    font-size: .65rem; font-weight: 700; letter-spacing: .12em; color: var(--muted);
+  }
+  .rank-badge {
+    font-size: .68rem; font-weight: 800; letter-spacing: .04em;
+    padding: .28rem .7rem; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--muted); background: transparent;
+    transition: all .4s ease;
+  }
+  /* 1º lugar: fundo dourado sólido */
+  .rank-badge.r1 {
+    color: #1a1000;
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 2px 8px rgba(239,159,39,.5);
+  }
+  /* 2º lugar: fundo prateado sólido */
+  .rank-badge.r2 {
+    color: #1a1a1a;
+    background: var(--silver);
+    border-color: var(--silver);
+    box-shadow: 0 2px 6px rgba(180,178,169,.4);
+  }
+  /* 3º lugar: fundo bronze sólido */
+  .rank-badge.r3 {
+    color: #ffffff;
+    background: var(--bronze);
+    border-color: var(--bronze);
+    box-shadow: 0 2px 6px rgba(205,127,50,.4);
+  }
+
+  /* ── SHIFTS ROW ────────────────────────────────────────────── */
+  .shifts-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; flex: 1;
+  }
+  .shift-col {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .5rem .6rem;
+    display: flex; flex-direction: column; gap: .3rem;
+  }
+  .shift-label {
+    font-size: .58rem; font-weight: 700; letter-spacing: .1em; color: var(--muted);
+  }
+  .shift-total {
+    font-size: 1.4rem; font-weight: 700; color: #fff;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+
+  /* ── PROGRESS BAR ──────────────────────────────────────────── */
+  .bar-wrap {
+    height: 5px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 99px;
+    transition: width .8s ease, background-color .5s ease;
+  }
+  .bar-fill.t0 { background: var(--bar0); }
+  .bar-fill.t1 { background: var(--yellow); }
+  .bar-fill.t2 { background: var(--green2); }
+  .bar-fill.t3 { background: var(--green3); animation: pulse-bar 1.4s ease-in-out infinite; }
+
+  .shift-meta {
+    font-size: .58rem; color: var(--muted);
+  }
+  .shift-meta span { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ── BONUS BADGE ───────────────────────────────────────────── */
+  .bonus-row { display: flex; align-items: center; justify-content: space-between; margin-top: .1rem; }
+  .bonus-badge {
+    font-size: .56rem; font-weight: 700; letter-spacing: .08em;
+    padding: .15rem .45rem; border-radius: 4px;
+    transition: all .4s ease;
+  }
+  .bb0 { background: rgba(255,255,255,.05); color: var(--muted); }
+  .bb1 { background: rgba(239,159,39,.15);  color: var(--yellow); }
+  .bb2 { background: rgba(93,202,165,.15);  color: var(--green2); }
+  .bb3 { background: rgba(39,199,122,.2);   color: var(--green3); }
+
+  .bonus-value {
+    font-size: .65rem; font-weight: 700; color: var(--green);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── FOOTER ────────────────────────────────────────────────── */
+  #footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--footer-h);
+    background: var(--card);
+    border-top: 2px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 1.5rem; gap: 1.5rem;
+  }
+  .ft-label {
+    font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+    color: var(--muted); white-space: nowrap; text-transform: uppercase;
+  }
+  .ft-sep { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+
+  #ft-ranking {
+    display: flex; align-items: center; gap: 1rem; flex: 1; overflow: hidden;
+  }
+  .ft-rank-item {
+    display: flex; align-items: center; gap: .45rem;
+    white-space: nowrap;
+  }
+  .ft-rank-num {
+    font-size: .72rem; font-weight: 800; padding: .22rem .5rem;
+    border-radius: 5px; min-width: 26px; text-align: center;
+  }
+  /* Top 3: fundo sólido igual aos badges dos cards */
+  .fr1 { background: var(--gold);   color: #1a1000; }
+  .fr2 { background: var(--silver); color: #1a1a1a; }
+  .fr3 { background: var(--bronze); color: #ffffff; }
+  .fr4,.fr5,.fr6 { background: rgba(255,255,255,.08); color: var(--muted); }
+
+  .ft-rank-name { color: var(--text); font-weight: 700; font-size: .85rem; }
+  .ft-rank-pct  { color: var(--green); font-weight: 700; font-size: .85rem; }
+
+  #ft-update { font-size: .68rem; color: var(--muted); white-space: nowrap; margin-left: auto; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <div class="hd-left">
+    <div id="logo-wrap">
+      <svg id="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 597 421">
+        <title>Pantex</title>
+        <g fill-rule="evenodd">
+          <path fill="#fbbf24" d="m352.5 157.77c23.11 0 41.84 18.73 41.84 41.84 0 23.1-18.73 41.84-41.84 41.84-23.11 0-41.84-18.74-41.84-41.84 0-23.11 18.73-41.84 41.84-41.84z"/>
+          <path fill="#ffffff" d="m352.5 149.83c20.6 0 38.27 12.51 45.84 30.35v-22.74c-1.35-8.59-22.14-31.45-45.84-31.12-7.72 0.11-16.14 1.96-23.61 5.77-8.63 4.41-13.79 10.14-18.83 18.17-3.96 6.3-7.35 13.31-11.09 20.22-4.06 7.5-8.72 16.45-13.11 23.66-8.28 13.64-22.93 22.98-39.83 23.9-2.4 0.13-4.91 0.07-7.31 0.07h-45.25v23.51h49.2c2.29 0 3.82-0.09 6.13-0.36 11.21-1.32 23.05-6.2 30.88-15.26 7.23-8.37 12.1-19.4 17.95-30.02 4.04-7.33 8.55-16.31 12.86-23.08 8.84-13.87 24.35-23.07 42.01-23.07z"/>
+          <path fill="#ffffff" d="m352.5 118.43c20.6 0 38.27 12.51 45.84 30.35v-22.74c-1.35-8.59-22.14-31.45-45.84-31.12-8.52 0.12-17.89 2.36-25.9 7.02-7.6 4.43-12.26 10.02-16.83 17.37-3.83 6.18-7.15 13.03-10.8 19.77-4.06 7.5-8.72 16.45-13.11 23.66-8.28 13.64-22.93 22.98-39.83 23.9-2.4 0.13-4.91 0.07-7.31 0.07h-45.25v23.51h49.2c2.29 0 3.82-0.09 6.13-0.36 11.21-1.32 23.05-6.2 30.88-15.26 7.23-8.37 12.1-19.4 17.95-30.02 4.04-7.33 8.55-16.31 12.86-23.08 8.84-13.87 24.35-23.07 42.01-23.07z"/>
+          <path fill="#ffffff" d="m352.5 87.03c20.6 0 38.27 12.51 45.84 30.35v-22.74c-1.35-8.59-22.14-31.45-45.84-31.12-6.27 0.09-13 1.33-19.32 3.83-10.8 4.29-17.12 10.56-23.14 20.14-3.95 6.29-7.33 13.29-11.07 20.19-4.06 7.5-8.72 16.45-13.11 23.66-8.28 13.64-22.93 22.98-39.83 23.9-2.4 0.13-4.91 0.07-7.31 0.07h-45.25v23.51h49.2c2.29 0 3.82-0.09 6.13-0.36 11.21-1.32 23.05-6.2 30.88-15.26 7.23-8.37 12.1-19.4 17.95-30.02 4.04-7.33 8.55-16.31 12.86-23.08 8.84-13.87 24.35-23.07 42.01-23.07z"/>
+          <path fill="#f1f5f9" d="m104.16 266.17h41.08c6.36 0 8.02 0.93 9.55 2.61 2.96 3.23 8.98 10.52 8.98 14.67v4.83c0 3.47-4.9 7.93-10.43 12.54-2.26 1.89-5.56 2.25-8.65 2.25h-27v23.41l-0.36 0.35h-12.8l-0.36-0.35zm13.53 13.13v10.63h27.43q0.1 0 0.2-0.02c0.38 0.07 0.79-0.04 1.08-0.32l0.79-0.78c0.87-0.7 1.77-1.6 2.39-2.34l0.93-0.9c0.47-0.45 0.47-1.2 0-1.66-0.59-0.57-1.22-1.19-1.83-1.79l-2.55-2.48q-0.16-0.15-0.35-0.24 0-0.05 0-0.1h-0.46q-0.04 0-0.07 0z"/>
+          <path fill="#f1f5f9" d="m206.94 277.54c7.87 16.65 21.13 46.27 22.51 49.11l-0.22 0.18h-14.04c-0.43 0-2.86-5.51-7.29-14.75l-0.23-0.18h-31.14c-0.76 0.89-3.11 6.47-7.05 14.93h-14.23l-0.44-0.35 22.87-49.12c3.06-6.57 5.71-11.17 13.97-11.27 9.03-0.12 12.29 5.11 15.29 11.45zm-15.74 2.55l-8.66 18.48h20.18l-9.35-18.48z"/>
+          <path fill="#f1f5f9" d="m250.62 270.73l27.1 33.96v-38.17l0.35-0.35h12.49l0.35 0.35v50.09l0.07 2.06c0.1 2.72-3.67 8.6-8.42 8.6-2.01 0-3.8-0.21-4.94-1.57l-3.21-3.46c-4.55-5.67-12.59-16.66-25.09-32.31-0.59-0.73-1.08-1.09-1.08-1.44h-0.18v37.99l-0.36 0.35h-12.48l-0.36-0.35v-49.77-2.61c0-3.68 3.43-6.28 6.28-7.13 4.69-1.39 7.79 1.51 9.48 3.76z"/>
+          <path fill="#f1f5f9" d="m300.77 266.17h58.6l0.37 0.35v12.43l-0.37 0.35h-22.21v47.18l-0.39 0.35h-13.4l-0.39-0.35v-47.18h-22.21l-0.38-0.35v-12.43z"/>
+          <path fill="#f1f5f9" d="m380.68 266.17h41.98l0.36 0.35v12.43l-0.36 0.35h-42.83v10.63h37.25l0.36 0.36v12.42l-0.36 0.36h-37.25v10.63h42.83l0.36 0.35v12.43l-0.36 0.35h-42.3l-0.03-0.02q-0.4 0.02-0.8 0.02c-7.18 0-13-5.82-13-13v-0.12-33.45l0.04-0.05q-0.04-0.51-0.04-1.04c0-7.18 5.82-13 13-13q0.56 0 1.1 0.05z"/>
+          <path fill="#f1f5f9" d="m428.9 266.52v-0.18h15.19l16.63 20.52q14.59-18.58 16.48-20.52h15.19v0.18l-24 30.25 24 29.88-0.17 0.18h-15.19l-16.47-20.34-16.31 20.34h-15.04l-0.31-0.35 23.98-29.9z"/>
+          <g fill="#cbd5e1">
+            <path d="m105.88 342.13h11.69l0.08 0.08v2.97l-0.08 0.08h-10.1v2.54h7.56l0.09 0.08v2.97l-0.09 0.08h-7.56v2.54h10.1l0.08 0.08v2.96l-0.08 0.09h-11.69l-1.54-1.55v-11.37z"/>
+            <path d="m131.84 342.17q0.22 0.3 3.31 8.12 0.75 1.92 0.81 1.93 3.65-9.76 3.82-10.05h2.84q0.21 0.22 2.02 4.89 1.46 3.52 3.77 9.49l-0.04 0.05h-3.22q-0.13 0-1.93-4.72-1.33-3.1-1.93-4.77-0.09 0.03-1.85 4.72l-1.8 4.72-0.05 0.05h-3.26q-0.09-0.03-2.15-5.28l-1.76-4.21-3.6 9.49h-3.22l-0.09-0.09 5.45-14.34z"/>
+            <path d="m155.06 342.13h5.71q2.6 0 3.99 2.79 0.22 0.6 0.3 1.59 0 0.83-0.43 1.89 2.19 1.45 2.19 3.6v0.35q0 2.44-2.53 3.86-0.87 0.39-1.72 0.39h-7.51l-1.55-1.55v-11.37zm1.59 3.13v2.53h3.95q1.33-0.18 1.33-1.29-0.24-1.24-1.15-1.24zm0 5.67v2.53h5.92q1.12-0.27 1.12-1.12v-0.3q-0.22-1.11-1.38-1.11z"/>
+            <path d="m179.62 342.17q0.16 0.06 1.11 2.62 1.59 3.75 4.68 11.76l-0.04 0.05h-3.22q-0.12 0-1.37-3.31l-0.05-0.04h-4.76q-0.22 0.32-1.33 3.35h-3.22l-0.09-0.09 5.45-14.34zm-1.37 4.94l-1.11 3h2.36l-1.21-3z"/>
+            <path d="m190.59 342.13h2.96l0.08 0.08v11.26h10.1l0.08 0.08v2.96l-0.08 0.09h-11.69l-1.54-1.55v-12.84z"/>
+            <path d="m217.96 342.17q0.16 0.06 1.11 2.62 1.59 3.75 4.68 11.76l-0.04 0.05h-3.22q-0.12 0-1.37-3.31l-0.05-0.04h-4.76q-0.22 0.32-1.33 3.35h-3.22l-0.09-0.09 5.45-14.34zm-1.37 4.94l-1.11 3h2.36l-1.21-3z"/>
+            <path d="m234.27 342.13h6.44l0.09 0.08v2.97l-0.09 0.08h-6.39q-2.1 0-3.18 1.94-0.17 0.49-0.17 0.85v2.62q0 1.68 2.14 2.58 0.62 0.21 1.21 0.22h0.47q1.42-0.01 2.62-1.25l0.25-0.34v-0.95h-3.47l-0.09-0.08v-2.97l0.09-0.08h5.07l1.54 1.54v2.75q0 1.63-2.49 3.43-1.79 1.08-3.57 1.08h-0.47q-3.37 0-5.58-3.05-0.86-1.45-0.86-2.7v-2.97q0-2.69 3.01-4.81 1.82-0.94 3.43-0.94z"/>
+            <path d="m248.21 342.13h11.68l0.09 0.08v2.97l-0.09 0.08h-10.09v2.54h7.56l0.09 0.08v2.97l-0.09 0.08h-7.56v2.54h10.09l0.09 0.08v2.96l-0.09 0.09h-11.68l-1.54-1.55v-11.37z"/>
+            <path d="m265.93 342.13h2.79l7.3 9.19v-9.11l0.08-0.08h2.97l0.08 0.08v14.3l-0.08 0.09h-2.84q-0.3-0.26-6.96-8.8-0.25-0.22-0.25-0.35h-0.05v9.06l-0.08 0.09h-2.96l-0.09-0.09v-14.3z"/>
+            <path d="m291.41 342.13h0.47q3.45 0 5.54 2.15 0.86 1.07 0.86 1.97v0.21l-0.09 0.09h-2.92q-0.49-0.65-1.25-0.9-1.08-0.39-2.1-0.39h-0.55q-2.8 0.23-3.27 1.25v0.04q0 0.94 4.98 1.42 2.08 0.34 3.35 0.94 1.85 1.12 1.85 3.05v0.52q0 1.59-2.11 3-1.94 1.12-4.29 1.12h-0.47q-3.46 0-5.54-2.15-0.86-1.07-0.86-1.97v-0.22l0.09-0.08h2.92q0.49 0.65 1.24 0.9 1.08 0.38 2.11 0.39h0.55q2.79-0.23 3.27-1.25v-0.04q0-0.94-4.98-1.42-2.09-0.34-3.36-0.95-1.84-1.11-1.84-3.05v-0.51q0-1.6 2.1-3.01 1.95-1.11 4.3-1.11z"/>
+            <path d="m317.59 342.1h2.92l0.08 0.08v14.33l-0.08 0.09h-2.92l-0.09-0.09v-14.33z"/>
+            <path d="m326.61 342.13h2.8l7.29 9.19v-9.11l0.09-0.08h2.96l0.09 0.08v14.3l-0.09 0.09h-2.83q-0.3-0.26-6.96-8.8-0.25-0.22-0.25-0.35h-0.05v9.06l-0.08 0.09h-2.97l-0.08-0.09v-14.3z"/>
+            <path d="m347.24 342.13h5.41q2.73 0 4.98 2.57 1.38 1.96 1.38 3.74v1.85q0 2.41-2.19 4.59-2.03 1.72-4.17 1.72h-5.41l-1.54-1.55v-11.37zm1.59 3.13v8.2h3.65q2.12 0 3.22-2.32 0.17-0.61 0.17-1.07v-1.42q0-2.23-2.49-3.26-0.46-0.13-0.9-0.13z"/>
+            <path d="m364.95 342.13h2.97l0.08 0.08v8.55q0 1.59 2.23 2.53 0.65 0.17 1.12 0.18h0.35q2.26-0.01 3.26-2.15l0.08-0.56v-8.55l0.09-0.08h2.96l0.09 0.08v8.64q0 2.53-2.66 4.55-1.87 1.2-3.65 1.2h-0.69q-2.8 0-5.11-2.53-1.2-1.7-1.2-3.22v-8.64z"/>
+            <path d="m390.44 342.13h0.47q3.45 0 5.54 2.15 0.86 1.07 0.86 1.97v0.21l-0.09 0.09h-2.92q-0.49-0.65-1.25-0.9-1.08-0.39-2.1-0.39h-0.56q-2.79 0.23-3.26 1.25v0.04q0 0.94 4.98 1.42 2.08 0.34 3.35 0.94 1.85 1.12 1.85 3.05v0.52q0 1.59-2.11 3-1.94 1.12-4.29 1.12h-0.47q-3.46 0-5.54-2.15-0.86-1.07-0.86-1.97v-0.22l0.08-0.08h2.92q0.5 0.65 1.25 0.9 1.08 0.38 2.1 0.39h0.56q2.79-0.23 3.27-1.25v-0.04q0-0.94-4.98-1.42-2.09-0.34-3.36-0.95-1.84-1.11-1.84-3.05v-0.51q0-1.6 2.1-3.01 1.94-1.11 4.3-1.11z"/>
+            <path d="m402.96 342.13h13.14l0.08 0.08v2.97l-0.08 0.08h-4.98v11.25l-0.09 0.09h-3l-0.09-0.09v-11.25h-4.98l-0.08-0.08v-2.97z"/>
+            <path d="m423.59 342.08h7.51q2.44 0.01 3.87 2.54 0.39 0.87 0.39 1.72v0.34q0 2.26-2.45 3.78-1.04 0.43-1.85 0.43h-0.43v0.04l4.68 5.62v0.05h-3.94l-4.82-5.71h-1.37v5.62l-0.08 0.09h-2.97l-0.08-0.09v-12.88zm1.59 3.14v2.53h5.75q1.05 0 1.29-1.12v-0.3q-0.28-1.11-1.12-1.11z"/>
+            <path d="m441.3 342.1h2.92l0.09 0.08v14.33l-0.09 0.09h-2.92l-0.08-0.09v-14.33z"/>
+            <path d="m458.53 342.17q0.16 0.06 1.12 2.62 1.59 3.75 4.68 11.76l-0.04 0.05h-3.22q-0.13 0-1.38-3.31l-0.04-0.04h-4.77q-0.21 0.32-1.33 3.35h-3.22l-0.09-0.09 5.46-14.34zm-1.38 4.94l-1.11 3h2.36l-1.2-3z"/>
+            <path d="m470.18 342.1h2.92l0.08 0.08v14.33l-0.08 0.09h-2.92l-0.09-0.09v-14.33z"/>
+            <path d="m485.52 342.13h0.47q3.45 0 5.54 2.15 0.86 1.07 0.86 1.97v0.21l-0.09 0.09h-2.92q-0.49-0.65-1.25-0.9-1.08-0.39-2.1-0.39h-0.56q-2.79 0.23-3.26 1.25v0.04q0 0.94 4.98 1.42 2.08 0.34 3.35 0.94 1.85 1.12 1.85 3.05v0.52q0 1.59-2.11 3-1.94 1.12-4.29 1.12h-0.47q-3.46 0-5.54-2.15-0.86-1.07-0.86-1.97v-0.22l0.08-0.08h2.93q0.49 0.65 1.24 0.9 1.08 0.38 2.1 0.39h0.56q2.79-0.23 3.27-1.25v-0.04q0-0.94-4.98-1.42-2.09-0.34-3.36-0.95-1.84-1.11-1.84-3.05v-0.51q0-1.6 2.1-3.01 1.94-1.11 4.3-1.11z"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <button id="theme-btn" onclick="toggleTheme()" title="Alternar tema">🌙</button>
+  </div>
+  <div class="hd-center">
+    <div class="hd-month" id="hd-month">—</div>
+    <div class="hd-days"  id="hd-days">—</div>
+  </div>
+  <div class="hd-right">
+    <div class="hd-total">Total geral: <span id="hd-grand">0</span></div>
+    <div class="hd-clock" id="hd-clock">00:00:00</div>
+    <div class="hd-shift" id="hd-shift">—</div>
+  </div>
+</header>
+
+<!-- GRID -->
+<main id="grid"></main>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="ft-label">RANKING</div>
+  <div id="ft-ranking"></div>
+  <div class="ft-sep"></div>
+  <div class="ft-label">Saldo global: <span id="ft-saldo">—</span></div>
+  <div class="ft-sep"></div>
+  <div id="ft-update">Aguardando dados…</div>
+</footer>
+
+<script>
+'use strict';
+
+/* ── Utilitários ──────────────────────────────────────────────────────────── */
+const fmt  = n => Number(n).toLocaleString('pt-BR');
+const fmtR = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const TIER_CLS   = ['bb0','bb1','bb2','bb3'];
+const TIER_LABEL = ['ABAIXO','B1','B2','B3'];
+const BAR_CLS    = ['t0','t1','t2','t3'];
+
+const MESES = ['','JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO',
+               'JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+/* ── Relógio ──────────────────────────────────────────────────────────────── */
+function currentShiftLabel() {
+  const h = new Date().getHours();
+  if (h >= 6  && h < 14) return '1º TURNO · 06:00 – 14:00';
+  if (h >= 14 && h < 22) return '2º TURNO · 14:00 – 22:00';
+  return 'FORA DO TURNO';
+}
+
+function tickClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('hd-clock').textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  document.getElementById('hd-shift').textContent = currentShiftLabel();
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+/* ── Agrupamento machine_id → { t1, t2 } ─────────────────────────────────── */
+function groupMachines(items) {
+  const map = {};
+  for (const item of items) {
+    if (!map[item.machine_id]) map[item.machine_id] = { id: item.machine_id, t1: null, t2: null };
+    if (item.shift === 1) map[item.machine_id].t1 = item;
+    else                  map[item.machine_id].t2 = item;
+  }
+  return Object.values(map).sort((a, b) => a.id - b.id);
+}
+
+/* ── Ranking por média de pct_meta1 entre T1 e T2 ────────────────────────── */
+function calcRanking(machines) {
+  return machines
+    .map(m => {
+      const p1    = m.t1 ? m.t1.pct_meta1 : 0;
+      const p2    = m.t2 ? m.t2.pct_meta1 : 0;
+      const count = (m.t1 ? 1 : 0) + (m.t2 ? 1 : 0);
+      return { id: m.id, avg: count > 0 ? (p1 + p2) / count : 0 };
+    })
+    .sort((a, b) => b.avg - a.avg);
+}
+
+/* ── HTML de um turno ─────────────────────────────────────────────────────── */
+function shiftHTML(data) {
+  if (!data) {
+    return `<div class="shift-col">
+      <div class="shift-label">—</div>
+      <div class="shift-total">—</div>
+      <div class="bar-wrap"><div class="bar-fill t0" style="width:0%"></div></div>
+      <div class="shift-meta">Meta 1: <span>—</span></div>
+      <div class="bonus-row"><span class="bonus-badge bb0">—</span></div>
+    </div>`;
+  }
+
+  const barW    = data.meta1 > 0
+    ? Math.min((data.total_produced / data.meta1) * 100, 100).toFixed(1)
+    : '0';
+  const bonus   = data.bonus_tier > 0
+    ? `<span class="bonus-value">${fmtR(data.bonus_value)}</span>` : '';
+
+  return `<div class="shift-col">
+    <div class="shift-label">T${data.shift}</div>
+    <div class="shift-total">${fmt(data.total_produced)}</div>
+    <div class="bar-wrap">
+      <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
+    </div>
+    <div class="shift-meta">Meta 1: <span>${fmt(data.meta1)}</span></div>
+    <div class="bonus-row">
+      <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
+      ${bonus}
+    </div>
+  </div>`;
+}
+
+/* ── Render / atualização dos cards no grid ───────────────────────────────── */
+function renderCards(machines, ranking) {
+  const grid   = document.getElementById('grid');
+  const rankMap = {};
+  ranking.forEach((r, i) => { rankMap[r.id] = { pos: i + 1, avg: r.avg }; });
+
+  machines.forEach(m => {
+    const { pos, avg } = rankMap[m.id];
+    const tier3  = [m.t1, m.t2].filter(Boolean).every(s => s.bonus_tier === 3)
+                   && (m.t1 || m.t2);
+    const rkCls  = pos <= 3 ? `rank${pos}` : '';
+    const t3Cls  = tier3 ? 'tier3' : '';
+    const bdgCls = pos <= 3 ? `r${pos}` : 'r4';
+    // Badge: troféu branco com sombra escura — decalque sobre fundo colorido
+    const trophy = pos <= 3
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="white"
+            style="vertical-align:middle;margin-right:3px;
+                   filter:drop-shadow(0 1px 0 rgba(0,0,0,.6)) drop-shadow(0 -1px 0 rgba(0,0,0,.4)) drop-shadow(1px 0 0 rgba(0,0,0,.4)) drop-shadow(-1px 0 0 rgba(0,0,0,.4))"
+            xmlns="http://www.w3.org/2000/svg">
+           <path d="M7 2v2H4a1 1 0 0 0-1 1v3c0 2.55 1.92 4.63 4.39 4.94A6.01 6.01 0 0 0 11 16.91V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.09a6.01 6.01 0 0 0 3.61-3.97C19.08 12.63 21 10.55 21 8V5a1 1 0 0 0-1-1h-3V2H7zm-3 4h3v5.87A3 3 0 0 1 4 9V6zm16 3a3 3 0 0 1-3 2.87V6h3v3z"/>
+         </svg>`
+      : '';
+
+    const inner = `
+      <div class="mcard-header">
+        <span class="mcard-name">MÁQUINA ${m.id}</span>
+        <span class="rank-badge ${bdgCls}">${trophy}${pos}º &nbsp;${avg.toFixed(1)}%</span>
+      </div>
+      <div class="shifts-row">
+        ${shiftHTML(m.t1)}
+        ${shiftHTML(m.t2)}
+      </div>`;
+
+    const cardId = `mcard-${m.id}`;
+    let card = document.getElementById(cardId);
+
+    if (!card) {
+      card = document.createElement('div');
+      card.id = cardId;
+      grid.appendChild(card);
+    }
+
+    card.className   = ['mcard', rkCls, t3Cls].filter(Boolean).join(' ');
+    card.style.order = pos;
+    card.innerHTML   = inner;
+  });
+}
+
+/* ── Render footer ────────────────────────────────────────────────────────── */
+function renderFooter(machines, ranking) {
+  // Ranking horizontal
+  document.getElementById('ft-ranking').innerHTML = ranking.map((r, i) => {
+    const pos = i + 1;
+    const ftBadge = `<span class="ft-rank-num fr${pos}">${pos}º</span>`;
+    return `<div class="ft-rank-item">
+      ${ftBadge}
+      <span class="ft-rank-name">Maq.&nbsp;${r.id}</span>
+      <span class="ft-rank-pct">${r.avg.toFixed(1)}%</span>
+    </div>`;
+  }).join('');
+
+  // Saldo global (soma dos saldos vs meta1 de todos os turnos)
+  let saldo = 0;
+  machines.forEach(m => {
+    if (m.t1) saldo += m.t1.saldo;
+    if (m.t2) saldo += m.t2.saldo;
+  });
+  const color = saldo >= 0 ? '#1D9E75' : '#e05252';
+  document.getElementById('ft-saldo').innerHTML =
+    `<span style="color:${color};font-weight:700">${fmt(saldo)}</span>`;
+
+  document.getElementById('ft-update').textContent =
+    `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+}
+
+/* ── Render header ────────────────────────────────────────────────────────── */
+function renderHeader(data) {
+  const [mm, yyyy] = data.month.split('/');
+  document.getElementById('hd-month').textContent = `${MESES[+mm]} ${yyyy}`;
+  document.getElementById('hd-days').textContent  = `${data.business_days} dias úteis`;
+  document.getElementById('hd-grand').textContent = fmt(data.grand_total);
+}
+
+/* ── Fetch principal ──────────────────────────────────────────────────────── */
+async function fetchData() {
+  try {
+    const res = await fetch('/api/summary');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const machines = groupMachines(data.machines);
+    const ranking  = calcRanking(machines);
+
+    renderHeader(data);
+    renderCards(machines, ranking);
+    renderFooter(machines, ranking);
+  } catch (err) {
+    console.error('Erro ao buscar dados:', err);
+    document.getElementById('ft-update').textContent =
+      `Falha na atualização — ${new Date().toLocaleTimeString('pt-BR')}`;
+  }
+}
+
+/* ── Tema ─────────────────────────────────────────────────────────────────── */
+function toggleTheme() {
+  const root = document.documentElement;
+  const btn  = document.getElementById('theme-btn');
+  const isLight = root.classList.toggle('light');
+  btn.textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('pantex-theme', isLight ? 'light' : 'dark');
+}
+
+// Restaura tema salvo
+(function () {
+  if (localStorage.getItem('pantex-theme') === 'light') {
+    document.documentElement.classList.add('light');
+    document.getElementById('theme-btn').textContent = '☀️';
+  }
+})();
+
+fetchData();
+setInterval(fetchData, 30_000);
+</script>
+</body>
+</html>
