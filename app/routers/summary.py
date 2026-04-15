@@ -129,5 +129,8 @@ def get_summary() -> DashboardSummary:
         business_days=business_days,
         machines=machines,
         grand_total=sum(m.total_produced for m in machines),
+        grand_meta1=sum(m.meta1 for m in machines),
+        grand_meta2=sum(m.meta2 for m in machines),
+        grand_meta3=sum(m.meta3 for m in machines),
         nsm_pct=None,
     )

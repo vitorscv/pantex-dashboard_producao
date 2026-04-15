@@ -38,4 +38,7 @@ class DashboardSummary(BaseModel):
     business_days: int
     machines: list[MachineStatus]
     grand_total: int
+    grand_meta1: int
+    grand_meta2: int
+    grand_meta3: int
     nsm_pct: Optional[float] = None

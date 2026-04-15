@@ -319,6 +319,20 @@
   .ft-rank-pct  { color: var(--green); font-weight: 700; font-size: .85rem; }
 
   #ft-update { font-size: .68rem; color: var(--muted); white-space: nowrap; margin-left: auto; }
+
+  /* ── TOTAIS GLOBAIS ────────────────────────────────────────── */
+  .ft-totals { display: flex; align-items: center; gap: .85rem; flex-shrink: 0; }
+  .ft-tot-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .ft-tot-lbl {
+    font-size: .5rem; font-weight: 700; letter-spacing: .09em;
+    padding: .1rem .35rem; border-radius: 3px; white-space: nowrap;
+  }
+  .ft-tot-meta  { background: rgba(239,159,39,.22); color: var(--yellow); }
+  .ft-tot-plain { color: var(--muted); }
+  .ft-tot-val {
+    font-size: .8rem; font-weight: 700;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -389,6 +403,28 @@
   <div class="ft-sep"></div>
   <div class="ft-label">Saldo global: <span id="ft-saldo">—</span></div>
   <div class="ft-sep"></div>
+  <div class="ft-totals">
+    <div class="ft-tot-cell">
+      <span class="ft-tot-lbl ft-tot-meta">META 1</span>
+      <span class="ft-tot-val" id="ft-grand-meta1">—</span>
+    </div>
+    <div class="ft-tot-cell">
+      <span class="ft-tot-lbl ft-tot-meta">META 2</span>
+      <span class="ft-tot-val" id="ft-grand-meta2">—</span>
+    </div>
+    <div class="ft-tot-cell">
+      <span class="ft-tot-lbl ft-tot-meta">META 3</span>
+      <span class="ft-tot-val" id="ft-grand-meta3">—</span>
+    </div>
+    <div class="ft-tot-cell">
+      <span class="ft-tot-lbl ft-tot-plain">TOTAL</span>
+      <span class="ft-tot-val" id="ft-grand-total" style="color:var(--green)">—</span>
+    </div>
+    <div class="ft-tot-cell">
+      <span class="ft-tot-lbl ft-tot-plain">SALDO</span>
+      <span class="ft-tot-val" id="ft-grand-saldo">—</span>
+    </div>
+  </div>
   <div id="ft-update">Aguardando dados…</div>
 </footer>
 
@@ -568,7 +604,7 @@ function renderCards(machines, ranking) {
 }
 
 /* ── Render footer ────────────────────────────────────────────────────────── */
-function renderFooter(machines, ranking) {
+function renderFooter(machines, ranking, data) {
   // Ranking horizontal
   document.getElementById('ft-ranking').innerHTML = ranking.map((r, i) => {
     const pos = i + 1;
@@ -592,6 +628,16 @@ function renderFooter(machines, ranking) {
 
   document.getElementById('ft-update').textContent =
     `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+
+  // Totais globais
+  const grandSaldo      = data.grand_total - data.grand_meta1;
+  const grandSaldoColor = grandSaldo >= 0 ? '#1D9E75' : '#e05252';
+  document.getElementById('ft-grand-meta1').textContent = fmt(data.grand_meta1);
+  document.getElementById('ft-grand-meta2').textContent = fmt(data.grand_meta2);
+  document.getElementById('ft-grand-meta3').textContent = fmt(data.grand_meta3);
+  document.getElementById('ft-grand-total').textContent = fmt(data.grand_total);
+  document.getElementById('ft-grand-saldo').innerHTML =
+    `<span style="color:${grandSaldoColor}">${fmt(grandSaldo)}</span>`;
 }
 
 /* ── Render header ────────────────────────────────────────────────────────── */
@@ -622,7 +668,7 @@ async function fetchData() {
 
     renderHeader(data);
     renderCards(machines, ranking);
-    renderFooter(machines, ranking);
+    renderFooter(machines, ranking, data);
   } catch (err) {
     console.error('Erro ao buscar dados:', err);
     document.getElementById('ft-update').textContent =
