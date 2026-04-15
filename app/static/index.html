@@ -251,6 +251,10 @@
   .bar-fill.t2 { background: var(--green2); }
   .bar-fill.t3 { background: var(--green3); animation: pulse-bar 1.4s ease-in-out infinite; }
 
+  .shift-pct  { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bar-mini   { height: 3px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .bar-mini .bar-fill.t0 { background: rgba(255,255,255,.55); }
+
   .shift-meta {
     font-size: .58rem; color: var(--muted);
   }
@@ -272,6 +276,12 @@
     font-size: .65rem; font-weight: 700; color: var(--green);
     font-variant-numeric: tabular-nums;
   }
+
+  /* ── SHIFT EXTRA INFO ─────────────────────────────────────── */
+  .shift-extra { font-size: 11px; line-height: 1.5; margin-top: .2rem; }
+  .se-time     { color: #888780; }
+  .se-repair   { color: #EF9F27; }
+  .se-second   { color: #F0997B; }
 
   /* ── FOOTER ────────────────────────────────────────────────── */
   #footer {
@@ -398,9 +408,12 @@ const MESES = ['','JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO',
 
 /* ── Relógio ──────────────────────────────────────────────────────────────── */
 function currentShiftLabel() {
-  const h = new Date().getHours();
-  if (h >= 6  && h < 14) return '1º TURNO · 06:00 – 14:00';
-  if (h >= 14 && h < 22) return '2º TURNO · 14:00 – 22:00';
+  const now  = new Date();
+  const h    = now.getHours();
+  const m    = now.getMinutes();
+  const tot  = h * 60 + m;
+  if (tot >= 6 * 60 && tot < 15 * 60 + 20) return '1º TURNO · 06:00 – 15:20';
+  if (tot >= 15 * 60 + 20)                  return '2º TURNO · 15:20 – 00:00';
   return 'FORA DO TURNO';
 }
 
@@ -437,6 +450,36 @@ function calcRanking(machines) {
     .sort((a, b) => b.avg - a.avg);
 }
 
+/* ── Informações extras do turno (horas, reparo, 2ªQ) ────────────────────── */
+function fmtShiftExtra(data) {
+  let html = '';
+
+  if (data.start_time && data.end_time) {
+    const [sh, sm] = data.start_time.split(':').map(Number);
+    const [eh, em] = data.end_time.split(':').map(Number);
+    let minStart = sh * 60 + sm;
+    let minEnd   = eh * 60 + em;
+    if (minEnd <= minStart) minEnd += 24 * 60; // turno vira meia-noite
+    const diffMin = minEnd - minStart;
+    const h   = Math.floor(diffMin / 60);
+    const m   = diffMin % 60;
+    const dur = h && m ? `${h}h ${m}min` : h ? `${h}h` : `${m}min`;
+    const hDec  = diffMin / 60;
+    const prodH = hDec > 0 ? Math.round(data.total_produced / hDec) : 0;
+    html += `<div class="se-time">${dur} · ${fmt(prodH)} pç/h</div>`;
+  }
+
+  if (data.repair_qty > 0) {
+    html += `<div class="se-repair">↩ ${fmt(data.repair_qty)} rep.</div>`;
+  }
+
+  if (data.second_quality_qty > 0) {
+    html += `<div class="se-second">▽ ${fmt(data.second_quality_qty)} 2ªQ</div>`;
+  }
+
+  return html ? `<div class="shift-extra">${html}</div>` : '';
+}
+
 /* ── HTML de um turno ─────────────────────────────────────────────────────── */
 function shiftHTML(data) {
   if (!data) {
@@ -455,9 +498,15 @@ function shiftHTML(data) {
   const bonus   = data.bonus_tier > 0
     ? `<span class="bonus-value">${fmtR(data.bonus_value)}</span>` : '';
 
+  const pctTxt = Number(data.pct_meta1).toFixed(1).replace('.', ',') + '%';
+
   return `<div class="shift-col">
-    <div class="shift-label">T${data.shift}</div>
+    <div class="shift-label">Turno ${data.shift}</div>
     <div class="shift-total">${fmt(data.total_produced)}</div>
+    <div class="shift-pct">${pctTxt}</div>
+    <div class="bar-mini">
+      <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
+    </div>
     <div class="bar-wrap">
       <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
     </div>
@@ -466,6 +515,7 @@ function shiftHTML(data) {
       <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
       ${bonus}
     </div>
+    ${fmtShiftExtra(data)}
   </div>`;
 }
 
@@ -553,11 +603,19 @@ function renderHeader(data) {
 }
 
 /* ── Fetch principal ──────────────────────────────────────────────────────── */
+let lastFetchedMonth = null;
+
 async function fetchData() {
   try {
     const res = await fetch('/api/summary');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
+    if (lastFetchedMonth !== null && lastFetchedMonth !== data.month) {
+      window.location.reload();
+      return;
+    }
+    lastFetchedMonth = data.month;
 
     const machines = groupMachines(data.machines);
     const ranking  = calcRanking(machines);

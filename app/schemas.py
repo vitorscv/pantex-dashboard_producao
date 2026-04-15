@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -9,6 +9,10 @@ class ProductionEntry(BaseModel):
     machine_id: int = Field(..., ge=1, le=6)
     shift: int = Field(..., ge=1, le=2)
     quantity: int = Field(..., ge=0)
+    repair_qty: int = Field(0, ge=0)
+    second_quality_qty: int = Field(0, ge=0)
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
 
 
 class MachineStatus(BaseModel):
@@ -23,6 +27,10 @@ class MachineStatus(BaseModel):
     bonus_tier: int = Field(..., ge=0, le=3)
     bonus_value: float
     pct_meta1: float
+    repair_qty: int = 0
+    second_quality_qty: int = 0
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
 class DashboardSummary(BaseModel):

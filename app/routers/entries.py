@@ -17,12 +17,22 @@ def create_entry(
     with get_db() as cursor:
         cursor.execute(
             """
-            INSERT INTO prod_entries (entry_date, machine_id, shift, quantity)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO prod_entries
+                (entry_date, machine_id, shift, quantity,
+                 repair_qty, second_quality_qty, start_time, end_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (entry_date, machine_id, shift) DO UPDATE
-                SET quantity = EXCLUDED.quantity
+                SET quantity            = EXCLUDED.quantity,
+                    repair_qty          = EXCLUDED.repair_qty,
+                    second_quality_qty  = EXCLUDED.second_quality_qty,
+                    start_time          = EXCLUDED.start_time,
+                    end_time            = EXCLUDED.end_time
             """,
-            (entry.entry_date, entry.machine_id, entry.shift, entry.quantity),
+            (
+                entry.entry_date, entry.machine_id, entry.shift, entry.quantity,
+                entry.repair_qty, entry.second_quality_qty,
+                entry.start_time, entry.end_time,
+            ),
         )
     return {"ok": True}
 
@@ -32,7 +42,8 @@ def list_entries(year: int, month: int) -> list[dict[str, Any]]:
     with get_db() as cursor:
         cursor.execute(
             """
-            SELECT entry_date, machine_id, shift, quantity
+            SELECT entry_date, machine_id, shift, quantity,
+                   repair_qty, second_quality_qty, start_time, end_time
             FROM prod_entries
             WHERE EXTRACT(YEAR  FROM entry_date) = %s
               AND EXTRACT(MONTH FROM entry_date) = %s

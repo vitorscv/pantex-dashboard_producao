@@ -40,19 +40,40 @@ def get_summary() -> DashboardSummary:
         )
         configs: list[dict[str, Any]] = cursor.fetchall()
 
-        # Totais produzidos no mês agrupados por máquina e turno
+        # Totais produzidos no mês + qualidade + horário do dia mais recente
         cursor.execute(
             """
-            SELECT machine_id, shift, COALESCE(SUM(quantity), 0) AS total_produced
-            FROM prod_entries
-            WHERE EXTRACT(YEAR  FROM entry_date) = %s
-              AND EXTRACT(MONTH FROM entry_date) = %s
-            GROUP BY machine_id, shift
+            SELECT
+                p.machine_id,
+                p.shift,
+                COALESCE(SUM(p.quantity), 0)           AS total_produced,
+                COALESCE(SUM(p.repair_qty), 0)         AS repair_qty,
+                COALESCE(SUM(p.second_quality_qty), 0) AS second_quality_qty,
+                (SELECT p2.start_time
+                 FROM prod_entries p2
+                 WHERE p2.machine_id = p.machine_id
+                   AND p2.shift      = p.shift
+                   AND EXTRACT(YEAR  FROM p2.entry_date) = %s
+                   AND EXTRACT(MONTH FROM p2.entry_date) = %s
+                   AND p2.start_time IS NOT NULL
+                 ORDER BY p2.entry_date DESC LIMIT 1) AS start_time,
+                (SELECT p2.end_time
+                 FROM prod_entries p2
+                 WHERE p2.machine_id = p.machine_id
+                   AND p2.shift      = p.shift
+                   AND EXTRACT(YEAR  FROM p2.entry_date) = %s
+                   AND EXTRACT(MONTH FROM p2.entry_date) = %s
+                   AND p2.end_time IS NOT NULL
+                 ORDER BY p2.entry_date DESC LIMIT 1) AS end_time
+            FROM prod_entries p
+            WHERE EXTRACT(YEAR  FROM p.entry_date) = %s
+              AND EXTRACT(MONTH FROM p.entry_date) = %s
+            GROUP BY p.machine_id, p.shift
             """,
-            (year, month),
+            (year, month, year, month, year, month),
         )
-        totals: dict[tuple[int, int], int] = {
-            (r["machine_id"], r["shift"]): r["total_produced"]
+        totals: dict[tuple[int, int], dict] = {
+            (r["machine_id"], r["shift"]): r
             for r in cursor.fetchall()
         }
 
@@ -60,7 +81,8 @@ def get_summary() -> DashboardSummary:
     for cfg in configs:
         mid: int = cfg["machine_id"]
         shift: int = cfg["shift"]
-        total_produced: int = totals.get((mid, shift), 0)
+        row: dict = totals.get((mid, shift), {})
+        total_produced: int = int(row.get("total_produced", 0))
 
         meta1: int = business_days * cfg["rate1"]
         meta2: int = business_days * cfg["rate2"]
@@ -78,6 +100,10 @@ def get_summary() -> DashboardSummary:
             mult3=cfg["mult3"],
         )
 
+        # start_time / end_time vêm como datetime.time — serializa para "HH:MM:SS"
+        start_t = row.get("start_time")
+        end_t   = row.get("end_time")
+
         machines.append(
             MachineStatus(
                 machine_id=mid,
@@ -91,6 +117,10 @@ def get_summary() -> DashboardSummary:
                 bonus_tier=bonus_tier,
                 bonus_value=bonus_value,
                 pct_meta1=pct_meta1,
+                repair_qty=int(row.get("repair_qty", 0)),
+                second_quality_qty=int(row.get("second_quality_qty", 0)),
+                start_time=str(start_t) if start_t else None,
+                end_time=str(end_t) if end_t else None,
             )
         )
 
