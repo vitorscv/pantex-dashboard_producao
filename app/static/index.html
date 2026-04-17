@@ -25,7 +25,7 @@
     --footer-h:  64px;
   }
 
-  /* ── TEMA CLARO ────────────────────────────────────────────── */
+  /*  TEMA CLARO */
   :root.light {
     --bg:     #dce8f4;
     --card:   #f0f6fc;
@@ -56,7 +56,7 @@
   :root.light .ft-sep           { background: #1a3356; }
   :root.light #theme-btn        { border-color: #3a6a9a; color: #c8d8ea; }
 
-  /* Cards do grid em azul escuro (destaque sobre fundo claro) */
+  /* Cards do grid em azul escuro */
   :root.light .mcard {
     background: #0d2040;
     border-color: #2a5080;
@@ -72,11 +72,11 @@
   :root.light .bonus-value      { color: #27C77A; }
   :root.light .bb0              { background: rgba(255,255,255,.07); color: #7aaad0; }
 
-  /* ── LOGO ──────────────────────────────────────────────────── */
+  /*  LOGO  */
   #logo-wrap { display: flex; align-items: center; }
   #header-logo { height: 48px; width: auto; }
 
-  /* ── BOTÃO DE TEMA ─────────────────────────────────────────── */
+  /*  BOTÃO DE TEMA  */
   #theme-btn {
     background: transparent;
     border: 1px solid var(--border);
@@ -98,7 +98,7 @@
     overflow: hidden;
   }
 
-  /* ── KEYFRAMES ─────────────────────────────────────────────── */
+  /*  KEYFRAMES  */
   @keyframes pulse-border {
     0%,100% { box-shadow: 0 0 0 0 rgba(39,199,122,.55), 0 0 18px 2px rgba(39,199,122,.18); }
     50%      { box-shadow: 0 0 0 4px rgba(39,199,122,.2),  0 0 32px 6px rgba(39,199,122,.32); }
@@ -111,8 +111,36 @@
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes glowGold {
+    0%,100% { border-color: #EF9F27; box-shadow: 0 0 8px 2px rgba(239,159,39,.30); }
+    50%      { border-color: #FFD700; box-shadow: 0 0 18px 4px rgba(255,215,0,.45); }
+  }
+  @keyframes glowSilver {
+    0%,100% { border-color: #B4B2A9; box-shadow: 0 0 6px 1px rgba(180,178,169,.25); }
+    50%      { border-color: #E8E8E8; box-shadow: 0 0 14px 3px rgba(232,232,232,.35); }
+  }
+  @keyframes glowBronze {
+    0%,100% { border-color: #CD7F32; box-shadow: 0 0 6px 1px rgba(205,127,50,.25); }
+    50%      { border-color: #E8A857; box-shadow: 0 0 14px 3px rgba(232,168,87,.35); }
+  }
+  @keyframes bounceTrophy {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+  @keyframes glowPulseGold {
+    0%,100% { filter: drop-shadow(0 0 3px rgba(255,215,0,.5)); }
+    50%      { filter: drop-shadow(0 0 10px rgba(255,215,0,1)) drop-shadow(0 0 18px rgba(255,215,0,.5)); }
+  }
+  @keyframes glowPulseSilver {
+    0%,100% { filter: drop-shadow(0 0 3px rgba(232,232,232,.5)); }
+    50%      { filter: drop-shadow(0 0 10px rgba(232,232,232,1)) drop-shadow(0 0 18px rgba(232,232,232,.5)); }
+  }
+  @keyframes glowPulseBronze {
+    0%,100% { filter: drop-shadow(0 0 3px rgba(232,168,87,.5)); }
+    50%      { filter: drop-shadow(0 0 10px rgba(232,168,87,1)) drop-shadow(0 0 18px rgba(232,168,87,.5)); }
+  }
 
-  /* ── HEADER ────────────────────────────────────────────────── */
+  /*  HEADER  */
   #header {
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--header-h);
@@ -142,7 +170,7 @@
   .hd-clock { font-size: 1.05rem; font-weight: 700; color: #fff; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
   .hd-shift { font-size: .65rem; color: var(--muted); letter-spacing: .07em; }
 
-  /* ── GRID ──────────────────────────────────────────────────── */
+  /*  GRID  */
   #grid {
     position: fixed;
     top: var(--header-h); left: 0; right: 0; bottom: var(--footer-h);
@@ -153,7 +181,7 @@
     gap: .75rem;
   }
 
-  /* ── MACHINE CARD ──────────────────────────────────────────── */
+  /*  MACHINE CARD  */
   .mcard {
     background: var(--card);
     border: 1px solid var(--border);
@@ -170,19 +198,16 @@
     animation: pulse-border 2s ease-in-out infinite;
   }
   .mcard.rank1 {
-    border-color: var(--gold);
     border-width: 2px;
-    box-shadow: 0 0 12px 2px rgba(239,159,39,.25);
+    animation: fade-in .4s ease both, glowGold 1.5s ease-in-out .4s infinite;
   }
   .mcard.rank2 {
-    border-color: var(--silver);
     border-width: 2px;
-    box-shadow: 0 0 10px 1px rgba(180,178,169,.18);
+    animation: fade-in .4s ease both, glowSilver 2s ease-in-out .4s infinite;
   }
   .mcard.rank3 {
-    border-color: var(--bronze);
     border-width: 2px;
-    box-shadow: 0 0 10px 1px rgba(205,127,50,.18);
+    animation: fade-in .4s ease both, glowBronze 2.5s ease-in-out .4s infinite;
   }
 
   .mcard-header {
@@ -203,6 +228,11 @@
     background: var(--gold);
     border-color: var(--gold);
     box-shadow: 0 2px 8px rgba(239,159,39,.5);
+    padding: .45rem 1rem;
+    font-size: 15px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
   }
   /* 2º lugar: fundo prateado sólido */
   .rank-badge.r2 {
@@ -210,6 +240,11 @@
     background: var(--silver);
     border-color: var(--silver);
     box-shadow: 0 2px 6px rgba(180,178,169,.4);
+    padding: .45rem 1rem;
+    font-size: 15px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
   }
   /* 3º lugar: fundo bronze sólido */
   .rank-badge.r3 {
@@ -217,9 +252,14 @@
     background: var(--bronze);
     border-color: var(--bronze);
     box-shadow: 0 2px 6px rgba(205,127,50,.4);
+    padding: .45rem 1rem;
+    font-size: 15px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
   }
 
-  /* ── SHIFTS ROW ────────────────────────────────────────────── */
+  /*  SHIFTS ROW  */
   .shifts-row {
     display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; flex: 1;
   }
@@ -238,7 +278,7 @@
     font-variant-numeric: tabular-nums; line-height: 1;
   }
 
-  /* ── PROGRESS BAR ──────────────────────────────────────────── */
+  /*  PROGRESS BAR  */
   .bar-wrap {
     height: 5px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden;
   }
@@ -260,7 +300,7 @@
   }
   .shift-meta span { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-  /* ── BONUS BADGE ───────────────────────────────────────────── */
+  /*  BONUS BADGE  */
   .bonus-row { display: flex; align-items: center; justify-content: space-between; margin-top: .1rem; }
   .bonus-badge {
     font-size: .56rem; font-weight: 700; letter-spacing: .08em;
@@ -277,13 +317,13 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ── SHIFT EXTRA INFO ─────────────────────────────────────── */
+  /*  SHIFT EXTRA INFO  */
   .shift-extra { font-size: 11px; line-height: 1.5; margin-top: .2rem; }
   .se-time     { color: #888780; }
   .se-repair   { color: #EF9F27; }
   .se-second   { color: #F0997B; }
 
-  /* ── FOOTER ────────────────────────────────────────────────── */
+  /*  FOOTER  */
   #footer {
     position: fixed; bottom: 0; left: 0; right: 0;
     height: var(--footer-h);
@@ -320,7 +360,7 @@
 
   #ft-update { font-size: .68rem; color: var(--muted); white-space: nowrap; margin-left: auto; }
 
-  /* ── TOTAIS GLOBAIS ────────────────────────────────────────── */
+  /*  TOTAIS GLOBAIS  */
   .ft-totals { display: flex; align-items: center; gap: .85rem; flex-shrink: 0; }
   .ft-tot-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .ft-tot-lbl {
@@ -431,7 +471,7 @@
 <script>
 'use strict';
 
-/* ── Utilitários ──────────────────────────────────────────────────────────── */
+/*  Utilitários  */
 const fmt  = n => Number(n).toLocaleString('pt-BR');
 const fmtR = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -442,7 +482,7 @@ const BAR_CLS    = ['t0','t1','t2','t3'];
 const MESES = ['','JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO',
                'JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 
-/* ── Relógio ──────────────────────────────────────────────────────────────── */
+/*  Relógio  */
 function currentShiftLabel() {
   const now  = new Date();
   const h    = now.getHours();
@@ -463,7 +503,7 @@ function tickClock() {
 setInterval(tickClock, 1000);
 tickClock();
 
-/* ── Agrupamento machine_id → { t1, t2 } ─────────────────────────────────── */
+/*  Agrupamento machine_id → { t1, t2 }  */
 function groupMachines(items) {
   const map = {};
   for (const item of items) {
@@ -474,7 +514,7 @@ function groupMachines(items) {
   return Object.values(map).sort((a, b) => a.id - b.id);
 }
 
-/* ── Ranking por média de pct_meta1 entre T1 e T2 ────────────────────────── */
+/*  Ranking por média de pct_meta1 entre T1 e T2  */
 function calcRanking(machines) {
   return machines
     .map(m => {
@@ -486,7 +526,7 @@ function calcRanking(machines) {
     .sort((a, b) => b.avg - a.avg);
 }
 
-/* ── Informações extras do turno (horas, reparo, 2ªQ) ────────────────────── */
+/*  Informações extras do turno (horas, reparo, 2ªQ)  */
 function fmtShiftExtra(data) {
   let html = '';
 
@@ -495,7 +535,7 @@ function fmtShiftExtra(data) {
     const [eh, em] = data.end_time.split(':').map(Number);
     let minStart = sh * 60 + sm;
     let minEnd   = eh * 60 + em;
-    if (minEnd <= minStart) minEnd += 24 * 60; // turno vira meia-noite
+    if (minEnd <= minStart) minEnd += 24 * 60; 
     const diffMin = minEnd - minStart;
     const h   = Math.floor(diffMin / 60);
     const m   = diffMin % 60;
@@ -516,7 +556,7 @@ function fmtShiftExtra(data) {
   return html ? `<div class="shift-extra">${html}</div>` : '';
 }
 
-/* ── HTML de um turno ─────────────────────────────────────────────────────── */
+/*  HTML de um turno  */
 function shiftHTML(data) {
   if (!data) {
     return `<div class="shift-col">
@@ -555,55 +595,169 @@ function shiftHTML(data) {
   </div>`;
 }
 
-/* ── Render / atualização dos cards no grid ───────────────────────────────── */
-function renderCards(machines, ranking) {
-  const grid   = document.getElementById('grid');
-  const rankMap = {};
-  ranking.forEach((r, i) => { rankMap[r.id] = { pos: i + 1, avg: r.avg }; });
+/*  HTML de um turno no card de ranking  */
+function shiftHTMLRank(data) {
+  if (!data) {
+    return `<div class="shift-col">
+      <div class="shift-label" style="text-align:center">—</div>
+      <div class="shift-total">—</div>
+      <div class="bar-wrap"><div class="bar-fill t0" style="width:0%"></div></div>
+      <div class="shift-meta">Meta 1: <span>—</span></div>
+      <div class="bonus-row"><span class="bonus-badge bb0">—</span></div>
+    </div>`;
+  }
 
-  machines.forEach(m => {
-    const { pos, avg } = rankMap[m.id];
-    const tier3  = [m.t1, m.t2].filter(Boolean).every(s => s.bonus_tier === 3)
-                   && (m.t1 || m.t2);
-    const rkCls  = pos <= 3 ? `rank${pos}` : '';
-    const t3Cls  = tier3 ? 'tier3' : '';
-    const bdgCls = pos <= 3 ? `r${pos}` : 'r4';
-    // Badge: troféu branco com sombra escura — decalque sobre fundo colorido
-    const trophy = pos <= 3
-      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="white"
-            style="vertical-align:middle;margin-right:3px;
-                   filter:drop-shadow(0 1px 0 rgba(0,0,0,.6)) drop-shadow(0 -1px 0 rgba(0,0,0,.4)) drop-shadow(1px 0 0 rgba(0,0,0,.4)) drop-shadow(-1px 0 0 rgba(0,0,0,.4))"
+  const barW  = data.meta1 > 0
+    ? Math.min((data.total_produced / data.meta1) * 100, 100).toFixed(1)
+    : '0';
+  const bonus = data.bonus_tier > 0
+    ? `<span class="bonus-value">${fmtR(data.bonus_value)}</span>` : '';
+
+  const pctTxt = Number(data.pct_meta1).toFixed(1).replace('.', ',') + '%';
+
+  return `<div class="shift-col">
+    <div class="shift-label" style="text-align:center;font-size:13px;font-weight:600;letter-spacing:0.8px;color:rgba(255,255,255,.9)">MÁQUINA ${data.machine_id} · TURNO ${data.shift}</div>
+    <div class="shift-total">${fmt(data.total_produced)}</div>
+    <div class="shift-pct">${pctTxt}</div>
+    <div class="bar-mini">
+      <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
+    </div>
+    <div class="shift-meta">Meta 1: <span>${fmt(data.meta1)}</span></div>
+    <div class="bonus-row">
+      <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
+      ${bonus}
+    </div>
+    ${fmtShiftExtra(data)}
+  </div>`;
+}
+
+/*  Render / atualização dos cards no grid  */
+function renderCards(allItems) {
+  const grid = document.getElementById('grid');
+
+  // Ordena os 12 itens por pct_meta1 do maior pro menor
+  const sorted = [...allItems].sort((a, b) => b.total_produced - a.total_produced);
+
+  const RANK_CLS = ['rank1', 'rank2', 'rank3', '', '', ''];
+
+  for (let idx = 0; idx < 6; idx++) {
+    const posOdd   = idx * 2 + 1;
+    const posEven  = idx * 2 + 2;
+    const itemA    = sorted[idx * 2]     || null;
+    const itemB    = sorted[idx * 2 + 1] || null;
+    const cardRank = idx + 1;
+
+    const rkCls = RANK_CLS[idx];
+    const tier3 = itemA && itemB && itemA.bonus_tier === 3 && itemB.bonus_tier === 3;
+    const t3Cls = tier3 ? 'tier3' : '';
+
+    // Troféu realista com copa, alças, emblema numerado e faixa
+    const TROPHY_L   = ['#FFF0A0','#FFFFFF','#F0C878','#AAAAAA','#AAAAAA','#AAAAAA'];
+    const TROPHY_M   = ['#FFD700','#D0D0D0','#CD7F32','#888780','#888780','#888780'];
+    const TROPHY_D   = ['#9B6B0A','#525252','#6B3010','#555555','#555555','#555555'];
+    const GLOW_ANIM  = ['glowPulseGold 1.5s ease-in-out infinite',
+                        'glowPulseSilver 2s ease-in-out infinite',
+                        'glowPulseBronze 2.5s ease-in-out infinite','','',''];
+    const tL = TROPHY_L[idx], tM = TROPHY_M[idx], tD = TROPHY_D[idx];
+    const glowAnim = GLOW_ANIM[idx];
+    const R = cardRank;
+
+    let trophy;
+    if (cardRank <= 3) {
+      trophy = `<svg width="44" height="52" viewBox="0 0 100 118" fill="none" xmlns="http://www.w3.org/2000/svg"
+            style="vertical-align:middle;margin-right:2px;${glowAnim ? `animation:${glowAnim};` : ''}">
+          <defs>
+            <radialGradient id="cg${R}" cx="38%" cy="28%" r="70%">
+              <stop offset="0%" stop-color="${tL}"/>
+              <stop offset="50%" stop-color="${tM}"/>
+              <stop offset="100%" stop-color="${tD}"/>
+            </radialGradient>
+            <radialGradient id="hg${R}" cx="60%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="${tM}"/>
+              <stop offset="100%" stop-color="${tD}"/>
+            </radialGradient>
+            <linearGradient id="sg${R}" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="${tD}"/>
+              <stop offset="50%" stop-color="${tL}"/>
+              <stop offset="100%" stop-color="${tD}"/>
+            </linearGradient>
+            <radialGradient id="eg${R}" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="${tM}" stop-opacity="0.55"/>
+              <stop offset="100%" stop-color="${tD}" stop-opacity="0.88"/>
+            </radialGradient>
+            <linearGradient id="rg${R}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${tM}"/>
+              <stop offset="40%" stop-color="${tL}"/>
+              <stop offset="100%" stop-color="${tM}"/>
+            </linearGradient>
+          </defs>
+          <path d="M27 26 Q10 26 9 44 Q8 60 27 60" stroke="url(#hg${R})" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <path d="M27 26 Q12 26 11 44 Q10 58 27 60" stroke="${tL}" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.4"/>
+          <path d="M73 26 Q90 26 91 44 Q92 60 73 60" stroke="url(#hg${R})" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <path d="M73 26 Q88 26 89 44 Q90 58 73 60" stroke="${tL}" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.3"/>
+          <path d="M22 12 Q50 6 78 12 L74 54 Q70 67 50 69 Q30 67 26 54 Z" fill="url(#cg${R})"/>
+          <ellipse cx="50" cy="12" rx="28" ry="9" fill="url(#sg${R})"/>
+          <ellipse cx="50" cy="10" rx="26" ry="6" fill="${tL}" opacity="0.35"/>
+          <circle cx="50" cy="38" r="19" fill="${tD}" opacity="0.4"/>
+          <circle cx="50" cy="37" r="18" fill="url(#eg${R})"/>
+          <circle cx="50" cy="37" r="17.5" stroke="${tL}" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <text x="50" y="44" text-anchor="middle" font-size="22" font-weight="900" fill="${tL}" font-family="system-ui,-apple-system,sans-serif">${R}</text>
+          <path d="M42 69 L40 78 Q40 82 50 82 Q60 82 60 78 L58 69 Q54 72 50 72 Q46 72 42 69Z" fill="url(#cg${R})"/>
+          <ellipse cx="50" cy="85" rx="22" ry="4" fill="${tD}" opacity="0.3"/>
+          <rect x="29" y="78" width="42" height="9" rx="4.5" fill="url(#cg${R})"/>
+          <rect x="31" y="78" width="38" height="3" rx="1.5" fill="${tL}" opacity="0.25"/>
+          <path d="M14 94 Q50 88 86 94 Q50 101 14 94Z" fill="url(#rg${R})"/>
+          <path d="M20 93 Q50 89 80 93" stroke="${tL}" stroke-width="1" fill="none" opacity="0.4"/>
+          <path d="M14 94 L7 85 L19 89Z" fill="${tD}"/>
+          <path d="M86 94 L93 85 L81 89Z" fill="${tD}"/>
+          <path d="M14 94 Q7 98 12 104 L20 100 Q15 97 17 94Z" fill="${tM}"/>
+          <path d="M86 94 Q93 98 88 104 L80 100 Q85 97 83 94Z" fill="${tM}"/>
+          <path d="M12 104 Q9 108 14 110 L22 107 L20 100Z" fill="${tD}" opacity="0.5"/>
+          <path d="M88 104 Q91 108 86 110 L78 107 L80 100Z" fill="${tD}" opacity="0.5"/>
+        </svg>`;
+    } else {
+      trophy = `<svg width="20" height="20" viewBox="0 0 24 24" fill="${tM}"
+            style="vertical-align:middle;margin-right:3px;opacity:.65"
             xmlns="http://www.w3.org/2000/svg">
            <path d="M7 2v2H4a1 1 0 0 0-1 1v3c0 2.55 1.92 4.63 4.39 4.94A6.01 6.01 0 0 0 11 16.91V19H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.09a6.01 6.01 0 0 0 3.61-3.97C19.08 12.63 21 10.55 21 8V5a1 1 0 0 0-1-1h-3V2H7zm-3 4h3v5.87A3 3 0 0 1 4 9V6zm16 3a3 3 0 0 1-3 2.87V6h3v3z"/>
-         </svg>`
-      : '';
+         </svg>`;
+    }
+
+    const bdgCls = cardRank <= 3 ? `r${cardRank}` : '';
+    const BOUNCE_DUR = ['1.5s','2s','2.5s','','',''];
+    const bounceStyle = BOUNCE_DUR[idx]
+      ? ` style="animation:bounceTrophy ${BOUNCE_DUR[idx]} ease-in-out infinite"` : '';
 
     const inner = `
-      <div class="mcard-header">
-        <span class="mcard-name">MÁQUINA ${m.id}</span>
-        <span class="rank-badge ${bdgCls}">${trophy}${pos}º &nbsp;${avg.toFixed(1)}%</span>
+      <div class="mcard-header" style="justify-content:center">
+        <span class="rank-badge ${bdgCls}"${bounceStyle}>${trophy}${cardRank > 3 ? cardRank + 'º' : ''}</span>
       </div>
       <div class="shifts-row">
-        ${shiftHTML(m.t1)}
-        ${shiftHTML(m.t2)}
+        ${shiftHTMLRank(itemA)}
+        ${shiftHTMLRank(itemB)}
       </div>`;
 
-    const cardId = `mcard-${m.id}`;
+    const cardId = `rank-card-${cardRank}`;
     let card = document.getElementById(cardId);
-
     if (!card) {
       card = document.createElement('div');
       card.id = cardId;
       grid.appendChild(card);
     }
 
-    card.className   = ['mcard', rkCls, t3Cls].filter(Boolean).join(' ');
-    card.style.order = pos;
+    card.className = ['mcard', rkCls, t3Cls].filter(Boolean).join(' ');
+    card.style.order = cardRank;
     card.innerHTML   = inner;
-  });
+  }
+
+ 
+  document.querySelectorAll('[id^="mcard-"]').forEach(el => el.remove());
 }
 
-/* ── Render footer ────────────────────────────────────────────────────────── */
+/*  Render footer  */
 function renderFooter(machines, ranking, data) {
   // Ranking horizontal
   document.getElementById('ft-ranking').innerHTML = ranking.map((r, i) => {
@@ -667,7 +821,7 @@ async function fetchData() {
     const ranking  = calcRanking(machines);
 
     renderHeader(data);
-    renderCards(machines, ranking);
+    renderCards(data.machines);
     renderFooter(machines, ranking, data);
   } catch (err) {
     console.error('Erro ao buscar dados:', err);
