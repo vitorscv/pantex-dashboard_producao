@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import io
 from datetime import timedelta
 
 import pandas as pd
@@ -382,5 +383,16 @@ totals: dict[str, object] = {"DATA": "TOTAL"}
 for c in df.columns[1:]:
     totals[c] = int(df[c].sum())  # type: ignore[arg-type]
 df_final = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
+
+_buf = io.BytesIO()
+df_final.to_excel(_buf, index=False, engine="openpyxl")
+_buf.seek(0)
+st.download_button(
+    label="Exportar Excel",
+    icon="📥",
+    data=_buf,
+    file_name=f"producao_{month:02d}_{year}.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+)
 
 st.dataframe(df_final, use_container_width=True, hide_index=True)

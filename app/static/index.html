@@ -664,7 +664,7 @@ function renderCards(allItems) {
 
     let trophy;
     if (cardRank <= 3) {
-      trophy = `<svg width="44" height="52" viewBox="0 0 100 118" fill="none" xmlns="http://www.w3.org/2000/svg"
+      trophy = `<svg width="32" height="38" viewBox="0 0 100 118" fill="none" xmlns="http://www.w3.org/2000/svg"
             style="vertical-align:middle;margin-right:2px;${glowAnim ? `animation:${glowAnim};` : ''}">
           <defs>
             <radialGradient id="cg${R}" cx="38%" cy="28%" r="70%">
@@ -746,6 +746,7 @@ function renderCards(allItems) {
 
     card.className = ['mcard', rkCls, t3Cls].filter(Boolean).join(' ');
     card.style.order = cardRank;
+    card.style.paddingTop = cardRank <= 3 ? '1rem' : '';
     card.innerHTML   = inner;
   }
 
