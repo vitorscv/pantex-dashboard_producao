@@ -1,0 +1,48 @@
+# Credenciais e configuração local
+.env
+.env.*
+!.env.example
+streamlit_app/.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+.env/
+
+# Build / distribuição
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Ferramentas de desenvolvimento
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Banco de dados local
+*.sqlite
+*.db
