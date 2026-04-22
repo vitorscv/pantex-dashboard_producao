@@ -176,8 +176,8 @@
     top: var(--header-h); left: 0; right: 0; bottom: var(--footer-h);
     padding: 1rem 1rem .75rem;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     gap: .75rem;
   }
 
@@ -261,7 +261,7 @@
 
   /*  SHIFTS ROW  */
   .shifts-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; flex: 1;
+    display: grid; grid-template-columns: 1fr; gap: .5rem; flex: 1;
   }
   .shift-col {
     background: rgba(255,255,255,.04);
@@ -641,26 +641,23 @@ function renderCards(allItems) {
   // Ordena os 12 itens por pct_meta1 do maior pro menor
   const sorted = [...allItems].sort((a, b) => b.total_produced - a.total_produced);
 
-  const RANK_CLS = ['rank1', 'rank2', 'rank3', '', '', ''];
+  const RANK_CLS = ['rank1', 'rank2', 'rank3', '', '', '', '', '', '', '', '', ''];
 
-  for (let idx = 0; idx < 6; idx++) {
-    const posOdd   = idx * 2 + 1;
-    const posEven  = idx * 2 + 2;
-    const itemA    = sorted[idx * 2]     || null;
-    const itemB    = sorted[idx * 2 + 1] || null;
+  for (let idx = 0; idx < 12; idx++) {
+    const item     = sorted[idx] || null;
     const cardRank = idx + 1;
 
-    const rkCls = RANK_CLS[idx];
-    const tier3 = itemA && itemB && itemA.bonus_tier === 3 && itemB.bonus_tier === 3;
+    const rkCls = RANK_CLS[idx] || '';
+    const tier3 = item && item.bonus_tier === 3;
     const t3Cls = tier3 ? 'tier3' : '';
 
     // Troféu realista com copa, alças, emblema numerado e faixa
-    const TROPHY_L   = ['#FFF0A0','#FFFFFF','#F0C878','#AAAAAA','#AAAAAA','#AAAAAA'];
-    const TROPHY_M   = ['#FFD700','#D0D0D0','#CD7F32','#888780','#888780','#888780'];
-    const TROPHY_D   = ['#9B6B0A','#525252','#6B3010','#555555','#555555','#555555'];
+    const TROPHY_L   = ['#FFF0A0','#FFFFFF','#F0C878','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA'];
+    const TROPHY_M   = ['#FFD700','#D0D0D0','#CD7F32','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780'];
+    const TROPHY_D   = ['#9B6B0A','#525252','#6B3010','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555'];
     const GLOW_ANIM  = ['glowPulseGold 1.5s ease-in-out infinite',
                         'glowPulseSilver 2s ease-in-out infinite',
-                        'glowPulseBronze 2.5s ease-in-out infinite','','',''];
+                        'glowPulseBronze 2.5s ease-in-out infinite','','','','','','','','',''];
     const tL = TROPHY_L[idx], tM = TROPHY_M[idx], tD = TROPHY_D[idx];
     const glowAnim = GLOW_ANIM[idx];
     const R = cardRank;
@@ -727,7 +724,7 @@ function renderCards(allItems) {
     }
 
     const bdgCls = cardRank <= 3 ? `r${cardRank}` : '';
-    const BOUNCE_DUR = ['1.5s','2s','2.5s','','',''];
+    const BOUNCE_DUR = ['1.5s','2s','2.5s','','','','','','','','',''];
     const bounceStyle = BOUNCE_DUR[idx]
       ? ` style="animation:bounceTrophy ${BOUNCE_DUR[idx]} ease-in-out infinite"` : '';
 
@@ -736,8 +733,7 @@ function renderCards(allItems) {
         <span class="rank-badge ${bdgCls}"${bounceStyle}>${trophy}${cardRank > 3 ? cardRank + 'º' : ''}</span>
       </div>
       <div class="shifts-row">
-        ${shiftHTMLRank(itemA)}
-        ${shiftHTMLRank(itemB)}
+        ${shiftHTMLRank(item)}
       </div>`;
 
     const cardId = `rank-card-${cardRank}`;
