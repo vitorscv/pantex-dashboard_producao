@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS machine_config (
     mult1       NUMERIC(10, 4) NOT NULL,
     mult2       NUMERIC(10, 4) NOT NULL,
     mult3       NUMERIC(10, 4) NOT NULL,
+    bonus_ref1  TEXT    NOT NULL,
+    bonus_ref2  TEXT    NOT NULL,
+    bonus_ref3  TEXT    NOT NULL,
     PRIMARY KEY (machine_id, shift)
 );
 
