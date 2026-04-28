@@ -565,6 +565,23 @@ function shiftHTML(data) {
       <div class="bar-wrap"><div class="bar-fill t0" style="width:0%"></div></div>
       <div class="shift-meta">Meta 1: <span>—</span></div>
       <div class="bonus-row"><span class="bonus-badge bb0">—</span></div>
+      <div style="display:flex;gap:4px;margin-top:8px">
+        <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid #e0525266">
+          <div style="font-size:10px;color:#e05252">BONUS 1</div>
+          <div style="font-size:12px;font-weight:700;color:#e05252">—</div>
+          <div style="font-size:9px;color:#e05252;opacity:.8">—</div>
+        </div>
+        <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid #e0525266">
+          <div style="font-size:10px;color:#e05252">BONUS 2</div>
+          <div style="font-size:12px;font-weight:700;color:#e05252">—</div>
+          <div style="font-size:9px;color:#e05252;opacity:.8">—</div>
+        </div>
+        <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid #e0525266">
+          <div style="font-size:10px;color:#e05252">BONUS 3</div>
+          <div style="font-size:12px;font-weight:700;color:#e05252">—</div>
+          <div style="font-size:9px;color:#e05252;opacity:.8">—</div>
+        </div>
+      </div>
     </div>`;
   }
 
@@ -590,6 +607,26 @@ function shiftHTML(data) {
     <div class="bonus-row">
       <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
       ${bonus}
+    </div>
+    <div style="display:flex;gap:4px;margin-top:8px">
+      <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid ${data.bonus_tier===1?'#EF9F2766':'#1e2040'}">
+        <div style="font-size:10px;color:${data.bonus_tier===1?'#EF9F27':'#888780'}">BONUS 1</div>
+        <div style="font-size:12px;font-weight:700;color:${data.bonus_tier===1?'#EF9F27':'#888780'}">${fmt(data.rate1)} pç/dia</div>
+        <div style="font-size:9px;color:${data.bonus_tier===1?'#EF9F27':'#888780'};opacity:.8">${data.bonus_ref1}</div>
+        ${data.bonus_tier===1 ? `<div style="font-size:11px;font-weight:600;color:#1D9E75;margin-top:2px">${fmtR(data.bonus_value)}</div>` : ''}
+      </div>
+      <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid ${data.bonus_tier===2?'#5DCAA566':'#1e2040'}">
+        <div style="font-size:10px;color:${data.bonus_tier===2?'#5DCAA5':'#888780'}">BONUS 2</div>
+        <div style="font-size:12px;font-weight:700;color:${data.bonus_tier===2?'#5DCAA5':'#888780'}">${fmt(data.rate2)} pç/dia</div>
+        <div style="font-size:9px;color:${data.bonus_tier===2?'#5DCAA5':'#888780'};opacity:.8">${data.bonus_ref2}</div>
+        ${data.bonus_tier===2 ? `<div style="font-size:11px;font-weight:600;color:#1D9E75;margin-top:2px">${fmtR(data.bonus_value)}</div>` : ''}
+      </div>
+      <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid ${data.bonus_tier===3?'#27C77A66':'#1e2040'}">
+        <div style="font-size:10px;color:${data.bonus_tier===3?'#27C77A':'#888780'}">BONUS 3</div>
+        <div style="font-size:12px;font-weight:700;color:${data.bonus_tier===3?'#27C77A':'#888780'}">${fmt(data.rate3)} pç/dia</div>
+        <div style="font-size:9px;color:${data.bonus_tier===3?'#27C77A':'#888780'};opacity:.8">${data.bonus_ref3}</div>
+        ${data.bonus_tier===3 ? `<div style="font-size:11px;font-weight:600;color:#1D9E75;margin-top:2px">${fmtR(data.bonus_value)}</div>` : ''}
+      </div>
     </div>
     ${fmtShiftExtra(data)}
   </div>`;
@@ -631,6 +668,56 @@ function shiftHTMLRank(data) {
       ${bonus}
     </div>
     ${fmtShiftExtra(data)}
+  </div>`;
+}
+
+/*  Bloco de faixas de bônus renderizado fora do shift-col  */
+function bonusTiersHTML(item) {
+  if (!item) {
+    return `<div style="display:flex;gap:4px;flex-shrink:0">
+      <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid #e0525266">
+        <div style="font-size:10px;color:#e05252">BONUS 1</div>
+        <div style="font-size:12px;font-weight:700;color:#e05252">—</div>
+        <div style="font-size:9px;color:#e05252;opacity:.8">—</div>
+      </div>
+      <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid #e0525266">
+        <div style="font-size:10px;color:#e05252">BONUS 2</div>
+        <div style="font-size:12px;font-weight:700;color:#e05252">—</div>
+        <div style="font-size:9px;color:#e05252;opacity:.8">—</div>
+      </div>
+      <div style="flex:1;background:#0b0c14;border-radius:6px;padding:4px 6px;text-align:center;border:1px solid #e0525266">
+        <div style="font-size:10px;color:#e05252">BONUS 3</div>
+        <div style="font-size:12px;font-weight:700;color:#e05252">—</div>
+        <div style="font-size:9px;color:#e05252;opacity:.8">—</div>
+      </div>
+    </div>`;
+  }
+  const t  = item.bonus_tier;
+  const c1 = t===1?'#EF9F27':'#ffffff', bd1 = t===1?'#EF9F2766':'#e05252', bg1 = t===1?'#0b0c14':'#e05252';
+  const c2 = t===2?'#5DCAA5':'#ffffff', bd2 = t===2?'#5DCAA566':'#e05252', bg2 = t===2?'#0b0c14':'#e05252';
+  const c3 = t===3?'#27C77A':'#ffffff', bd3 = t===3?'#27C77A66':'#e05252', bg3 = t===3?'#0b0c14':'#e05252';
+  const earned = t > 0
+    ? '<div style="font-size:11px;font-weight:600;color:#1D9E75;margin-top:2px">' + fmtR(item.bonus_value) + '</div>'
+    : '';
+  return `<div style="display:flex;gap:4px;flex-shrink:0">
+    <div style="flex:1;background:${bg1};border-radius:6px;padding:4px 6px;text-align:center;border:1px solid ${bd1}">
+      <div style="font-size:10px;color:${c1}">BONUS 1</div>
+      <div style="font-size:12px;font-weight:700;color:${c1}">${fmt(item.rate1)} pç/dia</div>
+      <div style="font-size:9px;color:${c1};opacity:.8">${item.bonus_ref1}</div>
+      ${t===1 ? earned : ''}
+    </div>
+    <div style="flex:1;background:${bg2};border-radius:6px;padding:4px 6px;text-align:center;border:1px solid ${bd2}">
+      <div style="font-size:10px;color:${c2}">BONUS 2</div>
+      <div style="font-size:12px;font-weight:700;color:${c2}">${fmt(item.rate2)} pç/dia</div>
+      <div style="font-size:9px;color:${c2};opacity:.8">${item.bonus_ref2}</div>
+      ${t===2 ? earned : ''}
+    </div>
+    <div style="flex:1;background:${bg3};border-radius:6px;padding:4px 6px;text-align:center;border:1px solid ${bd3}">
+      <div style="font-size:10px;color:${c3}">BONUS 3</div>
+      <div style="font-size:12px;font-weight:700;color:${c3}">${fmt(item.rate3)} pç/dia</div>
+      <div style="font-size:9px;color:${c3};opacity:.8">${item.bonus_ref3}</div>
+      ${t===3 ? earned : ''}
+    </div>
   </div>`;
 }
 
@@ -734,7 +821,8 @@ function renderCards(allItems) {
       </div>
       <div class="shifts-row">
         ${shiftHTMLRank(item)}
-      </div>`;
+      </div>
+      ${bonusTiersHTML(item)}`;
 
     const cardId = `rank-card-${cardRank}`;
     let card = document.getElementById(cardId);

@@ -26,6 +26,12 @@ class MachineStatus(BaseModel):
     saldo: int
     bonus_tier: int = Field(..., ge=0, le=3)
     bonus_value: float
+    rate1: int
+    rate2: int
+    rate3: int
+    bonus_ref1: str
+    bonus_ref2: str
+    bonus_ref3: str
     pct_meta1: float
     repair_qty: int = 0
     second_quality_qty: int = 0

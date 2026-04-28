@@ -40,7 +40,7 @@ def get_summary() -> DashboardSummary:
         )
         configs: list[dict[str, Any]] = cursor.fetchall()
 
-        # Totais produzidos no mês + qualidade + horário do dia mais recente
+        
         cursor.execute(
             """
             SELECT
@@ -100,7 +100,23 @@ def get_summary() -> DashboardSummary:
             mult3=cfg["mult3"],
         )
 
-        # start_time / end_time vêm como datetime.time — serializa para "HH:MM:SS"
+        mult1 = cfg["mult1"]
+        mult2 = cfg["mult2"]
+        mult3 = cfg["mult3"]
+        rate1 = cfg["rate1"]
+        rate2 = cfg["rate2"]
+        rate3 = cfg["rate3"]
+
+        b1_max = round((meta2 - meta1) * mult1 + 100, 2)
+        bonus_ref1 = f"R$100,00 a R${b1_max:.2f}".replace('.', ',')
+
+        b2_min = round((meta2 - meta1) * mult2 + 100, 2)
+        b2_max = round((meta3 - meta1) * mult2 + 100, 2)
+        bonus_ref2 = f"R${b2_min:.2f} a R${b2_max:.2f}".replace('.', ',')
+
+        b3_min = round((meta3 - meta1) * mult3 + 100, 2)
+        bonus_ref3 = f"ACIMA R${b3_min:.2f}".replace('.', ',')
+
         start_t = row.get("start_time")
         end_t   = row.get("end_time")
 
@@ -116,6 +132,12 @@ def get_summary() -> DashboardSummary:
                 saldo=saldo,
                 bonus_tier=bonus_tier,
                 bonus_value=bonus_value,
+                rate1=rate1,
+                rate2=rate2,
+                rate3=rate3,
+                bonus_ref1=bonus_ref1,
+                bonus_ref2=bonus_ref2,
+                bonus_ref3=bonus_ref3,
                 pct_meta1=pct_meta1,
                 repair_qty=int(row.get("repair_qty", 0)),
                 second_quality_qty=int(row.get("second_quality_qty", 0)),
