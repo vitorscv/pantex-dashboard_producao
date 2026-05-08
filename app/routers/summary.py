@@ -1,20 +1,24 @@
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.database import get_db
 from app.schemas import DashboardSummary, MachineStatus
 from app.services.bonus import build_bonus_display, calculate_bonus
+from app.services.calendar_svc import get_business_days
 
 router = APIRouter()
 
 
 @router.get("/summary", response_model=DashboardSummary)
-def get_summary() -> DashboardSummary:
+def get_summary(
+    year: int | None = Query(default=None),
+    month: int | None = Query(default=None),
+) -> DashboardSummary:
     today = date.today()
-    year: int = today.year
-    month: int = today.month
+    year = year if year is not None else today.year
+    month = month if month is not None else today.month
 
     with get_db() as cursor:
         # Dias úteis do mês atual
@@ -26,7 +30,7 @@ def get_summary() -> DashboardSummary:
             (year, month),
         )
         row: dict[str, Any] | None = cursor.fetchone()
-        business_days: int = row["business_days"] if row else 0
+        business_days: int = row["business_days"] if row else get_business_days(year, month)
 
         # Configurações de máquina
         cursor.execute(

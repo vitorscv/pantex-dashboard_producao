@@ -161,8 +161,23 @@
   .hd-title { font-size: .78rem; font-weight: 600; letter-spacing: .1em; color: var(--muted); }
 
   .hd-center { text-align: center; }
+  .hd-nav { display: flex; align-items: center; gap: .6rem; }
+  .hd-month-wrap { text-align: center; min-width: 140px; }
   .hd-month { font-size: 1rem; font-weight: 700; color: #fff; letter-spacing: .06em; }
   .hd-days  { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+  .nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: .2rem .55rem;
+    font-size: .8rem;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    line-height: 1.6;
+  }
+  .nav-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+  .nav-btn:disabled { opacity: .25; cursor: default; }
 
   .hd-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
   .hd-total { font-size: .7rem; color: var(--muted); }
@@ -176,7 +191,7 @@
     top: var(--header-h); left: 0; right: 0; bottom: var(--footer-h);
     padding: 1rem 1rem .75rem;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(3, 1fr);
     gap: .75rem;
   }
@@ -423,8 +438,14 @@
     <button id="theme-btn" onclick="toggleTheme()" title="Alternar tema">🌙</button>
   </div>
   <div class="hd-center">
-    <div class="hd-month" id="hd-month">—</div>
-    <div class="hd-days"  id="hd-days">—</div>
+    <div class="hd-nav">
+      <button class="nav-btn" id="btn-prev" onclick="navMonth(-1)" title="Mês anterior">◀</button>
+      <div class="hd-month-wrap">
+        <div class="hd-month" id="hd-month">—</div>
+        <div class="hd-days"  id="hd-days">—</div>
+      </div>
+      <button class="nav-btn" id="btn-next" onclick="navMonth(1)" title="Próximo mês">▶</button>
+    </div>
   </div>
   <div class="hd-right">
     <div class="hd-total">Total geral: <span id="hd-grand">0</span></div>
@@ -725,12 +746,12 @@ function bonusTiersHTML(item) {
 function renderCards(allItems) {
   const grid = document.getElementById('grid');
 
-  // Ordena os 12 itens por pct_meta1 do maior pro menor
+  // Ordena os 14 itens por pct_meta1 do maior pro menor
   const sorted = [...allItems].sort((a, b) => b.total_produced - a.total_produced);
 
-  const RANK_CLS = ['rank1', 'rank2', 'rank3', '', '', '', '', '', '', '', '', ''];
+  const RANK_CLS = ['rank1', 'rank2', 'rank3', '', '', '', '', '', '', '', '', '', '', ''];
 
-  for (let idx = 0; idx < 12; idx++) {
+  for (let idx = 0; idx < 14; idx++) {
     const item     = sorted[idx] || null;
     const cardRank = idx + 1;
 
@@ -739,12 +760,12 @@ function renderCards(allItems) {
     const t3Cls = tier3 ? 'tier3' : '';
 
     // Troféu realista com copa, alças, emblema numerado e faixa
-    const TROPHY_L   = ['#FFF0A0','#FFFFFF','#F0C878','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA'];
-    const TROPHY_M   = ['#FFD700','#D0D0D0','#CD7F32','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780'];
-    const TROPHY_D   = ['#9B6B0A','#525252','#6B3010','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555'];
+    const TROPHY_L   = ['#FFF0A0','#FFFFFF','#F0C878','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA','#AAAAAA'];
+    const TROPHY_M   = ['#FFD700','#D0D0D0','#CD7F32','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780','#888780'];
+    const TROPHY_D   = ['#9B6B0A','#525252','#6B3010','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555','#555555'];
     const GLOW_ANIM  = ['glowPulseGold 1.5s ease-in-out infinite',
                         'glowPulseSilver 2s ease-in-out infinite',
-                        'glowPulseBronze 2.5s ease-in-out infinite','','','','','','','','',''];
+                        'glowPulseBronze 2.5s ease-in-out infinite','','','','','','','','','','',''];
     const tL = TROPHY_L[idx], tM = TROPHY_M[idx], tD = TROPHY_D[idx];
     const glowAnim = GLOW_ANIM[idx];
     const R = cardRank;
@@ -811,7 +832,7 @@ function renderCards(allItems) {
     }
 
     const bdgCls = cardRank <= 3 ? `r${cardRank}` : '';
-    const BOUNCE_DUR = ['1.5s','2s','2.5s','','','','','','','','',''];
+    const BOUNCE_DUR = ['1.5s','2s','2.5s','','','','','','','','','','',''];
     const bounceStyle = BOUNCE_DUR[idx]
       ? ` style="animation:bounceTrophy ${BOUNCE_DUR[idx]} ease-in-out infinite"` : '';
 
@@ -879,12 +900,31 @@ function renderFooter(machines, ranking, data) {
     `<span style="color:${grandSaldoColor}">${fmt(grandSaldo)}</span>`;
 }
 
+/* ── Navegação de mês ─────────────────────────────────────────────────────── */
+const _now = new Date();
+let viewYear  = _now.getFullYear();
+let viewMonth = _now.getMonth() + 1;
+
+function _isCurrentMonth() {
+  const n = new Date();
+  return viewYear === n.getFullYear() && viewMonth === n.getMonth() + 1;
+}
+
+function navMonth(delta) {
+  viewMonth += delta;
+  if (viewMonth < 1)  { viewMonth = 12; viewYear--; }
+  if (viewMonth > 12) { viewMonth = 1;  viewYear++; }
+  document.getElementById('btn-next').disabled = _isCurrentMonth();
+  fetchData();
+}
+
 /* ── Render header ────────────────────────────────────────────────────────── */
 function renderHeader(data) {
   const [mm, yyyy] = data.month.split('/');
   document.getElementById('hd-month').textContent = `${MESES[+mm]} ${yyyy}`;
   document.getElementById('hd-days').textContent  = `${data.business_days} dias úteis`;
   document.getElementById('hd-grand').textContent = fmt(data.grand_total);
+  document.getElementById('btn-next').disabled = _isCurrentMonth();
 }
 
 /* ── Fetch principal ──────────────────────────────────────────────────────── */
@@ -892,15 +932,21 @@ let lastFetchedMonth = null;
 
 async function fetchData() {
   try {
-    const res = await fetch('/api/summary');
+    const isCurrent = _isCurrentMonth();
+    const url = isCurrent
+      ? '/api/summary'
+      : `/api/summary?year=${viewYear}&month=${viewMonth}`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    if (lastFetchedMonth !== null && lastFetchedMonth !== data.month) {
-      window.location.reload();
-      return;
+    if (isCurrent) {
+      if (lastFetchedMonth !== null && lastFetchedMonth !== data.month) {
+        window.location.reload();
+        return;
+      }
+      lastFetchedMonth = data.month;
     }
-    lastFetchedMonth = data.month;
 
     const machines = groupMachines(data.machines);
     const ranking  = calcRanking(machines);

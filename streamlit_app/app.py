@@ -178,7 +178,7 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
             )
 
         # ── Linha por máquina ───────────────────────────────────────────────
-        for i in range(1, 7):
+        for i in range(1, 8):
             c_lbl, c0, c1, c2, c3, c4 = st.columns([0.7, 1.5, 0.9, 0.9, 1.5, 1.5])
 
             c_lbl.markdown(
@@ -231,7 +231,7 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
 
         # ── Total do turno ──────────────────────────────────────────────────
         total: int = sum(
-            parse_qty(raw_values[(i, shift)], f"M{i}")[0] for i in range(1, 7)
+            parse_qty(raw_values[(i, shift)], f"M{i}")[0] for i in range(1, 8)
         )
         st.markdown(
             f"<div style='margin-top:.75rem;padding:.55rem 1rem;"
@@ -326,14 +326,48 @@ if st.button("⚡ Lançar Produção", type="primary", use_container_width=True)
 st.divider()
 
 # ── Tabela do mês ──────────────────────────────────────────────────────────────
-st.markdown(
-    f"<p style='color:#ffffff;font-size:1rem;font-weight:700;"
-    f"letter-spacing:.06em;margin-bottom:.5rem;'>"
-    f"LANÇAMENTOS — {MESES_PT[today.month].upper()} {today.year}</p>",
-    unsafe_allow_html=True,
-)
+if "view_year" not in st.session_state:
+    st.session_state.view_year = today.year
+if "view_month" not in st.session_state:
+    st.session_state.view_month = today.month
 
-year, month = today.year, today.month
+def _prev_month() -> None:
+    if st.session_state.view_month == 1:
+        st.session_state.view_month = 12
+        st.session_state.view_year -= 1
+    else:
+        st.session_state.view_month -= 1
+
+def _next_month() -> None:
+    if st.session_state.view_month == 12:
+        st.session_state.view_month = 1
+        st.session_state.view_year += 1
+    else:
+        st.session_state.view_month += 1
+
+year, month = st.session_state.view_year, st.session_state.view_month
+is_current = (year == today.year and month == today.month)
+
+nav_left, nav_title, nav_right, nav_reset = st.columns([1, 6, 1, 2])
+with nav_left:
+    st.button("◀", on_click=_prev_month, use_container_width=True, key="btn_prev")
+with nav_title:
+    st.markdown(
+        f"<p style='color:#ffffff;font-size:1rem;font-weight:700;"
+        f"letter-spacing:.06em;margin-bottom:.5rem;text-align:center;'>"
+        f"LANÇAMENTOS — {MESES_PT[month].upper()} {year}</p>",
+        unsafe_allow_html=True,
+    )
+with nav_right:
+    st.button("▶", on_click=_next_month, use_container_width=True, key="btn_next",
+              disabled=is_current)
+with nav_reset:
+    if not is_current:
+        if st.button("Mês atual", use_container_width=True, key="btn_reset"):
+            st.session_state.view_year = today.year
+            st.session_state.view_month = today.month
+            st.rerun()
+
 _, last_day = calendar.monthrange(year, month)
 
 try:
@@ -355,7 +389,7 @@ for day in range(1, last_day + 1):
     row: dict[str, object] = {"DATA": f"{day:02d}/{month:02d}"}
     tot_t1 = tot_t2 = rep_t1 = rep_t2 = seg_t1 = seg_t2 = 0
 
-    for m in range(1, 7):
+    for m in range(1, 8):
         e1 = data_map.get((day, m, 1)) or {}
         e2 = data_map.get((day, m, 2)) or {}
         v1 = int(e1.get("quantity") or 0)

@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 class ProductionEntry(BaseModel):
     entry_date: date
-    machine_id: int = Field(..., ge=1, le=6)
+    machine_id: int = Field(..., ge=1, le=7)
     shift: int = Field(..., ge=1, le=2)
     quantity: int = Field(..., ge=0)
     repair_qty: int = Field(0, ge=0)
