@@ -207,6 +207,7 @@
     transition: border-color .5s ease, box-shadow .5s ease;
     animation: fade-in .4s ease both;
     overflow: hidden;
+    min-height: 0;
   }
   .mcard.tier3 {
     border-color: var(--green3) !important;
@@ -701,11 +702,6 @@ function shiftHTMLRank(data) {
       <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
       ${bonus}
     </div>
-    ${(data.mult1 != null) ? `<div style="font-size:9px;color:var(--muted);margin-top:3px;text-align:center">
-      por 1.000 peças &nbsp;·&nbsp; B1 <span style="color:#EF9F27">${fmtPeca(data.mult1)}</span>
-      &nbsp;·&nbsp; B2 <span style="color:#5DCAA5">${fmtPeca(data.mult2)}</span>
-      &nbsp;·&nbsp; B3 <span style="color:#27C77A">${fmtPeca(data.mult3)}</span>
-    </div>` : ''}
     ${fmtShiftExtra(data)}
   </div>`;
 }
@@ -861,7 +857,12 @@ function renderCards(allItems) {
       <div class="shifts-row">
         ${shiftHTMLRank(item)}
       </div>
-      ${bonusTiersHTML(item)}`;
+      ${bonusTiersHTML(item)}
+      ${item && item.mult1 != null ? `<div style="font-size:11px;color:var(--muted);text-align:center;padding-top:3px;border-top:1px solid var(--border)">
+        a cada 1.000 peças &nbsp;·&nbsp; B1 <span style="color:#EF9F27">${fmtPeca(item.mult1)}</span>
+        &nbsp;·&nbsp; B2 <span style="color:#5DCAA5">${fmtPeca(item.mult2)}</span>
+        &nbsp;·&nbsp; B3 <span style="color:#27C77A">${fmtPeca(item.mult3)}</span>
+      </div>` : ''}`;
 
     const cardId = `rank-card-${cardRank}`;
     let card = document.getElementById(cardId);
