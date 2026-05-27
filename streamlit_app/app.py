@@ -148,9 +148,10 @@ st.divider()
 # raw_values[(mid, shift)]    → str (quantidade)
 # raw_quality[(mid, shift)]   → (reparo_str, segunda_str)
 # time_values[(mid, shift)]   → (start_time | None, end_time | None)
-raw_values:  dict[tuple[int, int], str]                              = {}
-raw_quality: dict[tuple[int, int], tuple[str, str]]                 = {}
-time_values: dict[tuple[int, int], tuple[datetime.time | None, datetime.time | None]] = {}
+raw_values:      dict[tuple[int, int], str]                                           = {}
+raw_quality:     dict[tuple[int, int], tuple[str, str]]                              = {}
+time_values:     dict[tuple[int, int], tuple[datetime.time | None, datetime.time | None]] = {}
+downtime_values: dict[tuple[int, int], tuple[str, str]]                              = {}
 
 COL_HDR = (
     "font-size:.72rem;font-weight:700;letter-spacing:.06em;"
@@ -168,7 +169,7 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
         )
 
         # ── Cabeçalho das colunas ───────────────────────────────────────────
-        hc = st.columns([0.7, 1.5, 0.9, 0.9, 1.5, 1.5])
+        hc = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.2])
         hc[0].markdown(f"<span style='{COL_HDR}color:transparent;'>—</span>", unsafe_allow_html=True)
         hc[1].markdown(f"<span style='{COL_HDR}color:#1D9E75;'>QTD</span>", unsafe_allow_html=True)
         for txt, col in [("REP", hc[2]), ("2ªQ", hc[3]), ("INÍCIO", hc[4]), ("FIM", hc[5])]:
@@ -176,10 +177,12 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
                 f"<span style='{COL_HDR}color:#EF9F27;'>{txt}</span>",
                 unsafe_allow_html=True,
             )
+        hc[6].markdown(f"<span style='{COL_HDR}color:#e05252;'>PARADA</span>", unsafe_allow_html=True)
+        hc[7].markdown(f"<span style='{COL_HDR}color:#e05252;'>OBSERVAÇÃO</span>", unsafe_allow_html=True)
 
         # ── Linha por máquina ───────────────────────────────────────────────
         for i in range(1, 8):
-            c_lbl, c0, c1, c2, c3, c4 = st.columns([0.7, 1.5, 0.9, 0.9, 1.5, 1.5])
+            c_lbl, c0, c1, c2, c3, c4, c5, c6 = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.2])
 
             c_lbl.markdown(
                 f"<p style='color:#6b6a72;font-size:.75rem;font-weight:600;"
@@ -226,8 +229,26 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
                     label_visibility="collapsed",
                 )
 
+            with c5:
+                parada = st.text_input(
+                    f"par_{shift}_{i}",
+                    value="",
+                    placeholder="min",
+                    key=f"t{shift}_m{i}_par",
+                    label_visibility="collapsed",
+                )
+            with c6:
+                obs_txt = st.text_input(
+                    f"obs_{shift}_{i}",
+                    value="",
+                    placeholder="Motivo da parada",
+                    key=f"t{shift}_m{i}_obs",
+                    label_visibility="collapsed",
+                )
+
             raw_quality[(i, shift)] = (rep, seg)
             time_values[(i, shift)] = (ini, fim)
+            downtime_values[(i, shift)] = (parada, obs_txt)
 
         # ── Total do turno ──────────────────────────────────────────────────
         total: int = sum(
@@ -272,7 +293,7 @@ if st.button("⚡ Lançar Produção", type="primary", use_container_width=True)
         entries_to_send = {
             (mid, shift): qty
             for (mid, shift), qty in quantities.items()
-            if qty > 0
+            if qty > 0 or bool(downtime_values.get((mid, shift), ("", ""))[1].strip())
         }
 
         if not entries_to_send:
@@ -288,6 +309,9 @@ if st.button("⚡ Lançar Produção", type="primary", use_container_width=True)
                 second_qty = int(s_raw.strip()) if s_raw.strip().isdigit() else 0
                 h_ini, h_fim = time_values[(machine_id, shift)]
 
+                par_raw, obs_raw = downtime_values.get((machine_id, shift), ("", ""))
+                par_min = int(par_raw.strip()) if par_raw.strip().isdigit() else 0
+
                 payload = {
                     "entry_date":          str(entry_date),
                     "machine_id":          machine_id,
@@ -297,6 +321,8 @@ if st.button("⚡ Lançar Produção", type="primary", use_container_width=True)
                     "second_quality_qty":  second_qty,
                     "start_time":          str(h_ini) if h_ini else None,
                     "end_time":            str(h_fim) if h_fim else None,
+                    "downtime_minutes":    par_min,
+                    "obs":                 obs_raw.strip() or None,
                 }
                 try:
                     resp = requests.post(

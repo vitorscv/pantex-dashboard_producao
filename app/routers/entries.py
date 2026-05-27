@@ -19,19 +19,23 @@ def create_entry(
             """
             INSERT INTO prod_entries
                 (entry_date, machine_id, shift, quantity,
-                 repair_qty, second_quality_qty, start_time, end_time)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                 repair_qty, second_quality_qty, start_time, end_time,
+                 downtime_minutes, obs)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (entry_date, machine_id, shift) DO UPDATE
                 SET quantity            = EXCLUDED.quantity,
                     repair_qty          = EXCLUDED.repair_qty,
                     second_quality_qty  = EXCLUDED.second_quality_qty,
                     start_time          = EXCLUDED.start_time,
-                    end_time            = EXCLUDED.end_time
+                    end_time            = EXCLUDED.end_time,
+                    downtime_minutes    = EXCLUDED.downtime_minutes,
+                    obs                 = EXCLUDED.obs
             """,
             (
                 entry.entry_date, entry.machine_id, entry.shift, entry.quantity,
                 entry.repair_qty, entry.second_quality_qty,
                 entry.start_time, entry.end_time,
+                entry.downtime_minutes, entry.obs,
             ),
         )
     return {"ok": True}

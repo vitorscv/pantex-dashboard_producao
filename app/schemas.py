@@ -13,6 +13,8 @@ class ProductionEntry(BaseModel):
     second_quality_qty: int = Field(0, ge=0)
     start_time: Optional[time] = None
     end_time: Optional[time] = None
+    downtime_minutes: int = Field(0, ge=0)
+    obs: Optional[str] = None
 
 
 class MachineStatus(BaseModel):
@@ -37,6 +39,11 @@ class MachineStatus(BaseModel):
     second_quality_qty: int = 0
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    last_qty: int = 0
+    total_downtime: int = 0
+    mult1: float = 0.0
+    mult2: float = 0.0
+    mult3: float = 0.0
 
 
 class DashboardSummary(BaseModel):
@@ -47,4 +54,5 @@ class DashboardSummary(BaseModel):
     grand_meta1: int
     grand_meta2: int
     grand_meta3: int
+    days_recorded: int = 0
     nsm_pct: Optional[float] = None

@@ -54,6 +54,7 @@ def get_summary(
                 COALESCE(SUM(p.quantity), 0)           AS total_produced,
                 COALESCE(SUM(p.repair_qty), 0)         AS repair_qty,
                 COALESCE(SUM(p.second_quality_qty), 0) AS second_quality_qty,
+                COALESCE(SUM(p.downtime_minutes), 0)   AS total_downtime,
                 (SELECT p2.start_time
                  FROM prod_entries p2
                  WHERE p2.machine_id = p.machine_id
@@ -69,18 +70,37 @@ def get_summary(
                    AND EXTRACT(YEAR  FROM p2.entry_date) = %s
                    AND EXTRACT(MONTH FROM p2.entry_date) = %s
                    AND p2.end_time IS NOT NULL
-                 ORDER BY p2.entry_date DESC LIMIT 1) AS end_time
+                 ORDER BY p2.entry_date DESC LIMIT 1) AS end_time,
+                (SELECT p2.quantity
+                 FROM prod_entries p2
+                 WHERE p2.machine_id = p.machine_id
+                   AND p2.shift      = p.shift
+                   AND EXTRACT(YEAR  FROM p2.entry_date) = %s
+                   AND EXTRACT(MONTH FROM p2.entry_date) = %s
+                 ORDER BY p2.entry_date DESC LIMIT 1) AS last_qty
             FROM prod_entries p
             WHERE EXTRACT(YEAR  FROM p.entry_date) = %s
               AND EXTRACT(MONTH FROM p.entry_date) = %s
             GROUP BY p.machine_id, p.shift
             """,
-            (year, month, year, month, year, month),
+            (year, month, year, month, year, month, year, month),
         )
         totals: dict[tuple[int, int], dict] = {
             (r["machine_id"], r["shift"]): r
             for r in cursor.fetchall()
         }
+
+        cursor.execute(
+            """
+            SELECT COUNT(DISTINCT entry_date) AS days_recorded
+            FROM prod_entries
+            WHERE EXTRACT(YEAR  FROM entry_date) = %s
+              AND EXTRACT(MONTH FROM entry_date) = %s
+            """,
+            (year, month),
+        )
+        dr = cursor.fetchone()
+        days_recorded: int = int(dr["days_recorded"]) if dr else 0
 
     machines: list[MachineStatus] = []
     for cfg in configs:
@@ -88,10 +108,16 @@ def get_summary(
         shift: int = cfg["shift"]
         row: dict = totals.get((mid, shift), {})
         total_produced: int = int(row.get("total_produced", 0))
+        total_downtime: int = int(row.get("total_downtime", 0))
 
-        meta1: int = business_days * cfg["rate1"]
-        meta2: int = business_days * cfg["rate2"]
-        meta3: int = business_days * cfg["rate3"]
+        # minutos produtivos padrão por turno (já descontado 1h almoço)
+        _shift_minutes = {1: 525, 2: 435}
+        standard_min: int = _shift_minutes.get(shift, 525)
+        effective_days: float = max(0.0, business_days - total_downtime / standard_min)
+
+        meta1: int = int(effective_days * cfg["rate1"])
+        meta2: int = int(effective_days * cfg["rate2"])
+        meta3: int = int(effective_days * cfg["rate3"])
         saldo: int = total_produced - meta1
         pct_meta1: float = round(total_produced / meta1 * 100, 1) if meta1 > 0 else 0.0
 
@@ -144,6 +170,11 @@ def get_summary(
                 second_quality_qty=int(row.get("second_quality_qty", 0)),
                 start_time=str(start_t) if start_t else None,
                 end_time=str(end_t) if end_t else None,
+                last_qty=int(row.get("last_qty") or 0),
+                total_downtime=total_downtime,
+                mult1=float(cfg["mult1"]),
+                mult2=float(cfg["mult2"]),
+                mult3=float(cfg["mult3"]),
             )
         )
 
@@ -155,5 +186,6 @@ def get_summary(
         grand_meta1=sum(m.meta1 for m in machines),
         grand_meta2=sum(m.meta2 for m in machines),
         grand_meta3=sum(m.meta3 for m in machines),
+        days_recorded=days_recorded,
         nsm_pct=None,
     )

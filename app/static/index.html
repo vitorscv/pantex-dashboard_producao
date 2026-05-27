@@ -337,6 +337,7 @@
   .se-time     { color: #888780; }
   .se-repair   { color: #EF9F27; }
   .se-second   { color: #F0997B; }
+  .se-downtime { color: #e05252; font-weight: 600; }
 
   /*  FOOTER  */
   #footer {
@@ -448,7 +449,10 @@
     </div>
   </div>
   <div class="hd-right">
-    <div class="hd-total">Total geral: <span id="hd-grand">0</span></div>
+    <div style="display:flex;gap:1.2rem;align-items:baseline;justify-content:flex-end;">
+      <div class="hd-total">Média/dia: <span id="hd-avg">—</span></div>
+      <div class="hd-total">Total geral: <span id="hd-grand">0</span></div>
+    </div>
     <div class="hd-clock" id="hd-clock">00:00:00</div>
     <div class="hd-shift" id="hd-shift">—</div>
   </div>
@@ -493,8 +497,9 @@
 'use strict';
 
 /*  Utilitários  */
-const fmt  = n => Number(n).toLocaleString('pt-BR');
-const fmtR = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmt     = n => Number(n).toLocaleString('pt-BR');
+const fmtR    = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtPeca = v => (v != null && !isNaN(v)) ? fmtR(Number(v) * 1000) : '—';
 
 const TIER_CLS   = ['bb0','bb1','bb2','bb3'];
 const TIER_LABEL = ['ABAIXO','B1','B2','B3'];
@@ -509,8 +514,8 @@ function currentShiftLabel() {
   const h    = now.getHours();
   const m    = now.getMinutes();
   const tot  = h * 60 + m;
-  if (tot >= 6 * 60 && tot < 15 * 60 + 20) return '1º TURNO · 06:00 – 15:20';
-  if (tot >= 15 * 60 + 20)                  return '2º TURNO · 15:20 – 00:00';
+  if (tot >= 6 * 60 && tot < 15 * 60 + 45) return '1º TURNO · 06:00 – 15:45';
+  if (tot >= 15 * 60 + 45)                 return '2º TURNO · 15:45 – 00:00';
   return 'FORA DO TURNO';
 }
 
@@ -558,12 +563,20 @@ function fmtShiftExtra(data) {
     let minEnd   = eh * 60 + em;
     if (minEnd <= minStart) minEnd += 24 * 60; 
     const diffMin = minEnd - minStart;
-    const h   = Math.floor(diffMin / 60);
-    const m   = diffMin % 60;
+    const workMin = Math.max(diffMin - 60, 0); // desconta 1h de almoço
+    const h   = Math.floor(workMin / 60);
+    const m   = workMin % 60;
     const dur = h && m ? `${h}h ${m}min` : h ? `${h}h` : `${m}min`;
-    const hDec  = diffMin / 60;
-    const prodH = hDec > 0 ? Math.round(data.total_produced / hDec) : 0;
+    const hDec  = workMin / 60;
+    const prodH = hDec > 0 ? Math.round((data.last_qty || 0) / hDec) : 0;
     html += `<div class="se-time">${dur} · ${fmt(prodH)} pç/h</div>`;
+  }
+
+  if (data.total_downtime > 0) {
+    const dh = Math.floor(data.total_downtime / 60);
+    const dm = data.total_downtime % 60;
+    const dlbl = dh && dm ? `${dh}h ${dm}min` : dh ? `${dh}h` : `${dm}min`;
+    html += `<div class="se-downtime">⚠ ${dlbl} parada</div>`;
   }
 
   if (data.repair_qty > 0) {
@@ -688,6 +701,11 @@ function shiftHTMLRank(data) {
       <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
       ${bonus}
     </div>
+    ${(data.mult1 != null) ? `<div style="font-size:9px;color:var(--muted);margin-top:3px;text-align:center">
+      /mil pç &nbsp;·&nbsp; M1 <span style="color:#EF9F27">${fmtPeca(data.mult1)}</span>
+      &nbsp;·&nbsp; M2 <span style="color:#5DCAA5">${fmtPeca(data.mult2)}</span>
+      &nbsp;·&nbsp; M3 <span style="color:#27C77A">${fmtPeca(data.mult3)}</span>
+    </div>` : ''}
     ${fmtShiftExtra(data)}
   </div>`;
 }
@@ -924,6 +942,8 @@ function renderHeader(data) {
   document.getElementById('hd-month').textContent = `${MESES[+mm]} ${yyyy}`;
   document.getElementById('hd-days').textContent  = `${data.business_days} dias úteis`;
   document.getElementById('hd-grand').textContent = fmt(data.grand_total);
+  const avg = data.days_recorded > 0 ? fmt(Math.round(data.grand_total / data.days_recorded)) : '—';
+  document.getElementById('hd-avg').textContent = avg;
   document.getElementById('btn-next').disabled = _isCurrentMonth();
 }
 
