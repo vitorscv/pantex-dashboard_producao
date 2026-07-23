@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.routers import entries, summary
 from app.services.scheduler import start_scheduler
+from analytics.router import router as analytics_router
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -24,6 +25,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(entries.router, prefix="/api")
 app.include_router(summary.router, prefix="/api")
+app.include_router(analytics_router, prefix="/analytics")
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -31,6 +33,11 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/tv")
 def serve_tv() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/analytics-view")
+def serve_analytics() -> FileResponse:
+    return FileResponse(STATIC_DIR / "analytics.html")
 
 
 @app.get("/health")

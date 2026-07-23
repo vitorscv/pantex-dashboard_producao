@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantex · Painel Analítico</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:          #f1f4f8;
+    --card:        #ffffff;
+    --border:      #dfe4ea;
+    --text:        #1f2937;
+    --muted:       #64748b;
+    --accent:      #3b5f7a;
+    --accent-soft: rgba(59,95,122,.08);
+    --error:       #a94442;
+    --header-h:    64px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  /*  HEADER  */
+  #header {
+    height: var(--header-h);
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.5rem;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .hd-left { display: flex; align-items: center; gap: .75rem; }
+  .hd-badge {
+    background: var(--accent-soft); color: var(--accent);
+    font-size: .65rem; font-weight: 700; letter-spacing: .14em;
+    padding: .3rem .7rem; border-radius: 4px;
+  }
+  .hd-title { font-size: .9rem; font-weight: 600; color: var(--text); }
+
+  .hd-right { display: flex; align-items: center; gap: 1rem; }
+  .hd-right label { font-size: .75rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+  .hd-right select {
+    font-size: .85rem; padding: .3rem .5rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; color: var(--text);
+  }
+
+  /*  LAYOUT  */
+  #main {
+    max-width: 1100px; margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    text-align: left; background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.1rem; cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    font: inherit; color: inherit;
+  }
+  .stat-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+  .stat-card.active { border-color: var(--accent); background: var(--accent-soft); }
+  .stat-card-title { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+  .stat-card-desc  { font-size: .78rem; color: var(--muted); line-height: 1.4; }
+
+  /*  DETAIL PANEL  */
+  .detail-panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+  }
+  .detail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: .75rem;
+  }
+  .detail-header h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+  #detail-close {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 6px; padding: .3rem .7rem; font-size: .8rem; cursor: pointer;
+  }
+  #detail-close:hover { border-color: var(--accent); color: var(--accent); }
+
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .kpi { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: .85rem 1rem; }
+  .kpi-label {
+    font-size: .7rem; color: var(--muted); letter-spacing: .06em;
+    text-transform: uppercase; margin-bottom: .3rem;
+  }
+  .kpi-value { font-size: 1.35rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .chart-wrap { max-width: 560px; margin: 0 auto; }
+
+  .generic-table { width: 100%; border-collapse: collapse; }
+  .generic-table th, .generic-table td {
+    text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--border); font-size: .85rem;
+  }
+  .generic-table th { color: var(--muted); font-weight: 600; width: 40%; }
+  .generic-table td { color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .msg       { color: var(--muted); font-size: .85rem; padding: 1rem 0; }
+  .msg-error { color: var(--error); }
+
+  @media (max-width: 640px) {
+    #header { height: auto; padding: .8rem 1rem; }
+    .hd-right { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header id="header">
+  <div class="hd-left">
+    <div class="hd-badge">PANTEX</div>
+    <div class="hd-title">Painel Analítico</div>
+  </div>
+  <div class="hd-right">
+    <label>Ano
+      <select id="sel-year"></select>
+    </label>
+    <label>Mês
+      <select id="sel-month"></select>
+    </label>
+  </div>
+</header>
+
+<main id="main">
+  <section id="cards" class="cards-grid">
+    <div class="msg">Carregando estatísticas…</div>
+  </section>
+
+  <section id="detail" class="detail-panel" hidden>
+    <div class="detail-header">
+      <h2 id="detail-title">—</h2>
+      <button id="detail-close">Fechar</button>
+    </div>
+    <div id="detail-body"></div>
+  </section>
+</main>
+
+<script>
+'use strict';
+
+const fmt = n => Number(n).toLocaleString('pt-BR');
+const fmtPct = n => Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+let currentStat = null;
+let chartInstance = null;
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function humanizeKey(key) {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatValue(key, value) {
+  if (typeof value === 'number') {
+    return key.startsWith('pct_') ? fmtPct(value) : fmt(value);
+  }
+  return value == null ? '—' : String(value);
+}
+
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      if (body && body.detail) detail = body.detail;
+    } catch (e) { /* corpo não é JSON, mantém statusText */ }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+function populateSelectors() {
+  const yearSel  = document.getElementById('sel-year');
+  const monthSel = document.getElementById('sel-month');
+  const now      = new Date();
+  const curYear  = now.getFullYear();
+
+  for (let y = curYear - 3; y <= curYear + 1; y++) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === curYear) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+
+  MESES.forEach((name, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx + 1;
+    opt.textContent = name;
+    if (idx + 1 === now.getMonth() + 1) opt.selected = true;
+    monthSel.appendChild(opt);
+  });
+}
+
+async function loadStats() {
+  const cardsEl = document.getElementById('cards');
+  cardsEl.innerHTML = '<div class="msg">Carregando estatísticas…</div>';
+  try {
+    const stats = await fetchJSON('/analytics/stats');
+    if (!stats.length) {
+      cardsEl.innerHTML = '<div class="msg">Nenhuma estatística cadastrada.</div>';
+      return;
+    }
+    cardsEl.innerHTML = '';
+    for (const stat of stats) {
+      const card = document.createElement('button');
+      card.className = 'stat-card';
+      card.dataset.statId = stat.id;
+      card.innerHTML = `<div class="stat-card-title">${escapeHTML(stat.title)}</div>
+                         <div class="stat-card-desc">${escapeHTML(stat.description)}</div>`;
+      card.addEventListener('click', () => selectStat(stat));
+      cardsEl.appendChild(card);
+    }
+  } catch (err) {
+    cardsEl.innerHTML = `<div class="msg msg-error">Não foi possível carregar as estatísticas (${escapeHTML(err.message)}).</div>`;
+  }
+}
+
+function selectStat(stat) {
+  currentStat = stat;
+  document.querySelectorAll('.stat-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.statId === stat.id);
+  });
+  loadDetail();
+}
+
+async function loadDetail() {
+  if (!currentStat) return;
+
+  const detailPanel = document.getElementById('detail');
+  const detailTitle = document.getElementById('detail-title');
+  const detailBody  = document.getElementById('detail-body');
+
+  detailPanel.hidden = false;
+  detailTitle.textContent = currentStat.title;
+  detailBody.innerHTML = '<div class="msg">Carregando…</div>';
+
+  const year  = document.getElementById('sel-year').value;
+  const month = document.getElementById('sel-month').value;
+
+  try {
+    const data = await fetchJSON(`/analytics/${currentStat.id}?year=${year}&month=${month}`);
+    if (currentStat.id === 'qualidade') {
+      renderQualidade(data);
+    } else {
+      renderGeneric(data);
+    }
+  } catch (err) {
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    detailBody.innerHTML = `<div class="msg msg-error">Não foi possível carregar os dados (${escapeHTML(err.message)}).</div>`;
+  }
+}
+
+function renderQualidade(data) {
+  const detailBody = document.getElementById('detail-body');
+
+  const kpis = [
+    { label: 'Produzido',          value: fmt(data.total_produced) },
+    { label: 'Reparo',             value: fmt(data.total_repair) },
+    { label: 'Segunda Qualidade',  value: fmt(data.total_second_quality) },
+    { label: 'Não Conforme',       value: fmt(data.total_non_conforme) },
+  ];
+  const kpiHTML = kpis.map(k =>
+    `<div class="kpi"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div>`
+  ).join('');
+
+  detailBody.innerHTML = `
+    <div class="kpi-row">${kpiHTML}</div>
+    <div class="chart-wrap"><canvas id="chart-qualidade"></canvas></div>
+  `;
+
+  if (chartInstance) chartInstance.destroy();
+
+  const ctx = document.getElementById('chart-qualidade').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Reparo', 'Segunda Qualidade', 'Não Conforme'],
+      datasets: [{
+        label: '% sobre produzido',
+        data: [data.pct_repair, data.pct_second_quality, data.pct_non_conforme],
+        backgroundColor: ['#5b7fa6', '#8aa4bd', '#a65b5b'],
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { callback: v => v + '%' },
+        },
+      },
+    },
+  });
+}
+
+function renderGeneric(data) {
+  const detailBody = document.getElementById('detail-body');
+  const rows = Object.entries(data).map(([key, value]) =>
+    `<tr><th>${escapeHTML(humanizeKey(key))}</th><td>${escapeHTML(formatValue(key, value))}</td></tr>`
+  ).join('');
+  detailBody.innerHTML = `<table class="generic-table"><tbody>${rows}</tbody></table>`;
+}
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  document.getElementById('detail').hidden = true;
+  currentStat = null;
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+});
+
+document.getElementById('sel-year').addEventListener('change', loadDetail);
+document.getElementById('sel-month').addEventListener('change', loadDetail);
+
+populateSelectors();
+loadStats();
+</script>
+</body>
+</html>
