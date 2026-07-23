@@ -15,6 +15,7 @@ class ProductionEntry(BaseModel):
     end_time: Optional[time] = None
     downtime_minutes: int = Field(0, ge=0)
     obs: Optional[str] = None
+    boca_aberta: bool = False
 
 
 class MachineStatus(BaseModel):
@@ -44,6 +45,8 @@ class MachineStatus(BaseModel):
     mult1: float = 0.0
     mult2: float = 0.0
     mult3: float = 0.0
+    ba_days: int = 0
+    rate1_ba: int = 0
 
 
 class DashboardSummary(BaseModel):

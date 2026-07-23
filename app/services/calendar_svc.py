@@ -8,6 +8,8 @@ _cal = BrazilBahia()
 
 
 def get_business_days(year: int, month: int) -> int:
+    if month == 6:
+        return 17  # Recesso junino (São João)
     _, last_day = calendar.monthrange(year, month)
     count: int = 0
     for day in range(1, last_day + 1):

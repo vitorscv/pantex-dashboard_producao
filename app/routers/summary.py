@@ -38,7 +38,8 @@ def get_summary(
             SELECT machine_id, shift, label,
                    rate1, rate2, rate3,
                    mult1, mult2, mult3,
-                   bonus_ref1, bonus_ref2, bonus_ref3
+                   bonus_ref1, bonus_ref2, bonus_ref3,
+                   rate1_ba, rate2_ba, rate3_ba
             FROM machine_config
             ORDER BY machine_id, shift
             """,
@@ -55,6 +56,7 @@ def get_summary(
                 COALESCE(SUM(p.repair_qty), 0)         AS repair_qty,
                 COALESCE(SUM(p.second_quality_qty), 0) AS second_quality_qty,
                 COALESCE(SUM(p.downtime_minutes), 0)   AS total_downtime,
+                COALESCE(SUM(CASE WHEN p.boca_aberta THEN 1 ELSE 0 END), 0) AS ba_days,
                 (SELECT p2.start_time
                  FROM prod_entries p2
                  WHERE p2.machine_id = p.machine_id
@@ -109,15 +111,22 @@ def get_summary(
         row: dict = totals.get((mid, shift), {})
         total_produced: int = int(row.get("total_produced", 0))
         total_downtime: int = int(row.get("total_downtime", 0))
+        ba_days: int = int(row.get("ba_days", 0))
 
         # minutos produtivos padrão por turno (já descontado 1h almoço)
         _shift_minutes = {1: 525, 2: 435}
         standard_min: int = _shift_minutes.get(shift, 525)
         effective_days: float = max(0.0, business_days - total_downtime / standard_min)
 
-        meta1: int = int(effective_days * cfg["rate1"])
-        meta2: int = int(effective_days * cfg["rate2"])
-        meta3: int = int(effective_days * cfg["rate3"])
+        if cfg.get("rate1_ba"):
+            normal_days: float = max(0.0, effective_days - ba_days)
+            meta1 = int(normal_days * cfg["rate1"] + ba_days * cfg["rate1_ba"])
+            meta2 = int(normal_days * cfg["rate2"] + ba_days * cfg["rate2_ba"])
+            meta3 = int(normal_days * cfg["rate3"] + ba_days * cfg["rate3_ba"])
+        else:
+            meta1 = int(effective_days * cfg["rate1"])
+            meta2 = int(effective_days * cfg["rate2"])
+            meta3 = int(effective_days * cfg["rate3"])
         saldo: int = total_produced - meta1
         pct_meta1: float = round(total_produced / meta1 * 100, 1) if meta1 > 0 else 0.0
 
@@ -175,6 +184,8 @@ def get_summary(
                 mult1=float(cfg["mult1"]),
                 mult2=float(cfg["mult2"]),
                 mult3=float(cfg["mult3"]),
+                ba_days=ba_days,
+                rate1_ba=int(cfg["rate1_ba"] or 0),
             )
         )
 

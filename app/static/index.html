@@ -225,6 +225,9 @@
     border-width: 2px;
     animation: fade-in .4s ease both, glowBronze 2.5s ease-in-out .4s infinite;
   }
+  .mcard.rank1 .shift-col,
+  .mcard.rank2 .shift-col,
+  .mcard.rank3 .shift-col { gap: .12rem; }
 
   .mcard-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -278,6 +281,7 @@
   /*  SHIFTS ROW  */
   .shifts-row {
     display: grid; grid-template-columns: 1fr; gap: .5rem; flex: 1;
+    min-height: 0; overflow: hidden;
   }
   .shift-col {
     background: rgba(255,255,255,.04);
@@ -285,18 +289,20 @@
     border-radius: 8px;
     padding: .38rem .6rem;
     display: flex; flex-direction: column; gap: .22rem;
+    min-height: 0;
   }
   .shift-label {
     font-size: .58rem; font-weight: 700; letter-spacing: .1em; color: var(--muted);
   }
   .shift-total {
-    font-size: 1.4rem; font-weight: 700; color: #fff;
+    font-size: 1.05rem; font-weight: 700; color: #fff;
     font-variant-numeric: tabular-nums; line-height: 1;
   }
 
   /*  PROGRESS BAR  */
   .bar-wrap {
     height: 5px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden;
+    flex-shrink: 0;
   }
   .bar-fill {
     height: 100%; border-radius: 99px;
@@ -307,8 +313,8 @@
   .bar-fill.t2 { background: var(--green2); }
   .bar-fill.t3 { background: var(--green3); animation: pulse-bar 1.4s ease-in-out infinite; }
 
-  .shift-pct  { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .bar-mini   { height: 3px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .shift-pct  { font-size: 1.15rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .bar-mini   { height: 3px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; margin-top: 2px; flex-shrink: 0; }
   .bar-mini .bar-fill.t0 { background: rgba(255,255,255,.55); }
 
   .shift-meta {
@@ -698,6 +704,7 @@ function shiftHTMLRank(data) {
       <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
     </div>
     <div class="shift-meta">Meta 1: <span>${fmt(data.meta1)}</span></div>
+    ${data.rate1_ba ? `<div class="shift-meta" style="color:#a78bfa">Meta Boca Aberta: <span style="color:#c4b5fd">${fmt(data.rate1_ba)} pç/dia</span></div>` : ''}
     <div class="bonus-row">
       <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
       ${bonus}
@@ -761,7 +768,7 @@ function renderCards(allItems) {
   const grid = document.getElementById('grid');
 
   // Ordena os 14 itens por pct_meta1 do maior pro menor
-  const sorted = [...allItems].sort((a, b) => b.total_produced - a.total_produced);
+  const sorted = [...allItems].sort((a, b) => b.pct_meta1 - a.pct_meta1);
 
   const RANK_CLS = ['rank1', 'rank2', 'rank3', '', '', '', '', '', '', '', '', '', '', ''];
 
@@ -859,9 +866,9 @@ function renderCards(allItems) {
       </div>
       ${bonusTiersHTML(item)}
       ${item && item.mult1 != null ? `<div style="font-size:11px;color:var(--muted);text-align:center;padding-top:3px;border-top:1px solid var(--border)">
-        a cada 1.000 peças &nbsp;·&nbsp; B1 <span style="color:#EF9F27">${fmtPeca(item.mult1)}</span>
-        &nbsp;·&nbsp; B2 <span style="color:#5DCAA5">${fmtPeca(item.mult2)}</span>
-        &nbsp;·&nbsp; B3 <span style="color:#27C77A">${fmtPeca(item.mult3)}</span>
+        após bônus, a cada 1.000 peças &nbsp;·&nbsp; <span style="color:#EF9F27">B1 ${fmtPeca(item.mult1)}</span>
+        &nbsp;·&nbsp; <span style="color:#5DCAA5">B2 ${fmtPeca(item.mult2)}</span>
+        &nbsp;·&nbsp; <span style="color:#27C77A">B3 ${fmtPeca(item.mult3)}</span>
       </div>` : ''}`;
 
     const cardId = `rank-card-${cardRank}`;
@@ -874,7 +881,7 @@ function renderCards(allItems) {
 
     card.className = ['mcard', rkCls, t3Cls].filter(Boolean).join(' ');
     card.style.order = cardRank;
-    card.style.paddingTop = cardRank <= 3 ? '1rem' : '';
+    card.style.paddingTop = '';
     card.innerHTML   = inner;
   }
 
@@ -907,6 +914,7 @@ function renderFooter(machines, ranking, data) {
 
   document.getElementById('ft-update').textContent =
     `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+
 
   // Totais globais
   const grandSaldo      = data.grand_total - data.grand_meta1;

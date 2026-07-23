@@ -152,6 +152,9 @@ raw_values:      dict[tuple[int, int], str]                                     
 raw_quality:     dict[tuple[int, int], tuple[str, str]]                              = {}
 time_values:     dict[tuple[int, int], tuple[datetime.time | None, datetime.time | None]] = {}
 downtime_values: dict[tuple[int, int], tuple[str, str]]                              = {}
+ba_values:       dict[tuple[int, int], bool]                                         = {}
+
+BA_MACHINES = {6, 7}
 
 COL_HDR = (
     "font-size:.72rem;font-weight:700;letter-spacing:.06em;"
@@ -169,7 +172,7 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
         )
 
         # ── Cabeçalho das colunas ───────────────────────────────────────────
-        hc = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.2])
+        hc = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.0, 0.5])
         hc[0].markdown(f"<span style='{COL_HDR}color:transparent;'>—</span>", unsafe_allow_html=True)
         hc[1].markdown(f"<span style='{COL_HDR}color:#1D9E75;'>QTD</span>", unsafe_allow_html=True)
         for txt, col in [("REP", hc[2]), ("2ªQ", hc[3]), ("INÍCIO", hc[4]), ("FIM", hc[5])]:
@@ -179,10 +182,11 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
             )
         hc[6].markdown(f"<span style='{COL_HDR}color:#e05252;'>PARADA</span>", unsafe_allow_html=True)
         hc[7].markdown(f"<span style='{COL_HDR}color:#e05252;'>OBSERVAÇÃO</span>", unsafe_allow_html=True)
+        hc[8].markdown(f"<span style='{COL_HDR}color:#a78bfa;'>BA</span>", unsafe_allow_html=True)
 
         # ── Linha por máquina ───────────────────────────────────────────────
         for i in range(1, 8):
-            c_lbl, c0, c1, c2, c3, c4, c5, c6 = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.2])
+            c_lbl, c0, c1, c2, c3, c4, c5, c6, c7 = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.0, 0.5])
 
             c_lbl.markdown(
                 f"<p style='color:#6b6a72;font-size:.75rem;font-weight:600;"
@@ -245,6 +249,17 @@ for col, shift, label in [(col_t1, 1, "1º TURNO"), (col_t2, 2, "2º TURNO")]:
                     key=f"t{shift}_m{i}_obs",
                     label_visibility="collapsed",
                 )
+
+            with c7:
+                if i in BA_MACHINES:
+                    ba_values[(i, shift)] = st.checkbox(
+                        f"ba_{shift}_{i}",
+                        value=False,
+                        key=f"t{shift}_m{i}_ba",
+                        label_visibility="collapsed",
+                    )
+                else:
+                    ba_values[(i, shift)] = False
 
             raw_quality[(i, shift)] = (rep, seg)
             time_values[(i, shift)] = (ini, fim)
@@ -323,6 +338,7 @@ if st.button("⚡ Lançar Produção", type="primary", use_container_width=True)
                     "end_time":            str(h_fim) if h_fim else None,
                     "downtime_minutes":    par_min,
                     "obs":                 obs_raw.strip() or None,
+                    "boca_aberta":         ba_values.get((machine_id, shift), False),
                 }
                 try:
                     resp = requests.post(
