@@ -26,7 +26,7 @@ def get_qualidade(
     return get_quality_stat(year, month)
 
 
-@router.get("/{stat_id}")
+@router.get("/{stat_id}", response_model=None)
 def get_stat(
     stat_id: str,
     year: int | None = Query(default=None),
