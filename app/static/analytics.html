@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -6,25 +6,30 @@
 <title>Pantex · Painel Analítico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #091628;
-    --card:      #0d2040;
-    --border:    #1a3356;
+    --bg:        #0a1524;
+    --bg-2:      #0e1c2f;
+    --card:      #122338;
+    --card-2:    #172b42;
+    --border:    #2a425f;
     --green:     #1D9E75;
     --yellow:    #EF9F27;
     --green2:    #5DCAA5;
     --green3:    #27C77A;
-    --text:      #c8d8ea;
-    --muted:     #6888a8;
+    --text:      #d4e0eb;
+    --muted:     #88a0b8;
+    --muted-2:   #5f7892;
     --red:       #e05252;
-    --header-h:  64px;
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --radius-card: 12px;
+    --header-h:  68px;
+    --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --radius-card: 10px;
   }
 
   :root.light {
@@ -46,7 +51,9 @@
 
   html, body {
     height: 100%;
-    background: var(--bg);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0) 120px),
+      linear-gradient(180deg, var(--bg), var(--bg-2));
     color: var(--text);
     font-family: var(--font-sans);
   }
@@ -56,15 +63,17 @@
   #header {
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--header-h);
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
+    background: rgba(10,21,36,.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(136,160,184,.14);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 1.5rem;
     z-index: 100;
     flex-wrap: wrap; gap: .5rem;
+    box-shadow: 0 8px 24px rgba(2,8,23,.14);
   }
-  .hd-left { display: flex; align-items: center; gap: .75rem; }
-  #header-logo { height: 38px; width: auto; }
+  .hd-left { display: flex; align-items: center; gap: .8rem; }
+  #header-logo { height: 46px; width: auto; }
   .hd-badge {
     background: rgba(29,158,117,.15);
     color: var(--green);
@@ -72,63 +81,194 @@
     padding: .28rem .7rem; border-radius: 4px;
     border: 1px solid rgba(29,158,117,.3);
   }
-  .hd-title { font-size: .78rem; font-weight: 600; letter-spacing: .1em; color: var(--muted); }
+  .hd-title {
+    font-family: var(--font-display);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #9bb1c7;
+  }
 
   .hd-right { display: flex; align-items: center; gap: .6rem; }
   .nav-select {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(136,160,184,.16);
+    color: #c1d0de;
     border-radius: 6px;
-    padding: .3rem .55rem;
-    font-size: .78rem;
+    padding: .42rem .72rem;
+    font-size: .74rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: border-color .2s, color .2s;
+    transition: border-color .2s, color .2s, background .2s, transform .2s;
   }
-  .nav-select:hover { border-color: var(--green); color: var(--green); }
+  .nav-select:hover {
+    border-color: rgba(136,160,184,.32);
+    color: #ecf3f8;
+    background: rgba(255,255,255,.045);
+    transform: none;
+  }
   #theme-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(136,160,184,.16);
+    color: #c1d0de;
     border-radius: 6px;
-    padding: .3rem .55rem;
-    font-size: .8rem;
+    padding: .42rem .68rem;
+    font-size: .82rem;
     cursor: pointer;
-    transition: border-color .2s, color .2s;
+    transition: border-color .2s, color .2s, background .2s, transform .2s;
     line-height: 1.4;
   }
-  #theme-btn:hover { border-color: var(--green); color: var(--green); }
+  #theme-btn:hover {
+    border-color: rgba(136,160,184,.32);
+    color: #ecf3f8;
+    background: rgba(255,255,255,.045);
+    transform: none;
+  }
 
   /*  LAYOUT  */
   #main {
-    max-width: 1280px; margin: 0 auto;
-    padding: 1.25rem 1.25rem 2.5rem;
-    display: flex; flex-direction: column; gap: 1.25rem;
+    max-width: 1380px; margin: 0 auto;
+    padding: 1.15rem 1.2rem 2.6rem;
+    display: flex; flex-direction: column; gap: 1.05rem;
   }
 
   .section-label {
-    font-size: .7rem; font-weight: 600; letter-spacing: .14em;
-    color: var(--muted); text-transform: uppercase; margin-bottom: .6rem;
+    font-family: var(--font-display);
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: #7d96b0;
+    text-transform: uppercase;
+    margin-bottom: .7rem;
   }
-  .section-label span { color: var(--text); font-weight: 500; letter-spacing: 0; text-transform: none; }
+  .section-label span {
+    color: #f1f5f8;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: none;
+  }
+  .module-shell {
+    display: grid;
+    gap: 1rem;
+  }
+  .module-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: .7rem;
+  }
+  .module-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.024), rgba(255,255,255,.01));
+    border: 1px solid rgba(136,160,184,.14);
+    border-radius: 10px;
+    padding: .85rem .9rem;
+    text-align: left;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .module-card:hover {
+    border-color: rgba(136,160,184,.3);
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  }
+  .module-card.active {
+    border-color: rgba(93,202,165,.42);
+    background: linear-gradient(180deg, rgba(93,202,165,.08), rgba(255,255,255,.012));
+  }
+  .module-card.soon {
+    opacity: .88;
+  }
+  .module-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-bottom: .35rem;
+  }
+  .module-card-name {
+    font-size: .82rem;
+    font-weight: 700;
+    color: #f1f5f8;
+  }
+  .module-card-badge {
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .module-card.active .module-card-badge {
+    color: #8df0b2;
+  }
+  .module-card-desc {
+    font-size: .67rem;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .module-view[hidden] {
+    display: none !important;
+  }
+  .module-empty {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+  }
+  .module-empty-card {
+    width: min(560px, 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,.01));
+    border: 1px solid rgba(136,160,184,.12);
+    border-radius: 12px;
+    padding: 1.15rem 1.2rem;
+  }
+  .module-empty-kicker {
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .35rem;
+  }
+  .module-empty-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f1f5f8;
+    margin-bottom: .35rem;
+  }
+  .module-empty-text {
+    font-size: .74rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
 
   /*  KPI ROW  */
   .kpi-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
     gap: .75rem;
   }
   .kpi {
-    background: rgba(255,255,255,.04);
-    border: 1px solid var(--border); border-radius: var(--radius-card);
-    padding: 1rem;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+    border: 1px solid rgba(136,160,184,.16);
+    border-radius: var(--radius-card);
+    padding: .92rem .92rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
   }
   .kpi-label {
-    font-size: .62rem; font-weight: 600; letter-spacing: .1em;
-    color: var(--muted); text-transform: uppercase; margin-bottom: .35rem;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #7f96ad;
+    text-transform: uppercase;
+    margin-bottom: .42rem;
   }
-  .kpi-value { font-size: 1.55rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
-  .kpi-sub   { font-size: .68rem; font-weight: 500; color: var(--muted); margin-top: .25rem; }
+  .kpi-value {
+    font-family: var(--font-mono);
+    font-size: 1.34rem;
+    font-weight: 700;
+    color: #f3f7fa;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+  }
+  .kpi-sub   { font-size: .64rem; font-weight: 500; color: var(--muted); margin-top: .28rem; line-height: 1.3; }
 
   .kpi-delta-up   { color: var(--red); }
   .kpi-delta-down { color: var(--green3); }
@@ -138,34 +278,468 @@
   .panels-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr 1fr;
-    gap: 1rem;
+    gap: .9rem;
   }
   .panel {
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card);
-    padding: 1.25rem;
+    background: linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.01)), var(--card);
+    border: 1px solid rgba(136,160,184,.14);
+    border-radius: 12px;
+    padding: 1.05rem;
     display: flex; flex-direction: column;
     min-height: 320px;
+    box-shadow: 0 10px 24px rgba(2, 8, 23, .12);
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::after { content: none; }
+  .panel-trend {
+    grid-column: 1 / -1;
+    min-height: 460px;
+  }
+  #panel-trend {
+    min-height: 430px;
+  }
+  #panel-trend .chart-wrap {
+    min-height: 290px;
+  }
+  #panel-composition {
+    grid-column: 1;
+  }
+  .panel-quality {
+    grid-column: 1 / -1;
+    min-height: 360px;
+  }
+  #panel-machine {
+    display: none;
+  }
+  .panel-trend .chart-wrap {
+    min-height: 320px;
+  }
+  #panel-daily {
+    grid-column: span 2;
+    min-height: 430px;
+  }
+  #panel-daily .chart-wrap {
+    min-height: 290px;
+  }
+  .quality-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .8rem;
+    align-items: start;
+    flex: 1;
+  }
+  .quality-col {
+    min-width: 0;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,.014), rgba(255,255,255,.008));
+    border: 1px solid rgba(136,160,184,.1);
+    border-radius: 10px;
+    padding: .82rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+  }
+  .quality-col-title {
+    font-family: var(--font-display);
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #7e94aa;
+    margin-bottom: .6rem;
+    padding-bottom: .45rem;
+    border-bottom: 1px solid rgba(136,160,184,.08);
   }
   .panel-title {
-    font-size: .82rem; font-weight: 600; letter-spacing: .03em; color: #fff;
-    margin-bottom: .9rem;
+    font-family: var(--font-display);
+    font-size: .84rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #f2f6f8;
+    margin-bottom: .8rem;
+    display: flex; align-items: center; gap: .55rem;
+  }
+  .panel-title::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: #6eb6ff;
+    box-shadow: none;
   }
   .panel-worst {
     font-size: .68rem; font-weight: 500; color: var(--red); margin-top: .6rem;
   }
+  #panel-machine-bottom .panel-worst {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .55rem;
+    color: var(--muted);
+  }
+  #panel-machine-bottom .panel-side {
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 10px;
+    padding: .5rem .6rem;
+  }
+  #panel-machine-bottom .panel-side.right {
+    text-align: right;
+  }
+  #panel-machine-bottom .panel-side-label {
+    display: block;
+    font-size: .58rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .14rem;
+  }
+  #panel-machine-bottom .panel-side-name {
+    display: block;
+    font-size: .74rem;
+    font-weight: 700;
+  }
+  #panel-machine-bottom .panel-side-value {
+    display: block;
+    font-size: .64rem;
+    margin-top: .08rem;
+  }
+  #panel-machine-bottom .panel-table {
+    display: grid;
+    gap: .28rem;
+  }
+  #panel-machine-bottom .panel-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .45rem;
+    align-items: baseline;
+    font-size: .68rem;
+  }
+  #panel-machine-bottom .panel-row-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #d8e6f5;
+  }
+  #panel-machine-bottom .panel-row-value {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
   .chart-wrap { position: relative; flex: 1; min-height: 220px; }
+  .trend-highlights {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .7rem;
+    margin-bottom: .9rem;
+  }
+  .daily-highlights {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .7rem;
+    margin-bottom: .9rem;
+  }
+  .machine-list {
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    height: 100%;
+  }
+  .machine-item {
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .7rem .8rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .machine-item.top-risk {
+    border-color: rgba(224,82,82,.32);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(224,82,82,.06);
+  }
+  .machine-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .55rem;
+    margin-bottom: .4rem;
+  }
+  .machine-left {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+  }
+  .machine-rank,
+  .yield-rank {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(138,184,255,.14);
+    border: 1px solid rgba(138,184,255,.18);
+    color: #c8d8ea;
+    font-size: .66rem;
+    font-weight: 700;
+    flex: 0 0 auto;
+  }
+  .machine-name {
+    font-size: .76rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .machine-pct {
+    font-size: .84rem;
+    font-weight: 700;
+    padding: .18rem .5rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.06);
+  }
+  .machine-bar {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.05);
+    margin-bottom: .45rem;
+  }
+  .machine-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .machine-stack {
+    display: flex;
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.05);
+    margin-bottom: .45rem;
+  }
+  .stack-good,
+  .stack-repair,
+  .stack-second {
+    height: 100%;
+  }
+  .stack-good {
+    background: linear-gradient(90deg, rgba(39,199,122,.95), rgba(138,184,255,.88));
+  }
+  .stack-repair {
+    background: linear-gradient(90deg, rgba(239,159,39,.92), rgba(245,199,90,.84));
+  }
+  .stack-second {
+    background: linear-gradient(90deg, rgba(224,82,82,.95), rgba(255,140,140,.86));
+  }
+  .machine-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .45rem;
+    font-size: .64rem;
+    color: var(--muted);
+  }
+  .machine-meta strong {
+    display: block;
+    color: #c8d8ea;
+    font-size: .7rem;
+    margin-top: .04rem;
+  }
+  .trend-chip {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022)),
+      linear-gradient(135deg, rgba(138,184,255,.06), transparent 65%);
+    border: 1px solid rgba(138,184,255,.12);
+    border-radius: 14px;
+    padding: .78rem .85rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+  }
+  .trend-chip.good {
+    border-color: rgba(39,199,122,.42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(39,199,122,.08);
+  }
+  .trend-chip.warn {
+    border-color: rgba(239,159,39,.45);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(239,159,39,.08);
+  }
+  .trend-chip.bad {
+    border-color: rgba(224,82,82,.45);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(224,82,82,.08);
+  }
+  .trend-chip-label {
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f9abb;
+    margin-bottom: .28rem;
+  }
+  .trend-chip-value {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -.02em;
+  }
+  .trend-chip.good .trend-chip-value { color: #8df0b2; }
+  .trend-chip.warn .trend-chip-value { color: #ffd48a; }
+  .trend-chip.bad .trend-chip-value  { color: #ff9c9c; }
+  .trend-chip-sub {
+    font-size: .67rem;
+    color: var(--muted);
+    margin-top: .24rem;
+    line-height: 1.35;
+  }
 
-  .msg       { color: var(--muted); font-size: .8rem; font-weight: 500; padding: .5rem 0; }
+  .msg       { color: var(--muted); font-size: .78rem; font-weight: 600; padding: .55rem 0; }
   .msg-error { color: var(--red); }
 
   @media (max-width: 1100px) {
     .panels-grid { grid-template-columns: 1fr 1fr; }
+    .panel-trend { grid-column: 1 / -1; }
+    .panel-quality { grid-column: 1 / -1; }
+    #panel-composition { grid-column: span 1; }
+    #panel-daily { grid-column: span 2; }
   }
   @media (max-width: 700px) {
     .panels-grid { grid-template-columns: 1fr; }
+    .panel-trend { grid-column: 1 / -1; min-height: 420px; }
+    .panel-quality { grid-column: 1 / -1; min-height: 320px; }
+    #panel-trend { min-height: 430px; }
+    #panel-composition { grid-column: span 1; }
+    #panel-daily { grid-column: span 1; min-height: 420px; }
+    .quality-grid { grid-template-columns: 1fr; }
+    .panel-trend .chart-wrap { min-height: 280px; }
+    .trend-highlights { grid-template-columns: 1fr; }
+    .daily-highlights { grid-template-columns: 1fr; }
+    .machine-meta { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 640px) {
     #header { height: auto; padding: .75rem 1rem; }
+  }
+  #panel-machine-bottom .quality-col {
+    padding: .72rem;
+  }
+  #panel-machine-bottom .machine-item {
+    padding: .72rem .78rem;
+  }
+  #panel-machine-bottom .machine-head {
+    align-items: center;
+    margin-bottom: .32rem;
+  }
+  #panel-machine-bottom .machine-left {
+    gap: .45rem;
+  }
+  #panel-machine-bottom .machine-rank {
+    width: 20px;
+    height: 20px;
+    font-size: .62rem;
+  }
+  #panel-machine-bottom .machine-name {
+    font-size: .74rem;
+  }
+  #panel-machine-bottom .machine-pct {
+    font-size: .78rem;
+    padding: .16rem .45rem;
+  }
+  #panel-machine-bottom .machine-summary {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: .42rem;
+  }
+  #panel-machine-bottom .machine-status {
+    display: inline-flex;
+    align-items: center;
+    font-size: .67rem;
+    font-weight: 700;
+    padding: .15rem .45rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.06);
+    white-space: nowrap;
+  }
+  #panel-machine-bottom .machine-nc {
+    font-size: .7rem;
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  #panel-machine-bottom .machine-bars {
+    display: grid;
+    gap: .28rem;
+    margin-bottom: .48rem;
+  }
+  #panel-machine-bottom .machine-bar,
+  #panel-machine-bottom .machine-stack {
+    height: 8px;
+    margin-bottom: 0;
+  }
+  #panel-machine-bottom .machine-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .42rem;
+  }
+  #panel-machine-bottom .machine-stat {
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.045);
+    border-radius: 10px;
+    padding: .42rem .5rem;
+  }
+  #panel-machine-bottom .machine-stat-label {
+    font-size: .6rem;
+    color: var(--muted);
+    margin-bottom: .1rem;
+  }
+  #panel-machine-bottom .machine-stat strong {
+    display: block;
+    color: #d8e6f5;
+    font-size: .72rem;
+    line-height: 1.2;
+  }
+  #panel-machine-bottom .machine-stat span {
+    display: block;
+    color: var(--muted);
+    font-size: .6rem;
+    margin-top: .1rem;
+  }
+  #panel-machine-bottom .machine-list {
+    display: block;
+  }
+  #panel-machine-bottom .machine-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem;
+  }
+  #panel-machine-bottom .machine-column {
+    min-width: 0;
+  }
+  #panel-machine-bottom .machine-column-title {
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .45rem;
+  }
+  #panel-machine-bottom .machine-column-list {
+    display: grid;
+    gap: .5rem;
+  }
+  @media (max-width: 700px) {
+    #panel-machine-bottom .machine-stats {
+      grid-template-columns: 1fr;
+    }
+    #panel-machine-bottom .machine-table {
+      grid-template-columns: 1fr;
+    }
+    #panel-machine-bottom .panel-worst {
+      grid-template-columns: 1fr;
+    }
+    #panel-machine-bottom .panel-side.right {
+      text-align: left;
+    }
   }
 </style>
 </head>
@@ -211,7 +785,7 @@
         </g>
       </g>
     </svg>
-    <div class="hd-badge">PANTEX</div>
+    
     <div class="hd-title">PAINEL ANALÍTICO</div>
   </div>
   <div class="hd-right">
@@ -222,32 +796,81 @@
 </header>
 
 <main id="main">
-  <div>
-    <div class="section-label">Indicadores — <span id="period-label">—</span></div>
-    <section id="kpi-row" class="kpi-row">
-      <div class="msg">Carregando indicadores…</div>
+  <div class="module-shell">
+    <section>
+      <div class="section-label">Módulos — <span id="module-label">Qualidade</span></div>
+      <div id="module-rail" class="module-rail"></div>
     </section>
-  </div>
 
-  <div class="panels-grid">
-    <div class="panel" id="panel-trend">
-      <div class="panel-title">Evolução — % Não Conforme (últimos 6 meses)</div>
-      <div class="chart-wrap"><canvas id="chart-trend"></canvas></div>
-      <div id="trend-msg" class="msg" hidden></div>
-    </div>
+    <section id="module-view-quality" class="module-view">
+      <div>
+        <div class="section-label">Indicadores — <span id="period-label">—</span></div>
+        <section id="kpi-row" class="kpi-row">
+          <div class="msg">Carregando indicadores...</div>
+        </section>
+      </div>
 
-    <div class="panel" id="panel-machine">
-      <div class="panel-title">Não Conforme por Máquina</div>
-      <div class="chart-wrap"><canvas id="chart-machine"></canvas></div>
-      <div id="machine-worst" class="panel-worst" hidden></div>
-      <div id="machine-msg" class="msg" hidden></div>
-    </div>
+      <div class="panels-grid">
+        <div class="panel panel-trend" id="panel-trend">
+          <div class="panel-title">Evolução da Produção — volume e qualidade</div>
+          <div id="trend-highlights" class="trend-highlights"></div>
+          <div class="chart-wrap"><canvas id="chart-trend"></canvas></div>
+          <div id="trend-msg" class="msg" hidden></div>
+        </div>
 
-    <div class="panel" id="panel-composition">
-      <div class="panel-title">Composição da Produção</div>
-      <div class="chart-wrap"><canvas id="chart-composition"></canvas></div>
-      <div id="composition-msg" class="msg" hidden></div>
-    </div>
+        <div class="panel panel-quality" id="panel-machine">
+          <div class="panel-title">Não Conforme por Máquina</div>
+          <div class="quality-grid">
+            <section class="quality-col">
+              <div class="quality-col-title">Não Conforme por Máquina</div>
+              <div id="machine-list" class="machine-list"></div>
+              <div id="machine-worst" class="panel-worst" hidden></div>
+              <div id="machine-msg" class="msg" hidden></div>
+            </section>
+            <section class="quality-col">
+              <div class="quality-col-title">Composição de Qualidade por Máquina</div>
+              <div id="yield-list" class="yield-list"></div>
+              <div id="yield-msg" class="msg" hidden></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-composition">
+          <div class="panel-title">Composição da Produção</div>
+          <div class="chart-wrap"><canvas id="chart-composition"></canvas></div>
+          <div id="composition-msg" class="msg" hidden></div>
+        </div>
+
+        <div class="panel panel-trend" id="panel-daily">
+          <div class="panel-title">Ritmo Diário da Qualidade</div>
+          <div id="daily-highlights" class="daily-highlights"></div>
+          <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
+          <div id="daily-msg" class="msg" hidden></div>
+        </div>
+
+        <div class="panel panel-quality" id="panel-machine-bottom">
+          <div class="panel-title">Qualidade por Máquina</div>
+          <div class="quality-grid">
+            <section class="quality-col">
+              <div class="quality-col-title">Resumo por máquina</div>
+              <div id="machine-list-bottom" class="machine-list"></div>
+              <div id="machine-worst-bottom" class="panel-worst" hidden></div>
+              <div id="machine-msg-bottom" class="msg" hidden></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="module-view-placeholder" class="module-view" hidden>
+      <div class="module-empty">
+        <div class="module-empty-card">
+          <div class="module-empty-kicker">Módulo</div>
+          <div id="module-empty-title" class="module-empty-title">Em preparação</div>
+          <div id="module-empty-text" class="module-empty-text">Este espaço já está reservado para os próximos analíticos do dashboard.</div>
+        </div>
+      </div>
+    </section>
   </div>
 </main>
 
@@ -264,6 +887,26 @@ function formatSignedPct(n) {
   const v = Number(n);
   const sign = v > 0 ? '+' : '';
   return `${sign}${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} p.p.`;
+}
+
+function getQualityStatus(pctNonConforme) {
+  const value = Number(pctNonConforme) || 0;
+  if (value <= 3) return 'good';
+  if (value <= 6) return 'warn';
+  return 'bad';
+}
+
+function getYieldStatus(pctConforme) {
+  const value = Number(pctConforme) || 0;
+  if (value >= 97) return 'good';
+  if (value >= 94) return 'warn';
+  return 'bad';
+}
+
+function getStatusColor(status) {
+  if (status === 'good') return '#27C77A';
+  if (status === 'warn') return '#EF9F27';
+  return '#e05252';
 }
 
 const MESES     = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -300,10 +943,19 @@ Chart.defaults.scale.grid.borderDash = [3, 3];
 Chart.defaults.scale.ticks.color = '#6888a8';
 Chart.defaults.scale.ticks.font = { family: "'Inter', system-ui, sans-serif", weight: '500' };
 
-const state = { year: null, month: null };
+const MODULES = [
+  { id: 'quality', label: 'Qualidade', desc: 'Conformidade, perdas e desempenho por máquina.', status: 'active' },
+  { id: 'production', label: 'Produção', desc: 'Volume, ritmo e capacidade produtiva.', status: 'soon' },
+  { id: 'efficiency', label: 'Eficiência', desc: 'Aproveitamento, paradas e produtividade.', status: 'soon' },
+  { id: 'maintenance', label: 'Manutenção', desc: 'Disponibilidade, ocorrências e intervenções.', status: 'soon' },
+];
+
+const state = { year: null, month: null, module: 'quality' };
 let trendChart = null;
 let machineChart = null;
 let compositionChart = null;
+let dailyChart = null;
+let yieldChart = null;
 
 function escapeHTML(str) {
   const div = document.createElement('div');
@@ -359,6 +1011,54 @@ function populateSelectors() {
   });
 }
 
+function renderModuleRail() {
+  const rail = document.getElementById('module-rail');
+  rail.innerHTML = MODULES.map((module) => `
+    <button
+      type="button"
+      class="module-card ${state.module === module.id ? 'active' : ''} ${module.status === 'soon' ? 'soon' : ''}"
+      data-module-id="${module.id}"
+    >
+      <div class="module-card-top">
+        <div class="module-card-name">${module.status === 'soon' ? 'Novo módulo' : module.label}</div>
+        <div class="module-card-badge">${module.status === 'active' ? 'ativo' : 'em breve'}</div>
+      </div>
+      <div class="module-card-desc">${module.status === 'soon' ? 'Espaço reservado para os próximos analíticos do dashboard.' : module.desc}</div>
+    </button>
+  `).join('');
+
+  rail.querySelectorAll('[data-module-id]').forEach((button) => {
+    button.addEventListener('click', () => setModule(button.dataset.moduleId));
+  });
+}
+
+function syncModuleView() {
+  const currentModule = MODULES.find((item) => item.id === state.module) || MODULES[0];
+  document.getElementById('module-label').textContent = currentModule.label;
+
+  const qualityView = document.getElementById('module-view-quality');
+  const placeholderView = document.getElementById('module-view-placeholder');
+
+  if (state.module === 'quality') {
+    qualityView.hidden = false;
+    placeholderView.hidden = true;
+    return;
+  }
+
+  qualityView.hidden = true;
+  placeholderView.hidden = false;
+  document.getElementById('module-empty-title').textContent = currentModule.label;
+  document.getElementById('module-empty-text').textContent = `O módulo de ${currentModule.label.toLowerCase()} já está reservado e pronto para receber os próximos painéis analíticos.`;
+}
+
+function setModule(moduleId) {
+  const moduleExists = MODULES.some((item) => item.id === moduleId);
+  if (!moduleExists) return;
+  state.module = moduleId;
+  renderModuleRail();
+  syncModuleView();
+}
+
 function renderKPIs(current, comparison) {
   const kpiRow = document.getElementById('kpi-row');
 
@@ -390,7 +1090,7 @@ function renderKPIs(current, comparison) {
 
 async function loadKPIs() {
   const kpiRow = document.getElementById('kpi-row');
-  kpiRow.innerHTML = '<div class="msg">Carregando indicadores…</div>';
+  kpiRow.innerHTML = '<div class="msg">Carregando indicadores...</div>';
   try {
     const [current, comparison] = await Promise.all([
       fetchJSON(`/analytics/qualidade?year=${state.year}&month=${state.month}`),
@@ -400,6 +1100,291 @@ async function loadKPIs() {
   } catch (err) {
     kpiRow.innerHTML = `<div class="msg msg-error">Não foi possível carregar os indicadores (${escapeHTML(err.message)}).</div>`;
   }
+}
+
+function renderKPIs(current, comparison) {
+  const kpiRow = document.getElementById('kpi-row');
+  const delta = comparison.delta_pct_non_conforme;
+  const deltaCls = delta > 0 ? 'kpi-delta-up' : delta < 0 ? 'kpi-delta-down' : 'kpi-delta-flat';
+  const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '—';
+  const conformidade = current.total_produced > 0
+    ? ((current.total_produced - current.total_non_conforme) / current.total_produced) * 100
+    : 0;
+
+  const tiles = [
+    { label: 'Produzido', value: formatNumber(current.total_produced) },
+    { label: 'Reparo', value: formatNumber(current.total_repair), sub: formatPct(current.pct_repair), status: 'warn', valueColor: '#ffd48a', borderColor: '#EF9F27' },
+    { label: 'Segunda Qualidade', value: formatNumber(current.total_second_quality), sub: formatPct(current.pct_second_quality), status: 'bad', valueColor: '#ff9c9c', borderColor: '#e05252' },
+    { label: 'Não Conforme', value: `${delta > 0 ? '▲ ' : delta < 0 ? '▼ ' : '— '}${formatNumber(current.total_non_conforme)}`, sub: formatPct(current.pct_non_conforme), status: delta < 0 ? 'good' : delta > 0 ? 'bad' : null, valueColor: delta < 0 ? '#8df0b2' : delta > 0 ? '#ff9c9c' : '#c8d8ea', borderColor: delta < 0 ? '#27C77A' : delta > 0 ? '#e05252' : '#6888a8' },
+    { label: 'Conformidade', value: formatPct(conformidade), sub: 'aproveitamento geral', status: getYieldStatus(conformidade) },
+  ];
+
+  kpiRow.innerHTML = tiles.map((tile) => {
+    const baseColor = tile.borderColor || getStatusColor(tile.status);
+    const border = tile.status ? `${baseColor}55` : 'var(--border)';
+    const glow = tile.status ? `${baseColor}14` : 'rgba(2, 8, 23, .18)';
+    const valueColor = tile.valueColor || (tile.status
+      ? (tile.status === 'good' ? '#8df0b2' : tile.status === 'warn' ? '#ffd48a' : '#ff9c9c')
+      : '#ffffff');
+    const suffix = tile.label === 'Produzido' || tile.label === 'Conformidade' ? '' : ' do total';
+
+    return `
+      <div class="kpi" style="border-color:${border}; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${glow};">
+        <div class="kpi-label">${tile.label}</div>
+        <div class="kpi-value" style="color:${valueColor};">${tile.value}</div>
+        ${tile.sub ? `<div class="kpi-sub">${tile.sub}${suffix}</div>` : ''}
+      </div>
+    `;
+  }).join('') + `
+    <div class="kpi" style="border-color:${delta > 0 ? '#e05252' : delta < 0 ? '#27C77A' : 'var(--border)'}55;">
+      <div class="kpi-label">Δ vs mês anterior</div>
+      <div class="kpi-value ${deltaCls}">${arrow} ${formatSignedPct(delta)}</div>
+      <div class="kpi-sub">não conforme</div>
+    </div>
+  `;
+}
+
+function renderKPIs(current, comparison) {
+  const kpiRow = document.getElementById('kpi-row');
+  const previous = comparison.previous;
+  const deltaNonConforme = comparison.delta_pct_non_conforme;
+  const conformidade = current.total_produced > 0
+    ? ((current.total_produced - current.total_non_conforme) / current.total_produced) * 100
+    : 0;
+  const previousConformidade = previous.total_produced > 0
+    ? ((previous.total_produced - previous.total_non_conforme) / previous.total_produced) * 100
+    : 0;
+
+  function buildTrend(delta, direction) {
+    if (Math.abs(delta) < 0.005) {
+      return {
+        arrow: '—',
+        status: 'warn',
+        color: '#ffd48a',
+        borderColor: '#EF9F27',
+        deltaLabel: 'estavel vs mes anterior',
+      };
+    }
+
+    const improved = direction === 'up_better' ? delta > 0 : delta < 0;
+    return {
+      arrow: delta > 0 ? '▲' : '▼',
+      status: improved ? 'good' : 'bad',
+      color: improved ? '#8df0b2' : '#ff9c9c',
+      borderColor: improved ? '#27C77A' : '#e05252',
+      deltaLabel: `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${direction === 'up_better' ? '%' : ' p.p.'}`,
+    };
+  }
+
+  const producedTrend = buildTrend(current.total_produced - previous.total_produced, 'up_better');
+  const repairTrend = buildTrend(current.pct_repair - previous.pct_repair, 'down_better');
+  const secondTrend = buildTrend(current.pct_second_quality - previous.pct_second_quality, 'down_better');
+  const nonConformeTrend = buildTrend(deltaNonConforme, 'down_better');
+  const conformidadeTrend = buildTrend(conformidade - previousConformidade, 'up_better');
+
+  const tiles = [
+    {
+      label: 'Produzido',
+      value: `${producedTrend.arrow} ${formatNumber(current.total_produced)}`,
+      sub: producedTrend.deltaLabel,
+      status: producedTrend.status,
+      valueColor: producedTrend.color,
+      borderColor: producedTrend.borderColor,
+    },
+    {
+      label: 'Reparo',
+      value: `${repairTrend.arrow} ${formatNumber(current.total_repair)}`,
+      sub: `${formatPct(current.pct_repair)} · ${repairTrend.deltaLabel}`,
+      status: repairTrend.status,
+      valueColor: repairTrend.color,
+      borderColor: repairTrend.borderColor,
+    },
+    {
+      label: 'Segunda Qualidade',
+      value: `${secondTrend.arrow} ${formatNumber(current.total_second_quality)}`,
+      sub: `${formatPct(current.pct_second_quality)} · ${secondTrend.deltaLabel}`,
+      status: secondTrend.status,
+      valueColor: secondTrend.color,
+      borderColor: secondTrend.borderColor,
+    },
+    {
+      label: 'Não Conforme',
+      value: `${nonConformeTrend.arrow} ${formatNumber(current.total_non_conforme)}`,
+      sub: `${formatPct(current.pct_non_conforme)} · ${nonConformeTrend.deltaLabel}`,
+      status: nonConformeTrend.status,
+      valueColor: nonConformeTrend.color,
+      borderColor: nonConformeTrend.borderColor,
+    },
+    {
+      label: 'Conformidade',
+      value: `${conformidadeTrend.arrow} ${formatPct(conformidade)}`,
+      sub: conformidadeTrend.deltaLabel,
+      status: conformidadeTrend.status,
+      valueColor: conformidadeTrend.color,
+      borderColor: conformidadeTrend.borderColor,
+    },
+  ];
+
+  kpiRow.innerHTML = tiles.map((tile) => {
+    const border = `${tile.borderColor}55`;
+    const glow = `${tile.borderColor}14`;
+
+    return `
+      <div class="kpi" style="border-color:${border}; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${glow};">
+        <div class="kpi-label">${tile.label}</div>
+        <div class="kpi-value" style="color:${tile.valueColor};">${tile.value}</div>
+        <div class="kpi-sub">${tile.sub}</div>
+      </div>
+    `;
+  }).join('') + `
+    <div class="kpi" style="border-color:${nonConformeTrend.borderColor}55;">
+      <div class="kpi-label">Δ vs mês anterior</div>
+      <div class="kpi-value" style="color:${nonConformeTrend.color};">${nonConformeTrend.arrow} ${formatSignedPct(deltaNonConforme)}</div>
+      <div class="kpi-sub">não conforme</div>
+    </div>
+  `;
+}
+
+function renderKPIs(current, comparison) {
+  const kpiRow = document.getElementById('kpi-row');
+  const deltaNonConforme = comparison.delta_pct_non_conforme;
+  const conformidade = current.total_produced > 0
+    ? ((current.total_produced - current.total_non_conforme) / current.total_produced) * 100
+    : 0;
+
+  const deltaArrow = deltaNonConforme > 0 ? '▲' : deltaNonConforme < 0 ? '▼' : '—';
+  const deltaColor = deltaNonConforme > 0 ? '#ff9c9c' : deltaNonConforme < 0 ? '#8df0b2' : '#ffd48a';
+  const deltaBorder = deltaNonConforme > 0 ? '#e05252' : deltaNonConforme < 0 ? '#27C77A' : '#EF9F27';
+
+  const repairStatus = current.pct_repair <= 1 ? 'warn' : 'bad';
+  const secondStatus = current.pct_second_quality <= 1 ? 'warn' : 'bad';
+  const nonConformeStatus = getQualityStatus(current.pct_non_conforme);
+  const conformidadeStatus = getYieldStatus(conformidade);
+
+  function statusColors(status) {
+    if (status === 'good') return { color: '#8df0b2', border: '#27C77A' };
+    if (status === 'warn') return { color: '#ffd48a', border: '#EF9F27' };
+    return { color: '#ff9c9c', border: '#e05252' };
+  }
+
+  const producedColors = { color: '#8ab8ff', border: '#8ab8ff' };
+  const repairColors = statusColors(repairStatus);
+  const secondColors = statusColors(secondStatus);
+  const nonConformeColors = statusColors(nonConformeStatus);
+  const conformidadeColors = statusColors(conformidadeStatus);
+
+  const tiles = [
+    { label: 'Produzido', value: formatNumber(current.total_produced), sub: 'volume produzido no mês', color: producedColors.color, border: producedColors.border },
+    { label: 'Reparo', value: formatNumber(current.total_repair), sub: `${formatPct(current.pct_repair)} do total`, color: repairColors.color, border: repairColors.border },
+    { label: 'Segunda Qualidade', value: formatNumber(current.total_second_quality), sub: `${formatPct(current.pct_second_quality)} do total`, color: secondColors.color, border: secondColors.border },
+    { label: 'Não Conforme', value: formatNumber(current.total_non_conforme), sub: `${formatPct(current.pct_non_conforme)} do total`, color: nonConformeColors.color, border: nonConformeColors.border },
+    { label: 'Conformidade', value: formatPct(conformidade), sub: 'aproveitamento geral', color: conformidadeColors.color, border: conformidadeColors.border },
+  ];
+
+  kpiRow.innerHTML = tiles.map((tile) => `
+    <div class="kpi" style="border-color:${tile.border}55; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${tile.border}14;">
+      <div class="kpi-label">${tile.label}</div>
+      <div class="kpi-value" style="color:${tile.color};">${tile.value}</div>
+      <div class="kpi-sub">${tile.sub}</div>
+    </div>
+  `).join('') + `
+    <div class="kpi" style="border-color:${deltaBorder}55; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${deltaBorder}14;">
+      <div class="kpi-label">Δ vs mês anterior</div>
+      <div class="kpi-value" style="color:${deltaColor};">${deltaArrow} ${formatSignedPct(deltaNonConforme)}</div>
+      <div class="kpi-sub">não conforme</div>
+    </div>
+  `;
+}
+
+async function loadKPIs() {
+  const kpiRow = document.getElementById('kpi-row');
+  kpiRow.innerHTML = '<div class="msg">Carregando indicadores...</div>';
+  try {
+    const [current, comparison, trend] = await Promise.all([
+      fetchJSON(`/analytics/qualidade?year=${state.year}&month=${state.month}`),
+      fetchJSON(`/analytics/qualidade_comparativo?year=${state.year}&month=${state.month}`),
+      fetchJSON(`/analytics/qualidade_evolucao?year=${state.year}&month=${state.month}`),
+    ]);
+    renderKPIs(current, comparison, trend);
+  } catch (err) {
+    kpiRow.innerHTML = `<div class="msg msg-error">Não foi possível carregar os indicadores (${escapeHTML(err.message)}).</div>`;
+  }
+}
+
+function renderKPIs(current, comparison, trend) {
+  const kpiRow = document.getElementById('kpi-row');
+  const conformidade = current.total_produced > 0
+    ? ((current.total_produced - current.total_non_conforme) / current.total_produced) * 100
+    : 0;
+  const months = (trend?.months || []).filter(item => item.total_produced > 0);
+  const baselineMonths = months.length > 1 ? months.slice(0, -1) : months;
+
+  function averageOf(selector) {
+    if (!baselineMonths.length) return 0;
+    return baselineMonths.reduce((sum, item) => sum + selector(item), 0) / baselineMonths.length;
+  }
+
+  function buildAverageTrend(currentValue, averageValue, direction, formatter, warnThresholdPct = 8) {
+    const safeAverage = averageValue > 0 ? averageValue : Math.max(currentValue, 1);
+    const deltaPct = ((currentValue - averageValue) / safeAverage) * 100;
+    const absDeltaPct = Math.abs(deltaPct);
+
+    if (absDeltaPct <= warnThresholdPct) {
+      return {
+        arrow: '—',
+        color: '#ffd48a',
+        border: '#EF9F27',
+        sub: `na média mensal (${formatter(averageValue)})`,
+      };
+    }
+
+    const improved = direction === 'up_better' ? currentValue > averageValue : currentValue < averageValue;
+    return {
+      arrow: currentValue > averageValue ? '▲' : '▼',
+      color: improved ? '#8df0b2' : '#ff9c9c',
+      border: improved ? '#27C77A' : '#e05252',
+      sub: `${deltaPct > 0 ? '+' : ''}${deltaPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% vs média (${formatter(averageValue)})`,
+    };
+  }
+
+  const avgProduced = averageOf(item => item.total_produced);
+  const avgRepair = averageOf(item => item.total_repair);
+  const avgSecond = averageOf(item => item.total_second_quality);
+  const avgNonConforme = averageOf(item => item.total_non_conforme);
+  const avgPctNonConforme = averageOf(item => item.pct_non_conforme);
+  const avgConformidade = averageOf((item) => (
+    item.total_produced > 0
+      ? ((item.total_produced - item.total_non_conforme) / item.total_produced) * 100
+      : 0
+  ));
+
+  const producedTrend = buildAverageTrend(current.total_produced, avgProduced, 'up_better', value => formatNumber(Math.round(value)), 6);
+  const repairTrend = buildAverageTrend(current.total_repair, avgRepair, 'down_better', value => formatNumber(Math.round(value)), 10);
+  const secondTrend = buildAverageTrend(current.total_second_quality, avgSecond, 'down_better', value => formatNumber(Math.round(value)), 10);
+  const nonConformeTrend = buildAverageTrend(current.total_non_conforme, avgNonConforme, 'down_better', value => formatNumber(Math.round(value)), 10);
+  const conformidadeTrend = buildAverageTrend(conformidade, avgConformidade, 'up_better', value => formatPct(value), 2);
+
+  const tiles = [
+    { label: 'Produzido', value: `${producedTrend.arrow} ${formatNumber(current.total_produced)}`, sub: producedTrend.sub, color: producedTrend.color, border: producedTrend.border },
+    { label: 'Reparo', value: `${repairTrend.arrow} ${formatNumber(current.total_repair)}`, sub: `${formatPct(current.pct_repair)} · ${repairTrend.sub}`, color: repairTrend.color, border: repairTrend.border },
+    { label: 'Segunda Qualidade', value: `${secondTrend.arrow} ${formatNumber(current.total_second_quality)}`, sub: `${formatPct(current.pct_second_quality)} · ${secondTrend.sub}`, color: secondTrend.color, border: secondTrend.border },
+    { label: 'Não Conforme', value: `${nonConformeTrend.arrow} ${formatNumber(current.total_non_conforme)}`, sub: `${formatPct(current.pct_non_conforme)} · ${nonConformeTrend.sub}`, color: nonConformeTrend.color, border: nonConformeTrend.border },
+    { label: 'Conformidade', value: `${conformidadeTrend.arrow} ${formatPct(conformidade)}`, sub: conformidadeTrend.sub, color: conformidadeTrend.color, border: conformidadeTrend.border },
+  ];
+
+  kpiRow.innerHTML = tiles.map((tile) => `
+    <div class="kpi" style="border-color:${tile.border}55; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${tile.border}14;">
+      <div class="kpi-label">${tile.label}</div>
+      <div class="kpi-value" style="color:${tile.color};">${tile.value}</div>
+      <div class="kpi-sub">${tile.sub}</div>
+    </div>
+  `).join('') + `
+    <div class="kpi" style="border-color:${nonConformeTrend.border}55; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${nonConformeTrend.border}14;">
+      <div class="kpi-label">Referência</div>
+      <div class="kpi-value" style="color:${nonConformeTrend.color};">${formatPct(avgPctNonConforme)}</div>
+      <div class="kpi-sub">média mensal de não conforme</div>
+    </div>
+  `;
 }
 
 function renderTrendChart(months) {
@@ -443,6 +1428,161 @@ function renderTrendChart(months) {
   });
 }
 
+function renderTrendHighlights(months) {
+  const el = document.getElementById('trend-highlights');
+  const totalProduced = months.reduce((sum, item) => sum + item.total_produced, 0);
+  const totalNonConforme = months.reduce((sum, item) => sum + item.total_non_conforme, 0);
+  const bestMonth = months.reduce((best, item) => {
+    if (!best) return item;
+    return item.total_produced > best.total_produced ? item : best;
+  }, null);
+  const avgConformidade = totalProduced > 0
+    ? ((totalProduced - totalNonConforme) / totalProduced) * 100
+    : 0;
+  const conformidadeStatus = getYieldStatus(avgConformidade);
+  const naoConformePct = totalProduced > 0 ? (totalNonConforme / totalProduced) * 100 : 0;
+  const volumeStatus = bestMonth && bestMonth.total_produced > 0 ? 'good' : 'warn';
+
+  el.innerHTML = `
+    <div class="trend-chip ${volumeStatus}">
+      <div class="trend-chip-label">Volume 6 meses</div>
+      <div class="trend-chip-value">${formatNumber(totalProduced)}</div>
+      <div class="trend-chip-sub">soma da producao registrada</div>
+    </div>
+    <div class="trend-chip ${volumeStatus}">
+      <div class="trend-chip-label">Pico de producao</div>
+      <div class="trend-chip-value">${bestMonth ? formatNumber(bestMonth.total_produced) : '0'}</div>
+      <div class="trend-chip-sub">${bestMonth ? `${MESES[bestMonth.month - 1]} ${bestMonth.year}` : 'sem dados'}</div>
+    </div>
+    <div class="trend-chip ${conformidadeStatus}">
+      <div class="trend-chip-label">Conformidade média</div>
+      <div class="trend-chip-value">${formatPct(avgConformidade)}</div>
+      <div class="trend-chip-sub">${formatPct(naoConformePct)} de não conforme no acumulado</div>
+    </div>
+  `;
+}
+
+function renderTrendChart(months) {
+  const canvas = document.getElementById('chart-trend');
+  const ctx = canvas.getContext('2d');
+  const labels = months.map(m => `${MESES_ABR[m.month - 1]}/${String(m.year).slice(2)}`);
+  const conforme = months.map(m => Math.max(m.total_produced - m.total_non_conforme, 0));
+  const reparo = months.map(m => m.total_repair);
+  const segundaQualidade = months.map(m => m.total_second_quality);
+  const pctNaoConforme = months.map(m => m.pct_non_conforme);
+
+  renderTrendHighlights(months);
+  const avgPctNaoConforme = months.reduce((sum, item) => sum + item.pct_non_conforme, 0) / (months.length || 1);
+  const qualityLineColor = getStatusColor(getQualityStatus(avgPctNaoConforme));
+
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Conforme',
+          data: conforme,
+          backgroundColor: 'rgba(39, 199, 122, 0.82)',
+          borderRadius: 8,
+          borderSkipped: false,
+          stack: 'production',
+        },
+        {
+          type: 'bar',
+          label: 'Reparo',
+          data: reparo,
+          backgroundColor: 'rgba(239, 159, 39, 0.88)',
+          borderRadius: 8,
+          borderSkipped: false,
+          stack: 'production',
+        },
+        {
+          type: 'bar',
+          label: 'Segunda Qualidade',
+          data: segundaQualidade,
+          backgroundColor: 'rgba(224, 82, 82, 0.82)',
+          borderRadius: 8,
+          borderSkipped: false,
+          stack: 'production',
+        },
+        {
+          type: 'line',
+          label: '% Não Conforme',
+          data: pctNaoConforme,
+          yAxisID: 'y1',
+          borderColor: qualityLineColor,
+          backgroundColor: `${qualityLineColor}22`,
+          fill: false,
+          tension: .35,
+          pointRadius: 4,
+          pointHoverRadius: 5,
+          pointBackgroundColor: qualityLineColor,
+          pointBorderColor: '#0d2040',
+          pointBorderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Volume produzido',
+            color: '#6888a8',
+          },
+          ticks: { callback: v => formatNumber(v) },
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          title: {
+            display: true,
+            text: '% não conforme',
+            color: '#6888a8',
+          },
+          ticks: { callback: v => formatPct(v) },
+        },
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            padding: 14,
+            color: '#c8d8ea',
+            font: { family: "'Inter', system-ui, sans-serif", weight: '500', size: 11 },
+          },
+        },
+        tooltip: {
+          displayColors: true,
+          callbacks: {
+            label: (ctx) => {
+              const value = ctx.parsed.y;
+              if (ctx.dataset.yAxisID === 'y1') {
+                return ` ${ctx.dataset.label}: ${formatPct(value)}`;
+              }
+              return ` ${ctx.dataset.label}: ${formatNumber(value)}`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 async function loadTrend() {
   const msgEl = document.getElementById('trend-msg');
   msgEl.hidden = true;
@@ -458,6 +1598,32 @@ async function loadTrend() {
     renderTrendChart(data.months);
   } catch (err) {
     if (trendChart) { trendChart.destroy(); trendChart = null; }
+    msgEl.hidden = false;
+    msgEl.className = 'msg msg-error';
+    msgEl.textContent = `Não foi possível carregar a evolução (${escapeHTML(err.message)}).`;
+  }
+}
+
+async function loadTrend() {
+  const msgEl = document.getElementById('trend-msg');
+  const highlightsEl = document.getElementById('trend-highlights');
+  msgEl.hidden = true;
+
+  try {
+    const data = await fetchJSON(`/analytics/qualidade_evolucao?year=${state.year}&month=${state.month}`);
+    if (!data.months.length || data.months.every(m => m.total_produced === 0)) {
+      if (trendChart) { trendChart.destroy(); trendChart = null; }
+      highlightsEl.innerHTML = '';
+      msgEl.hidden = false;
+      msgEl.className = 'msg';
+      msgEl.textContent = 'Sem produção registrada no período.';
+      return;
+    }
+
+    renderTrendChart(data.months);
+  } catch (err) {
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+    highlightsEl.innerHTML = '';
     msgEl.hidden = false;
     msgEl.className = 'msg msg-error';
     msgEl.textContent = `Não foi possível carregar a evolução (${escapeHTML(err.message)}).`;
@@ -597,13 +1763,661 @@ async function loadComposition() {
   }
 }
 
+function renderMachineChart(machines) {
+  const listEl = document.getElementById('machine-list-bottom');
+  const ranked = [...machines]
+    .filter(item => item.total_produced > 0)
+    .sort((a, b) => b.pct_non_conforme - a.pct_non_conforme);
+
+  listEl.innerHTML = ranked.map((item, index) => {
+    const status = getQualityStatus(item.pct_non_conforme);
+    const color = status === 'good' ? '#8df0b2' : status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const fill = status === 'good'
+      ? 'linear-gradient(90deg, rgba(39,199,122,.88), rgba(138,184,255,.82))'
+      : status === 'warn'
+        ? 'linear-gradient(90deg, rgba(239,159,39,.9), rgba(245,199,90,.82))'
+        : 'linear-gradient(90deg, rgba(224,82,82,.92), rgba(255,140,140,.82))';
+
+    return `
+      <div class="machine-item ${index === 0 ? 'top-risk' : ''}">
+        <div class="machine-head">
+          <div class="machine-left">
+            <div class="machine-rank">${index + 1}</div>
+            <div class="machine-name">${item.label}</div>
+          </div>
+          <div class="machine-pct" style="color:${color}">${formatPct(item.pct_non_conforme)}</div>
+        </div>
+        <div class="machine-bar" aria-label="${item.label}">
+          <div class="machine-fill" style="width:${Math.min(item.pct_non_conforme, 100)}%; background:${fill}"></div>
+        </div>
+        <div class="machine-meta">
+          <div>Prod.<strong>${formatNumber(item.total_produced)}</strong></div>
+          <div>N.Conf.<strong>${formatNumber(item.total_non_conforme)} · ${formatPct(item.pct_non_conforme)}</strong></div>
+          <div>Conf.<strong>${formatNumber(item.total_produced - item.total_non_conforme)}</strong></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const worstEl = document.getElementById('machine-worst-bottom');
+  if (ranked.length) {
+    worstEl.hidden = false;
+    worstEl.style.color = getStatusColor(getQualityStatus(ranked[0].pct_non_conforme));
+    worstEl.textContent = `Maior taxa de não conforme: ${ranked[0].label} (${formatPct(ranked[0].pct_non_conforme)})`;
+  } else {
+    worstEl.hidden = true;
+  }
+}
+
+function renderCompositionChart(current) {
+  const ctx = document.getElementById('chart-composition').getContext('2d');
+  const conforme = Math.max(current.total_produced - current.total_non_conforme, 0);
+  const total = conforme + current.total_repair + current.total_second_quality;
+  const pctConforme = total > 0 ? (conforme / total) * 100 : 0;
+  const conformeColor = getStatusColor(getYieldStatus(pctConforme));
+
+  if (compositionChart) compositionChart.destroy();
+  compositionChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Conforme', 'Reparo', 'Segunda Qualidade'],
+      datasets: [{
+        data: [conforme, current.total_repair, current.total_second_quality],
+        backgroundColor: [conformeColor, '#EF9F27', '#e05252'],
+        borderColor: '#0d2040',
+        borderWidth: 2,
+        hoverOffset: 10,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '58%',
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            padding: 12,
+            color: '#c8d8ea',
+            font: { family: "'Inter', system-ui, sans-serif", weight: '500', size: 11 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const chartTotal = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = chartTotal > 0 ? (ctx.parsed / chartTotal) * 100 : 0;
+              return ` ${ctx.label}: ${formatNumber(ctx.parsed)} (${formatPct(pct)})`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderDailyChart(days) {
+  const ctx = document.getElementById('chart-daily').getContext('2d');
+  const highlightsEl = document.getElementById('daily-highlights');
+  const labels = days.map(item => String(item.day).padStart(2, '0'));
+  const produced = days.map(item => item.total_produced);
+  const pctNonConforme = days.map(item => item.pct_non_conforme);
+  const nonConformeVolume = days.map(item => item.total_non_conforme);
+  const avgNonConforme = pctNonConforme.reduce((sum, value) => sum + value, 0) / (pctNonConforme.length || 1);
+  const lineColor = getStatusColor(getQualityStatus(avgNonConforme));
+  const validDays = days.filter(item => item.total_produced > 0);
+  const bestDay = validDays.reduce((best, item) => (!best || item.total_produced > best.total_produced ? item : best), null);
+  const worstQualityDay = validDays.reduce((worst, item) => (!worst || item.pct_non_conforme > worst.pct_non_conforme ? item : worst), null);
+  const avgProduced = validDays.length
+    ? validDays.reduce((sum, item) => sum + item.total_produced, 0) / validDays.length
+    : 0;
+
+  highlightsEl.innerHTML = `
+    <div class="trend-chip ${bestDay ? 'good' : 'warn'}">
+      <div class="trend-chip-label">Media por dia ativo</div>
+      <div class="trend-chip-value">${formatNumber(Math.round(avgProduced))}</div>
+      <div class="trend-chip-sub">produção média nos dias com registro</div>
+    </div>
+    <div class="trend-chip ${bestDay ? 'good' : 'warn'}">
+      <div class="trend-chip-label">Melhor dia</div>
+      <div class="trend-chip-value">${bestDay ? labels[bestDay.day - 1] : '--'}</div>
+      <div class="trend-chip-sub">${bestDay ? `${formatNumber(bestDay.total_produced)} peças produzidas` : 'sem dados no período'}</div>
+    </div>
+    <div class="trend-chip ${worstQualityDay ? getQualityStatus(worstQualityDay.pct_non_conforme) : 'warn'}">
+      <div class="trend-chip-label">Maior não conforme</div>
+      <div class="trend-chip-value">${worstQualityDay ? formatPct(worstQualityDay.pct_non_conforme) : '--'}</div>
+      <div class="trend-chip-sub">${worstQualityDay ? `dia ${String(worstQualityDay.day).padStart(2, '0')}` : 'sem dados no período'}</div>
+    </div>
+  `;
+
+  const producedGradient = ctx.createLinearGradient(0, 0, 0, 320);
+  producedGradient.addColorStop(0, 'rgba(138, 184, 255, 0.95)');
+  producedGradient.addColorStop(1, 'rgba(39, 199, 122, 0.42)');
+
+  const lineFillGradient = ctx.createLinearGradient(0, 0, 0, 320);
+  lineFillGradient.addColorStop(0, `${lineColor}44`);
+  lineFillGradient.addColorStop(1, `${lineColor}05`);
+
+  if (dailyChart) dailyChart.destroy();
+  dailyChart = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Produzido no dia',
+          data: produced,
+          backgroundColor: producedGradient,
+          borderColor: 'rgba(138, 184, 255, 0.65)',
+          borderWidth: 1,
+          borderRadius: 8,
+          borderSkipped: false,
+          yAxisID: 'y',
+        },
+        {
+          type: 'bar',
+          label: 'Não Conforme em volume',
+          data: nonConformeVolume,
+          backgroundColor: 'rgba(224, 82, 82, 0.34)',
+          borderColor: 'rgba(224, 82, 82, 0.58)',
+          borderWidth: 1,
+          borderRadius: 8,
+          borderSkipped: false,
+          yAxisID: 'y',
+        },
+        {
+          type: 'line',
+          label: '% Não Conforme',
+          data: pctNonConforme,
+          borderColor: lineColor,
+          backgroundColor: lineFillGradient,
+          fill: true,
+          pointBackgroundColor: lineColor,
+          pointBorderColor: '#0d2040',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: .38,
+          yAxisID: 'y1',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          grid: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Pecas produzidas',
+            color: '#6888a8',
+          },
+          ticks: { callback: value => formatNumber(value) },
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          title: {
+            display: true,
+            text: '% não conforme',
+            color: '#6888a8',
+          },
+          ticks: { callback: value => formatPct(value) },
+        },
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            padding: 14,
+            color: '#c8d8ea',
+            font: { family: "'Inter', system-ui, sans-serif", weight: '500', size: 11 },
+          },
+        },
+        tooltip: {
+          displayColors: true,
+          callbacks: {
+            label: (ctx) => (
+              ctx.dataset.yAxisID === 'y1'
+                ? ` ${ctx.dataset.label}: ${formatPct(ctx.parsed.y)}`
+                : ` ${ctx.dataset.label}: ${formatNumber(ctx.parsed.y)}`
+            ),
+          },
+        },
+      },
+    },
+  });
+}
+
+async function loadDaily() {
+  const msgEl = document.getElementById('daily-msg');
+  const highlightsEl = document.getElementById('daily-highlights');
+  msgEl.hidden = true;
+  try {
+    const data = await fetchJSON(`/analytics/qualidade_diaria?year=${state.year}&month=${state.month}`);
+    if (!data.days.length || data.days.every(item => item.total_produced === 0)) {
+      if (dailyChart) { dailyChart.destroy(); dailyChart = null; }
+      highlightsEl.innerHTML = '';
+      msgEl.hidden = false;
+      msgEl.className = 'msg';
+      msgEl.textContent = 'Sem produção diária registrada no período.';
+      return;
+    }
+    renderDailyChart(data.days);
+  } catch (err) {
+    if (dailyChart) { dailyChart.destroy(); dailyChart = null; }
+    highlightsEl.innerHTML = '';
+    msgEl.hidden = false;
+    msgEl.className = 'msg msg-error';
+    msgEl.textContent = `Não foi possível carregar o ritmo diário (${escapeHTML(err.message)}).`;
+  }
+}
+
+function renderYieldChart(machines) {
+  const listEl = document.getElementById('yield-list-bottom');
+  const ranked = machines
+    .filter(item => item.total_produced > 0)
+    .map(item => ({
+      label: item.label,
+      totalProduced: item.total_produced,
+      totalConforme: item.total_produced - item.total_non_conforme,
+      totalNonConforme: item.total_non_conforme,
+      pctConforme: ((item.total_produced - item.total_non_conforme) / item.total_produced) * 100,
+      pctNonConforme: (item.total_non_conforme / item.total_produced) * 100,
+      status: getYieldStatus(((item.total_produced - item.total_non_conforme) / item.total_produced) * 100),
+    }))
+    .sort((a, b) => b.pctConforme - a.pctConforme);
+
+  listEl.innerHTML = ranked.map((item, index) => {
+    const pctConforme = Number(item.pctConforme.toFixed(2));
+    const pctNaoConforme = Number(item.pctNonConforme.toFixed(2));
+    const pctColor = item.status === 'good' ? '#8df0b2' : item.status === 'warn' ? '#ffd48a' : '#ff9c9c';
+
+    return `
+      <div class="yield-item ${index === 0 ? 'top-quality' : ''}">
+        <div class="yield-head">
+          <div class="yield-left">
+            <div class="yield-rank">${index + 1}</div>
+            <div class="yield-name">${item.label}</div>
+          </div>
+          <div class="yield-pct" style="color:${pctColor}">${formatPct(pctConforme)} conforme</div>
+        </div>
+        <div class="yield-bar" aria-label="${item.label}">
+          <div class="yield-good" style="width:${pctConforme}%"></div>
+          <div class="yield-bad" style="width:${pctNaoConforme}%"></div>
+        </div>
+        <div class="yield-meta">
+          <div>Produzido<strong>${formatNumber(item.totalProduced)}</strong></div>
+          <div>Conforme<strong>${formatNumber(item.totalConforme)} · ${formatPct(pctConforme)}</strong></div>
+          <div>Não Conforme<strong>${formatNumber(item.totalNonConforme)} · ${formatPct(pctNaoConforme)}</strong></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadYield() {
+  const msgEl = document.getElementById('yield-msg-bottom');
+  const listEl = document.getElementById('yield-list-bottom');
+  msgEl.hidden = true;
+  try {
+    const data = await fetchJSON(`/analytics/qualidade_por_maquina?year=${state.year}&month=${state.month}`);
+    if (!data.machines.length || data.machines.every(item => item.total_produced === 0)) {
+      listEl.innerHTML = '';
+      msgEl.hidden = false;
+      msgEl.className = 'msg';
+      msgEl.textContent = 'Sem dados suficientes para montar a composição de qualidade por máquina.';
+      return;
+    }
+    renderYieldChart(data.machines);
+    msgEl.hidden = false;
+    msgEl.className = 'msg';
+    msgEl.textContent = 'Cada barra mostra quanto da produção da máquina saiu conforme e quanto virou não conforme no mês.';
+  } catch (err) {
+    listEl.innerHTML = '';
+    msgEl.hidden = false;
+    msgEl.className = 'msg msg-error';
+    msgEl.textContent = `Não foi possível carregar o aproveitamento (${escapeHTML(err.message)}).`;
+  }
+}
+
+async function loadMachines() {
+  const msgEl = document.getElementById('machine-msg-bottom');
+  const worstEl = document.getElementById('machine-worst-bottom');
+  const listEl = document.getElementById('machine-list-bottom');
+  msgEl.hidden = true;
+
+  try {
+    const data = await fetchJSON(`/analytics/qualidade_por_maquina?year=${state.year}&month=${state.month}`);
+    if (!data.machines.length || data.machines.every(item => item.total_produced === 0)) {
+      listEl.innerHTML = '';
+      worstEl.hidden = true;
+      msgEl.hidden = false;
+      msgEl.className = 'msg';
+      msgEl.textContent = 'Sem dados suficientes para montar o ranking de não conforme por máquina.';
+      return;
+    }
+
+    renderMachineChart(data.machines);
+  } catch (err) {
+    listEl.innerHTML = '';
+    worstEl.hidden = true;
+    msgEl.hidden = false;
+    msgEl.className = 'msg msg-error';
+    msgEl.textContent = `Não foi possível carregar por máquina (${escapeHTML(err.message)}).`;
+  }
+}
+
+async function loadKPIs() {
+  const kpiRow = document.getElementById('kpi-row');
+  kpiRow.innerHTML = '<div class="msg">Carregando indicadores...</div>';
+
+  try {
+    const [current, comparison, trend] = await Promise.all([
+      fetchJSON(`/analytics/qualidade?year=${state.year}&month=${state.month}`),
+      fetchJSON(`/analytics/qualidade_comparativo?year=${state.year}&month=${state.month}`),
+      fetchJSON(`/analytics/qualidade_evolucao?year=${state.year}&month=${state.month}`),
+    ]);
+
+    renderKPIs(current, comparison, trend);
+  } catch (err) {
+    kpiRow.innerHTML = `<div class="msg msg-error">Não foi possível carregar os indicadores (${escapeHTML(err.message)}).</div>`;
+  }
+}
+
+function renderKPIs(current, comparison, trend) {
+  const kpiRow = document.getElementById('kpi-row');
+  const months = (trend?.months || []).filter((item) => item.total_produced > 0);
+  const baselineMonths = months.length > 1 ? months.slice(0, -1) : months;
+  const conformidade = current.total_produced > 0
+    ? ((current.total_produced - current.total_non_conforme) / current.total_produced) * 100
+    : 0;
+
+  function averageOf(selector) {
+    if (!baselineMonths.length) return 0;
+    return baselineMonths.reduce((sum, item) => sum + selector(item), 0) / baselineMonths.length;
+  }
+
+  function buildAverageTrend(currentValue, averageValue, direction, formatter, warnThresholdPct) {
+    const safeAverage = averageValue > 0 ? averageValue : Math.max(currentValue, 1);
+    const deltaPct = ((currentValue - averageValue) / safeAverage) * 100;
+    const absDeltaPct = Math.abs(deltaPct);
+
+    if (absDeltaPct <= warnThresholdPct) {
+      return {
+        arrow: '—',
+        color: '#ffd48a',
+        border: '#EF9F27',
+        sub: `na média mensal (${formatter(averageValue)})`,
+      };
+    }
+
+    const improved = direction === 'up_better' ? currentValue > averageValue : currentValue < averageValue;
+    return {
+      arrow: currentValue > averageValue ? '▲' : '▼',
+      color: improved ? '#8df0b2' : '#ff9c9c',
+      border: improved ? '#27C77A' : '#e05252',
+      sub: `${deltaPct > 0 ? '+' : ''}${deltaPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% vs média (${formatter(averageValue)})`,
+    };
+  }
+
+  const avgProduced = averageOf((item) => item.total_produced);
+  const avgRepair = averageOf((item) => item.total_repair);
+  const avgSecond = averageOf((item) => item.total_second_quality);
+  const avgNonConforme = averageOf((item) => item.total_non_conforme);
+  const avgPctNonConforme = averageOf((item) => item.pct_non_conforme);
+  const avgConformidade = averageOf((item) => (
+    item.total_produced > 0
+      ? ((item.total_produced - item.total_non_conforme) / item.total_produced) * 100
+      : 0
+  ));
+
+  const producedTrend = buildAverageTrend(current.total_produced, avgProduced, 'up_better', (value) => formatNumber(Math.round(value)), 6);
+  const repairTrend = buildAverageTrend(current.total_repair, avgRepair, 'down_better', (value) => formatNumber(Math.round(value)), 10);
+  const secondTrend = buildAverageTrend(current.total_second_quality, avgSecond, 'down_better', (value) => formatNumber(Math.round(value)), 10);
+  const nonConformeTrend = buildAverageTrend(current.total_non_conforme, avgNonConforme, 'down_better', (value) => formatNumber(Math.round(value)), 10);
+  const conformidadeTrend = buildAverageTrend(conformidade, avgConformidade, 'up_better', (value) => formatPct(value), 2);
+
+  const tiles = [
+    {
+      label: 'Produzido',
+      value: `${producedTrend.arrow} ${formatNumber(current.total_produced)}`,
+      sub: producedTrend.sub,
+      color: producedTrend.color,
+      border: producedTrend.border,
+    },
+    {
+      label: 'Reparo',
+      value: `${repairTrend.arrow} ${formatNumber(current.total_repair)}`,
+      sub: `${formatPct(current.pct_repair)} · ${repairTrend.sub}`,
+      color: repairTrend.color,
+      border: repairTrend.border,
+    },
+    {
+      label: 'Segunda Qualidade',
+      value: `${secondTrend.arrow} ${formatNumber(current.total_second_quality)}`,
+      sub: `${formatPct(current.pct_second_quality)} · ${secondTrend.sub}`,
+      color: secondTrend.color,
+      border: secondTrend.border,
+    },
+    {
+      label: 'Não Conforme',
+      value: `${nonConformeTrend.arrow} ${formatNumber(current.total_non_conforme)}`,
+      sub: `${formatPct(current.pct_non_conforme)} · ${nonConformeTrend.sub}`,
+      color: nonConformeTrend.color,
+      border: nonConformeTrend.border,
+    },
+    {
+      label: 'Conformidade',
+      value: `${conformidadeTrend.arrow} ${formatPct(conformidade)}`,
+      sub: conformidadeTrend.sub,
+      color: conformidadeTrend.color,
+      border: conformidadeTrend.border,
+    },
+  ];
+
+  kpiRow.innerHTML = tiles.map((tile) => `
+    <div class="kpi" style="border-color:${tile.border}55; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${tile.border}14;">
+      <div class="kpi-label">${tile.label}</div>
+      <div class="kpi-value" style="color:${tile.color};">${tile.value}</div>
+      <div class="kpi-sub">${tile.sub}</div>
+    </div>
+  `).join('') + `
+    <div class="kpi" style="border-color:${nonConformeTrend.border}55; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 30px ${nonConformeTrend.border}14;">
+      <div class="kpi-label">Referência</div>
+      <div class="kpi-value" style="color:${nonConformeTrend.color};">${formatPct(avgPctNonConforme)}</div>
+      <div class="kpi-sub">média mensal de não conforme</div>
+    </div>
+  `;
+}
+
+function renderMachineChart(machines) {
+  const listEl = document.getElementById('machine-list-bottom');
+  const ranked = [...machines]
+    .filter((item) => item.total_produced > 0)
+    .sort((a, b) => b.pct_non_conforme - a.pct_non_conforme);
+
+  listEl.innerHTML = ranked.map((item, index) => {
+    const produced = item.total_produced || 0;
+    const repair = item.total_repair || 0;
+    const second = item.total_second_quality || 0;
+    const nonConforme = item.total_non_conforme || 0;
+    const conforme = Math.max(produced - nonConforme, 0);
+    const pctNc = produced ? (nonConforme / produced) * 100 : 0;
+    const pctConforme = produced ? (conforme / produced) * 100 : 0;
+    const pctRepair = produced ? (repair / produced) * 100 : 0;
+    const pctSecond = produced ? (second / produced) * 100 : 0;
+    const status = getQualityStatus(pctNc);
+    const color = status === 'good' ? '#8df0b2' : status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const statusLabel = status === 'good' ? 'Controlado' : status === 'warn' ? 'Atenção' : 'Crítico';
+    const fill = status === 'good'
+      ? 'linear-gradient(90deg, rgba(39,199,122,.88), rgba(138,184,255,.82))'
+      : status === 'warn'
+        ? 'linear-gradient(90deg, rgba(239,159,39,.9), rgba(245,199,90,.82))'
+        : 'linear-gradient(90deg, rgba(224,82,82,.92), rgba(255,140,140,.82))';
+
+    return `
+      <div class="machine-item ${index === 0 ? 'top-risk' : ''}">
+        <div class="machine-head">
+          <div class="machine-left">
+            <div class="machine-rank">${index + 1}</div>
+            <div>
+              <div class="machine-name">${item.label}</div>
+              <div class="machine-mini" style="color:${color}">${statusLabel} · ${formatPct(pctNc)} não conforme</div>
+            </div>
+          </div>
+          <div class="machine-pct">${formatNumber(produced)}</div>
+        </div>
+        <div class="machine-bar" aria-label="${item.label}">
+          <div class="machine-fill" style="width:${Math.min(pctNc, 100)}%; background:${fill}"></div>
+        </div>
+        <div class="machine-mini">Taxa de perda no período</div>
+        <div class="machine-stack" aria-label="Composição da qualidade da máquina ${item.label}">
+          <div class="stack-good" style="width:${pctConforme}%"></div>
+          <div class="stack-repair" style="width:${pctRepair}%"></div>
+          <div class="stack-second" style="width:${pctSecond}%"></div>
+        </div>
+        <div class="machine-mini">Verde conforme, amarelo reparo, vermelho segunda qualidade</div>
+        <div class="machine-meta">
+          <div>Produzido<strong>${formatNumber(produced)}</strong></div>
+          <div>Conforme<strong>${formatPct(pctConforme)} · ${formatNumber(conforme)}</strong></div>
+          <div>Reparo<strong>${formatPct(pctRepair)} · ${formatNumber(repair)}</strong></div>
+          <div>2ª Qualidade<strong>${formatPct(pctSecond)} · ${formatNumber(second)}</strong></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const worstEl = document.getElementById('machine-worst-bottom');
+  if (ranked.length) {
+    worstEl.hidden = false;
+    worstEl.style.color = getStatusColor(getQualityStatus(ranked[0].pct_non_conforme));
+    worstEl.textContent = `Maior perda no período: ${ranked[0].label} com ${formatPct(ranked[0].pct_non_conforme)} de não conforme.`;
+  } else {
+    worstEl.hidden = true;
+  }
+
+  const msgEl = document.getElementById('machine-msg-bottom');
+  msgEl.hidden = false;
+  msgEl.className = 'msg';
+  msgEl.textContent = 'Cada card mostra a taxa de não conforme da maquina e, logo abaixo, a composicao da producao entre conforme, reparo e segunda qualidade.';
+}
+
+function renderMachineChart(machines) {
+  const listEl = document.getElementById('machine-list-bottom');
+  const worstEl = document.getElementById('machine-worst-bottom');
+  const msgEl = document.getElementById('machine-msg-bottom');
+  const ranked = [...machines]
+    .filter((item) => item.total_produced > 0)
+    .sort((a, b) => b.pct_non_conforme - a.pct_non_conforme);
+
+  function renderMachineCard(item, index, tone) {
+    const produced = item.total_produced || 0;
+    const repair = item.total_repair || 0;
+    const second = item.total_second_quality || 0;
+    const nonConforme = item.total_non_conforme || 0;
+    const conforme = Math.max(produced - nonConforme, 0);
+    const pctNc = produced ? (nonConforme / produced) * 100 : 0;
+    const pctConforme = produced ? (conforme / produced) * 100 : 0;
+    const pctRepair = produced ? (repair / produced) * 100 : 0;
+    const pctSecond = produced ? (second / produced) * 100 : 0;
+    const status = tone === 'best' ? 'good' : getQualityStatus(pctNc);
+    const color = status === 'good' ? '#8df0b2' : status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const statusLabel = tone === 'best'
+      ? 'Melhor desempenho'
+      : status === 'good' ? 'Controlado' : status === 'warn' ? 'Atenção' : 'Crítico';
+    const fill = status === 'good'
+      ? 'linear-gradient(90deg, rgba(39,199,122,.88), rgba(138,184,255,.82))'
+      : status === 'warn'
+        ? 'linear-gradient(90deg, rgba(239,159,39,.9), rgba(245,199,90,.82))'
+        : 'linear-gradient(90deg, rgba(224,82,82,.92), rgba(255,140,140,.82))';
+
+    return `
+      <div class="machine-item ${tone === 'worst' && index === 0 ? 'top-risk' : ''}">
+        <div class="machine-head">
+          <div class="machine-left">
+            <div class="machine-rank">${index + 1}</div>
+            <div class="machine-name">${escapeHTML(item.label)}</div>
+          </div>
+          <div class="machine-pct">${formatNumber(produced)}</div>
+        </div>
+        <div class="machine-summary">
+          <div class="machine-status" style="color:${color}; border-color:${color}33;">${statusLabel}</div>
+          <div class="machine-nc">${formatPct(pctNc)} não conforme</div>
+        </div>
+        <div class="machine-bars">
+          <div class="machine-bar" aria-label="${escapeHTML(item.label)}">
+            <div class="machine-fill" style="width:${Math.min(pctNc, 100)}%; background:${fill}"></div>
+          </div>
+          <div class="machine-stack" aria-label="Composição da qualidade da máquina ${escapeHTML(item.label)}">
+            <div class="stack-good" style="width:${pctConforme}%"></div>
+            <div class="stack-repair" style="width:${pctRepair}%"></div>
+            <div class="stack-second" style="width:${pctSecond}%"></div>
+          </div>
+        </div>
+        <div class="machine-stats">
+          <div class="machine-stat">
+            <div class="machine-stat-label">Conforme</div>
+            <strong>${formatPct(pctConforme)}</strong>
+            <span>${formatNumber(conforme)}</span>
+          </div>
+          <div class="machine-stat">
+            <div class="machine-stat-label">Reparo</div>
+            <strong>${formatPct(pctRepair)}</strong>
+            <span>${formatNumber(repair)}</span>
+          </div>
+          <div class="machine-stat">
+            <div class="machine-stat-label">2ª Qualidade</div>
+            <strong>${formatPct(pctSecond)}</strong>
+            <span>${formatNumber(second)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const limit = Math.min(3, ranked.length);
+  const worstList = ranked.slice(0, limit);
+  const bestList = [...ranked].reverse().slice(0, limit);
+
+  listEl.innerHTML = `
+    <div class="machine-table">
+      <section class="machine-column">
+        <div class="machine-column-title">Piores</div>
+        <div class="machine-column-list">
+          ${worstList.map((item, index) => renderMachineCard(item, index, 'worst')).join('')}
+        </div>
+      </section>
+      <section class="machine-column">
+        <div class="machine-column-title">Melhores</div>
+        <div class="machine-column-list">
+          ${bestList.map((item, index) => renderMachineCard(item, index, 'best')).join('')}
+        </div>
+      </section>
+    </div>
+  `;
+
+  worstEl.hidden = true;
+  msgEl.hidden = true;
+}
+
 function updatePeriodLabel() {
   document.getElementById('period-label').textContent = `${MESES[state.month - 1]} ${state.year}`;
 }
 
 async function loadAll() {
   updatePeriodLabel();
-  await Promise.allSettled([loadKPIs(), loadTrend(), loadMachines(), loadComposition()]);
+  await Promise.allSettled([loadKPIs(), loadTrend(), loadMachines(), loadComposition(), loadDaily()]);
 }
 
 /*  Tema — mesma lógica e mesma chave de localStorage do dashboard TV  */
@@ -623,7 +2437,10 @@ function toggleTheme() {
 })();
 
 populateSelectors();
+renderModuleRail();
+syncModuleView();
 loadAll();
 </script>
 </body>
 </html>
+

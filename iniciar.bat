@@ -12,4 +12,5 @@ start "Pantex Streamlit" python -m streamlit run streamlit_app/app.py --server.p
 echo Abrindo navegadores...
 timeout /t 4 /nobreak >nul
 start "" "http://localhost:8000/tv"
+start "" "http://localhost:8000/analytics-view"
 start "" "http://localhost:8501"

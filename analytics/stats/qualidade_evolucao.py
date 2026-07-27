@@ -52,6 +52,10 @@ def get_quality_trend(year: int, month: int, months_back: int = 6) -> QualityTre
         total_repair: int = int(row["total_repair"]) if row else 0
         total_second_quality: int = int(row["total_second_quality"]) if row else 0
         total_non_conforme: int = total_repair + total_second_quality
+        pct_repair: float = round(total_repair / total_produced * 100, 2) if total_produced > 0 else 0.0
+        pct_second_quality: float = (
+            round(total_second_quality / total_produced * 100, 2) if total_produced > 0 else 0.0
+        )
         pct_non_conforme: float = (
             round(total_non_conforme / total_produced * 100, 2) if total_produced > 0 else 0.0
         )
@@ -60,6 +64,11 @@ def get_quality_trend(year: int, month: int, months_back: int = 6) -> QualityTre
                 year=y,
                 month=m,
                 total_produced=total_produced,
+                total_repair=total_repair,
+                total_second_quality=total_second_quality,
+                total_non_conforme=total_non_conforme,
+                pct_repair=pct_repair,
+                pct_second_quality=pct_second_quality,
                 pct_non_conforme=pct_non_conforme,
             )
         )

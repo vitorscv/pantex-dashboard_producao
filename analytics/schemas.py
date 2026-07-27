@@ -39,6 +39,11 @@ class QualityMonthPoint(BaseModel):
     year: int
     month: int
     total_produced: int
+    total_repair: int
+    total_second_quality: int
+    total_non_conforme: int
+    pct_repair: float
+    pct_second_quality: float
     pct_non_conforme: float
 
 
@@ -50,3 +55,19 @@ class QualityComparisonStat(BaseModel):
     current: QualityStat
     previous: QualityStat
     delta_pct_non_conforme: float
+
+
+class QualityDayPoint(BaseModel):
+    day: int
+    total_produced: int
+    total_repair: int
+    total_second_quality: int
+    total_non_conforme: int
+    pct_non_conforme: float
+    pct_conforme: float
+
+
+class QualityDailyStat(BaseModel):
+    year: int
+    month: int
+    days: list[QualityDayPoint]
