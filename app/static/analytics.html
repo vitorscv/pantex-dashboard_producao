@@ -207,6 +207,10 @@
   .module-view[hidden] {
     display: none !important;
   }
+  .module-view {
+    display: grid;
+    gap: 1rem;
+  }
   .module-empty {
     min-height: 360px;
     display: grid;
@@ -237,6 +241,306 @@
     font-size: .74rem;
     color: var(--muted);
     line-height: 1.5;
+  }
+  .eff-grid {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: .9rem;
+  }
+  .eff-grid .panel-span {
+    grid-column: 1 / -1;
+  }
+  .eff-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: .75rem;
+  }
+  .eff-kpi {
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+    border: 1px solid rgba(136,160,184,.16);
+    border-radius: 10px;
+    padding: .9rem;
+  }
+  .eff-kpi-label {
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+    margin-bottom: .38rem;
+  }
+  .eff-kpi-value {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #f3f7fa;
+  }
+  .eff-kpi-sub {
+    font-size: .64rem;
+    color: var(--muted);
+    margin-top: .24rem;
+  }
+  .eff-machine-list {
+    display: grid;
+    gap: .55rem;
+  }
+  .eff-machine-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) .9fr .8fr;
+    gap: .55rem;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    border: 1px solid rgba(136,160,184,.12);
+    border-radius: 8px;
+    padding: .62rem .68rem;
+  }
+  .eff-machine-name {
+    min-width: 0;
+  }
+  .eff-machine-title {
+    font-size: .73rem;
+    font-weight: 700;
+    color: #f1f5f8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .eff-machine-sub {
+    font-size: .6rem;
+    color: var(--muted);
+    margin-top: .1rem;
+  }
+  .eff-progress {
+    display: grid;
+    gap: .18rem;
+  }
+  .eff-progress-value {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 600;
+    color: #d7e2ec;
+  }
+  .eff-progress-bar {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.04);
+  }
+  .eff-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .eff-machine-side {
+    text-align: right;
+  }
+  .eff-machine-side strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    color: #f1f5f8;
+  }
+  .eff-machine-side span {
+    display: block;
+    font-size: .6rem;
+    color: var(--muted);
+    margin-top: .1rem;
+  }
+  .eff-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .7rem;
+  }
+  .eff-mini-table {
+    display: grid;
+    gap: .4rem;
+  }
+  .eff-mini-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .45rem;
+    align-items: center;
+    padding: .42rem .48rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,.018);
+    border: 1px solid rgba(136,160,184,.08);
+  }
+  .eff-mini-name {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: .67rem;
+    color: #d7e2ec;
+  }
+  .eff-mini-value {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    color: var(--muted);
+  }
+  .eff-downtime-summary {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.2fr) minmax(220px, .95fr);
+    gap: .7rem;
+    margin-bottom: .8rem;
+  }
+  .eff-downtime-highlight,
+  .eff-downtime-stat {
+    min-width: 0;
+    padding: .8rem .85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(136,160,184,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  }
+  .eff-downtime-highlight {
+    position: relative;
+    overflow: hidden;
+  }
+  .eff-downtime-highlight::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(224,82,82,.12), rgba(224,82,82,0));
+    pointer-events: none;
+  }
+  .eff-downtime-kicker {
+    position: relative;
+    z-index: 1;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #f2aaaa;
+    margin-bottom: .38rem;
+  }
+  .eff-downtime-machine {
+    position: relative;
+    z-index: 1;
+    font-size: .96rem;
+    font-weight: 700;
+    color: #f5f8fb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .eff-downtime-text {
+    position: relative;
+    z-index: 1;
+    margin-top: .22rem;
+    font-size: .68rem;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .eff-downtime-stat-label {
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+    margin-bottom: .42rem;
+  }
+  .eff-downtime-stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f3f7fa;
+  }
+  .eff-downtime-stat-sub {
+    margin-top: .18rem;
+    font-size: .64rem;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .eff-downtime-stat-stack {
+    display: grid;
+    gap: .7rem;
+  }
+  .eff-downtime-rank {
+    padding: .8rem .85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(136,160,184,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,.01));
+    margin-top: .8rem;
+  }
+  .eff-downtime-rank-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .7rem;
+    margin-bottom: .55rem;
+  }
+  .eff-downtime-rank-title {
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+  }
+  .eff-downtime-rank-sub {
+    font-size: .64rem;
+    color: var(--muted);
+  }
+  .eff-downtime-rank-list {
+    display: grid;
+    gap: .42rem;
+  }
+  .eff-downtime-rank-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto auto;
+    gap: .5rem;
+    align-items: center;
+    padding: .46rem .5rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,.018);
+    border: 1px solid rgba(136,160,184,.08);
+  }
+  .eff-downtime-rank-pos {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: .67rem;
+    font-weight: 700;
+    color: #f5f8fb;
+    background: rgba(224,82,82,.18);
+    border: 1px solid rgba(224,82,82,.28);
+  }
+  .eff-downtime-rank-machine {
+    min-width: 0;
+  }
+  .eff-downtime-rank-machine strong {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: .7rem;
+    color: #f1f5f8;
+  }
+  .eff-downtime-rank-machine span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .61rem;
+    color: var(--muted);
+  }
+  .eff-downtime-rank-value,
+  .eff-downtime-rank-gap {
+    font-family: var(--font-mono);
+    font-size: .67rem;
+    white-space: nowrap;
+  }
+  .eff-downtime-rank-value {
+    color: #f3f7fa;
+  }
+  .eff-downtime-rank-gap.is-high {
+    color: #ff9c9c;
+  }
+  .eff-downtime-rank-gap.is-low {
+    color: #8df0b2;
+  }
+  .chart-wrap-downtime {
+    min-height: 280px;
   }
 
   /*  KPI ROW  */
@@ -614,6 +918,7 @@
     .trend-highlights { grid-template-columns: 1fr; }
     .daily-highlights { grid-template-columns: 1fr; }
     .machine-meta { grid-template-columns: 1fr 1fr; }
+    .eff-downtime-summary { grid-template-columns: 1fr; }
   }
   @media (max-width: 640px) {
     #header { height: auto; padding: .75rem 1rem; }
@@ -862,6 +1167,52 @@
       </div>
     </section>
 
+    <section id="module-view-efficiency" class="module-view" hidden>
+      <div>
+        <div class="section-label">Eficiência — <span id="eff-period-label">—</span></div>
+        <section id="eff-kpi-row" class="eff-kpi-row">
+          <div class="msg">Carregando eficiência...</div>
+        </section>
+      </div>
+
+      <div class="eff-grid">
+        <section class="panel">
+          <div class="panel-title">Eficiência por máquina</div>
+          <div id="eff-machine-list" class="eff-machine-list"></div>
+          <div id="eff-machine-msg" class="msg" hidden></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Leitura operacional</div>
+          <div class="eff-split">
+            <div>
+              <div class="quality-col-title">Melhor aproveitamento</div>
+              <div id="eff-best-list" class="eff-mini-table"></div>
+            </div>
+            <div>
+              <div class="quality-col-title">Mais parada</div>
+              <div id="eff-downtime-list" class="eff-mini-table"></div>
+            </div>
+          </div>
+          <div id="eff-side-msg" class="msg" hidden></div>
+        </section>
+
+        <section class="panel panel-span">
+          <div class="panel-title">Meta x realizado por turno</div>
+          <div class="chart-wrap"><canvas id="chart-efficiency-turn"></canvas></div>
+          <div id="eff-turn-msg" class="msg" hidden></div>
+        </section>
+
+        <section class="panel panel-span">
+          <div class="panel-title">Paradas acumuladas por máquina</div>
+          <div id="eff-downtime-summary" class="eff-downtime-summary"></div>
+          <div class="chart-wrap chart-wrap-downtime"><canvas id="chart-efficiency-downtime"></canvas></div>
+          <div id="eff-downtime-rank" class="eff-downtime-rank" hidden></div>
+          <div id="eff-downtime-msg" class="msg" hidden></div>
+        </section>
+      </div>
+    </section>
+
     <section id="module-view-placeholder" class="module-view" hidden>
       <div class="module-empty">
         <div class="module-empty-card">
@@ -945,8 +1296,8 @@ Chart.defaults.scale.ticks.font = { family: "'Inter', system-ui, sans-serif", we
 
 const MODULES = [
   { id: 'quality', label: 'Qualidade', desc: 'Conformidade, perdas e desempenho por máquina.', status: 'active' },
+  { id: 'efficiency', label: 'Eficiência', desc: 'Aproveitamento, paradas e produtividade.', status: 'active' },
   { id: 'production', label: 'Produção', desc: 'Volume, ritmo e capacidade produtiva.', status: 'soon' },
-  { id: 'efficiency', label: 'Eficiência', desc: 'Aproveitamento, paradas e produtividade.', status: 'soon' },
   { id: 'maintenance', label: 'Manutenção', desc: 'Disponibilidade, ocorrências e intervenções.', status: 'soon' },
 ];
 
@@ -956,6 +1307,8 @@ let machineChart = null;
 let compositionChart = null;
 let dailyChart = null;
 let yieldChart = null;
+let efficiencyTurnChart = null;
+let efficiencyDowntimeChart = null;
 
 function escapeHTML(str) {
   const div = document.createElement('div');
@@ -1037,15 +1390,25 @@ function syncModuleView() {
   document.getElementById('module-label').textContent = currentModule.label;
 
   const qualityView = document.getElementById('module-view-quality');
+  const efficiencyView = document.getElementById('module-view-efficiency');
   const placeholderView = document.getElementById('module-view-placeholder');
 
   if (state.module === 'quality') {
     qualityView.hidden = false;
+    efficiencyView.hidden = true;
+    placeholderView.hidden = true;
+    return;
+  }
+
+  if (state.module === 'efficiency') {
+    qualityView.hidden = true;
+    efficiencyView.hidden = false;
     placeholderView.hidden = true;
     return;
   }
 
   qualityView.hidden = true;
+  efficiencyView.hidden = true;
   placeholderView.hidden = false;
   document.getElementById('module-empty-title').textContent = currentModule.label;
   document.getElementById('module-empty-text').textContent = `O módulo de ${currentModule.label.toLowerCase()} já está reservado e pronto para receber os próximos painéis analíticos.`;
@@ -1057,6 +1420,7 @@ function setModule(moduleId) {
   state.module = moduleId;
   renderModuleRail();
   syncModuleView();
+  loadAll();
 }
 
 function renderKPIs(current, comparison) {
@@ -2413,11 +2777,431 @@ function renderMachineChart(machines) {
 
 function updatePeriodLabel() {
   document.getElementById('period-label').textContent = `${MESES[state.month - 1]} ${state.year}`;
+  const effLabel = document.getElementById('eff-period-label');
+  if (effLabel) effLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
+}
+
+function getEfficiencyStatus(pct) {
+  const value = Number(pct) || 0;
+  if (value >= 100) return 'good';
+  if (value >= 92) return 'warn';
+  return 'bad';
+}
+
+function getEfficiencyColor(pct) {
+  const status = getEfficiencyStatus(pct);
+  if (status === 'good') return '#27C77A';
+  if (status === 'warn') return '#EF9F27';
+  return '#e05252';
+}
+
+function summarizeEfficiency(summary) {
+  const shifts = summary.machines || [];
+  const plannedMinutes = shifts.reduce((sum, item) => {
+    const shiftMinutes = item.shift === 2 ? 435 : 525;
+    return sum + (summary.business_days * shiftMinutes);
+  }, 0);
+  const totalDowntime = shifts.reduce((sum, item) => sum + (item.total_downtime || 0), 0);
+  const totalProduced = shifts.reduce((sum, item) => sum + (item.total_produced || 0), 0);
+  const totalMeta = shifts.reduce((sum, item) => sum + (item.meta1 || 0), 0);
+  const availability = plannedMinutes > 0 ? ((plannedMinutes - totalDowntime) / plannedMinutes) * 100 : 0;
+  const globalEfficiency = totalMeta > 0 ? (totalProduced / totalMeta) * 100 : 0;
+  const productiveMinutes = Math.max(plannedMinutes - totalDowntime, 0);
+  const piecesPerHour = productiveMinutes > 0 ? totalProduced / (productiveMinutes / 60) : 0;
+
+  const byMachine = new Map();
+  shifts.forEach((item) => {
+    const entry = byMachine.get(item.machine_id) || {
+      machineId: item.machine_id,
+      label: item.label,
+      totalProduced: 0,
+      meta1: 0,
+      totalDowntime: 0,
+      shifts: 0,
+    };
+    entry.totalProduced += item.total_produced || 0;
+    entry.meta1 += item.meta1 || 0;
+    entry.totalDowntime += item.total_downtime || 0;
+    entry.shifts += 1;
+    byMachine.set(item.machine_id, entry);
+  });
+
+  const machines = [...byMachine.values()].map((item) => ({
+    ...item,
+    pctMeta: item.meta1 > 0 ? (item.totalProduced / item.meta1) * 100 : 0,
+    saldo: item.totalProduced - item.meta1,
+    downtimeHours: item.totalDowntime / 60,
+  }));
+
+  const rankedByEfficiency = [...machines].sort((a, b) => b.pctMeta - a.pctMeta);
+  const rankedByDowntime = [...machines].sort((a, b) => b.totalDowntime - a.totalDowntime);
+
+  return {
+    shifts,
+    machines,
+    totalProduced,
+    totalMeta,
+    totalDowntime,
+    plannedMinutes,
+    productiveMinutes,
+    availability,
+    globalEfficiency,
+    piecesPerHour,
+    rankedByEfficiency,
+    rankedByDowntime,
+  };
+}
+
+function getPreviousMonthPeriods(year, month, count = 3) {
+  const periods = [];
+  let currentYear = year;
+  let currentMonth = month;
+
+  for (let i = 0; i < count; i += 1) {
+    currentMonth -= 1;
+    if (currentMonth === 0) {
+      currentMonth = 12;
+      currentYear -= 1;
+    }
+    periods.push({ year: currentYear, month: currentMonth });
+  }
+
+  return periods;
+}
+
+function buildEfficiencyBaseline(currentSummary, historicalSummaries) {
+  const validSummaries = historicalSummaries.filter((summary) => summary?.machines?.length);
+  if (!validSummaries.length) {
+    return null;
+  }
+
+  const currentTotal = (currentSummary.machines || []).reduce((sum, item) => sum + (item.total_produced || 0), 0);
+  const historicalTotals = validSummaries.map((summary) =>
+    (summary.machines || []).reduce((sum, item) => sum + (item.total_produced || 0), 0)
+  );
+  const averageTotal = historicalTotals.reduce((sum, total) => sum + total, 0) / historicalTotals.length;
+  const pct = averageTotal > 0 ? (currentTotal / averageTotal) * 100 : 0;
+
+  return {
+    pct,
+    averageTotal,
+    sampleSize: historicalTotals.length,
+  };
+}
+
+function renderEfficiencyKPIs(data) {
+  const row = document.getElementById('eff-kpi-row');
+  const downtimeHours = data.totalDowntime / 60;
+  const availabilityColor = getEfficiencyColor(data.availability);
+  const efficiencyBase = data.globalEfficiencyBaseline;
+  const efficiencyPct = efficiencyBase?.pct ?? data.globalEfficiency;
+  const efficiencyColor = getEfficiencyColor(efficiencyPct);
+  const efficiencySub = efficiencyBase
+    ? `${formatNumber(data.totalProduced)} vs média de ${formatNumber(Math.round(efficiencyBase.averageTotal))} (${efficiencyBase.sampleSize} ${efficiencyBase.sampleSize === 1 ? 'mês' : 'meses'})`
+    : `${formatNumber(data.totalProduced)} de ${formatNumber(data.totalMeta)} da meta`;
+
+  const items = [
+    {
+      label: 'Eficiência global',
+      value: formatPct(efficiencyPct),
+      sub: efficiencySub,
+      color: efficiencyColor,
+    },
+    {
+      label: 'Disponibilidade',
+      value: formatPct(data.availability),
+      sub: `${downtimeHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h de parada no mês`,
+      color: availabilityColor,
+    },
+    {
+      label: 'Peças por hora útil',
+      value: Math.round(data.piecesPerHour).toLocaleString('pt-BR'),
+      sub: 'ritmo médio sem tempo parado',
+      color: '#8ab8ff',
+    },
+    {
+      label: 'Máquinas ativas',
+      value: String(data.machines.length),
+      sub: `${data.shifts.length} turnos com meta calculada`,
+      color: '#d7e2ec',
+    },
+  ];
+
+  row.innerHTML = items.map((item) => `
+    <div class="eff-kpi">
+      <div class="eff-kpi-label">${item.label}</div>
+      <div class="eff-kpi-value" style="color:${item.color}">${item.value}</div>
+      <div class="eff-kpi-sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderEfficiencyMachineList(data) {
+  const listEl = document.getElementById('eff-machine-list');
+  const msgEl = document.getElementById('eff-machine-msg');
+
+  listEl.innerHTML = data.rankedByEfficiency.map((item) => {
+    const color = getEfficiencyColor(item.pctMeta);
+    const status = getEfficiencyStatus(item.pctMeta);
+    const label = status === 'good' ? 'Acima da meta' : status === 'warn' ? 'Próximo da meta' : 'Abaixo da meta';
+
+    return `
+      <div class="eff-machine-row">
+        <div class="eff-machine-name">
+          <div class="eff-machine-title">${escapeHTML(item.label)}</div>
+          <div class="eff-machine-sub">${label}</div>
+        </div>
+        <div class="eff-progress">
+          <div class="eff-progress-value" style="color:${color}">${formatPct(item.pctMeta)}</div>
+          <div class="eff-progress-bar">
+            <div class="eff-progress-fill" style="width:${Math.min(item.pctMeta, 100)}%; background:${color}"></div>
+          </div>
+        </div>
+        <div class="eff-machine-side">
+          <strong>${formatNumber(item.saldo)}</strong>
+          <span>saldo vs meta</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  msgEl.hidden = true;
+}
+
+function renderEfficiencyTables(data) {
+  const bestEl = document.getElementById('eff-best-list');
+  const downEl = document.getElementById('eff-downtime-list');
+  const msgEl = document.getElementById('eff-side-msg');
+
+  bestEl.innerHTML = data.rankedByEfficiency.slice(0, 4).map((item) => `
+    <div class="eff-mini-row">
+      <div class="eff-mini-name">${escapeHTML(item.label)}</div>
+      <div class="eff-mini-value">${formatPct(item.pctMeta)}</div>
+    </div>
+  `).join('');
+
+  downEl.innerHTML = data.rankedByDowntime.slice(0, 4).map((item) => `
+    <div class="eff-mini-row">
+      <div class="eff-mini-name">${escapeHTML(item.label)}</div>
+      <div class="eff-mini-value">${item.downtimeHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h</div>
+    </div>
+  `).join('');
+
+  msgEl.hidden = true;
+}
+
+function renderEfficiencyTurnChart(data) {
+  const msgEl = document.getElementById('eff-turn-msg');
+  const ctx = document.getElementById('chart-efficiency-turn').getContext('2d');
+  const labels = data.shifts.map((item) => `${item.label} · T${item.shift}`);
+  const produced = data.shifts.map((item) => item.total_produced || 0);
+  const meta = data.shifts.map((item) => item.meta1 || 0);
+
+  if (efficiencyTurnChart) efficiencyTurnChart.destroy();
+  efficiencyTurnChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Produzido',
+          data: produced,
+          backgroundColor: '#8ab8ff',
+          borderRadius: 6,
+        },
+        {
+          label: 'Meta',
+          data: meta,
+          type: 'line',
+          borderColor: '#27C77A',
+          borderWidth: 2,
+          pointBackgroundColor: '#27C77A',
+          pointRadius: 3,
+          tension: .25,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'bottom' } },
+      scales: {
+        x: {
+          ticks: { maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 10 } },
+          grid: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => formatNumber(value) },
+        },
+      },
+    },
+  });
+  msgEl.hidden = true;
+}
+
+function renderEfficiencyDowntimeChart(data) {
+  const msgEl = document.getElementById('eff-downtime-msg');
+  const summaryEl = document.getElementById('eff-downtime-summary');
+  const rankEl = document.getElementById('eff-downtime-rank');
+  const ctx = document.getElementById('chart-efficiency-downtime').getContext('2d');
+  const ranked = [...data.rankedByDowntime].sort((a, b) => b.totalDowntime - a.totalDowntime);
+  const labels = ranked.map((item) => item.label);
+  const hours = ranked.map((item) => Number(item.downtimeHours.toFixed(1)));
+  const leader = ranked[0];
+  const totalHours = data.totalDowntime / 60;
+  const averageHours = ranked.length ? totalHours / ranked.length : 0;
+  const rankMarkup = ranked.slice(0, 5).map((item, index) => {
+    const share = totalHours > 0 ? (item.downtimeHours / totalHours) * 100 : 0;
+    const gap = item.downtimeHours - averageHours;
+    const gapClass = gap >= 0 ? 'is-high' : 'is-low';
+    const gapLabel = `${gap >= 0 ? '+' : ''}${gap.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h vs media`;
+
+    return `
+      <div class="eff-downtime-rank-row">
+        <div class="eff-downtime-rank-pos">${index + 1}</div>
+        <div class="eff-downtime-rank-machine">
+          <strong>${escapeHTML(item.label)}</strong>
+          <span>${share.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}% do total de paradas</span>
+        </div>
+        <div class="eff-downtime-rank-value">${item.downtimeHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h</div>
+        <div class="eff-downtime-rank-gap ${gapClass}">${gapLabel}</div>
+      </div>
+    `;
+  }).join('');
+
+  summaryEl.innerHTML = leader ? `
+    <div class="eff-downtime-highlight">
+      <div class="eff-downtime-kicker">Maior impacto no periodo</div>
+      <div class="eff-downtime-machine">${escapeHTML(leader.label)}</div>
+      <div class="eff-downtime-text">${leader.downtimeHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h acumuladas, ${ranked.length > 1 ? `liderando o ranking de ${ranked.length} maquinas.` : 'unica maquina com registros no periodo.'}</div>
+    </div>
+    <div class="eff-downtime-stat-stack">
+      <div class="eff-downtime-stat">
+        <div class="eff-downtime-stat-label">Total no mes</div>
+        <div class="eff-downtime-stat-value">${totalHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h</div>
+        <div class="eff-downtime-stat-sub">Soma de todas as paradas registradas.</div>
+      </div>
+      <div class="eff-downtime-stat">
+        <div class="eff-downtime-stat-label">Media por maquina</div>
+        <div class="eff-downtime-stat-value">${averageHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h</div>
+        <div class="eff-downtime-stat-sub">Base para comparar concentracao das perdas.</div>
+      </div>
+    </div>
+  ` : '';
+  rankEl.innerHTML = leader ? `
+    <div class="eff-downtime-rank-head">
+      <div class="eff-downtime-rank-title">Ranking vs media geral</div>
+      <div class="eff-downtime-rank-sub">Top ${Math.min(ranked.length, 5)} maquinas com mais parada no periodo</div>
+    </div>
+    <div class="eff-downtime-rank-list">${rankMarkup}</div>
+  ` : '';
+  rankEl.hidden = !leader;
+
+  if (efficiencyDowntimeChart) efficiencyDowntimeChart.destroy();
+  efficiencyDowntimeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Horas paradas',
+        data: hours,
+        backgroundColor: (context) => {
+          const chart = context.chart;
+          const { ctx: chartCtx, chartArea } = chart;
+          if (!chartArea) return '#e05252';
+          const gradient = chartCtx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+          gradient.addColorStop(0, '#7d2028');
+          gradient.addColorStop(.55, '#cf4952');
+          gradient.addColorStop(1, '#ff8f85');
+          return gradient;
+        },
+        borderRadius: 6,
+        borderSkipped: false,
+        barThickness: 18,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h paradas`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grace: '8%',
+          ticks: {
+            callback: (value) => `${value} h`,
+            font: { size: 10 },
+          },
+          grid: {
+            color: 'rgba(136,160,184,.12)',
+            drawBorder: false,
+          },
+        },
+        y: {
+          ticks: {
+            font: { size: 11, weight: '600' },
+            color: '#dce6f0',
+          },
+          grid: { display: false },
+        },
+      },
+    },
+  });
+  msgEl.hidden = true;
+}
+
+async function loadEfficiencyAll() {
+  try {
+    const summary = await fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`);
+    if (!summary.machines?.length) {
+      document.getElementById('eff-kpi-row').innerHTML = '<div class="msg">Sem dados suficientes para eficiência no período.</div>';
+      document.getElementById('eff-machine-list').innerHTML = '';
+      document.getElementById('eff-best-list').innerHTML = '';
+      document.getElementById('eff-downtime-list').innerHTML = '';
+      return;
+    }
+
+    const data = summarizeEfficiency(summary);
+    const previousPeriods = getPreviousMonthPeriods(state.year, state.month, 3);
+    const historicalResults = await Promise.allSettled(
+      previousPeriods.map((period) => fetchJSON(`/api/summary?year=${period.year}&month=${period.month}`))
+    );
+    const historicalSummaries = historicalResults
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value);
+    data.globalEfficiencyBaseline = buildEfficiencyBaseline(summary, historicalSummaries);
+
+    renderEfficiencyKPIs(data);
+    renderEfficiencyMachineList(data);
+    renderEfficiencyTables(data);
+    renderEfficiencyTurnChart(data);
+    renderEfficiencyDowntimeChart(data);
+  } catch (err) {
+    document.getElementById('eff-kpi-row').innerHTML = `<div class="msg msg-error">Não foi possível carregar a eficiência (${escapeHTML(err.message)}).</div>`;
+    document.getElementById('eff-machine-list').innerHTML = '';
+    document.getElementById('eff-best-list').innerHTML = '';
+    document.getElementById('eff-downtime-list').innerHTML = '';
+  }
 }
 
 async function loadAll() {
   updatePeriodLabel();
-  await Promise.allSettled([loadKPIs(), loadTrend(), loadMachines(), loadComposition(), loadDaily()]);
+  if (state.module === 'quality') {
+    await Promise.allSettled([loadKPIs(), loadTrend(), loadMachines(), loadComposition(), loadDaily()]);
+    return;
+  }
+  if (state.module === 'efficiency') {
+    await loadEfficiencyAll();
+  }
 }
 
 /*  Tema — mesma lógica e mesma chave de localStorage do dashboard TV  */
