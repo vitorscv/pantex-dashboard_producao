@@ -378,6 +378,141 @@
     font-size: .68rem;
     color: var(--muted);
   }
+  .perf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .9rem;
+  }
+  .perf-grid .panel-span {
+    grid-column: 1 / -1;
+  }
+  .perf-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: .75rem;
+  }
+  .perf-kpi {
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+    border: 1px solid rgba(136,160,184,.16);
+    border-radius: 10px;
+    padding: .9rem;
+  }
+  .perf-kpi-label {
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+    margin-bottom: .38rem;
+  }
+  .perf-kpi-value {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #f3f7fa;
+  }
+  .perf-kpi-sub {
+    font-size: .64rem;
+    color: var(--muted);
+    margin-top: .24rem;
+  }
+  .perf-turn-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    border: 1px solid rgba(136,160,184,.12);
+    border-radius: 10px;
+    padding: .85rem;
+    display: grid;
+    gap: .65rem;
+  }
+  .perf-turn-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .5rem;
+  }
+  .perf-turn-title {
+    font-size: .84rem;
+    font-weight: 700;
+    color: #f1f5f8;
+  }
+  .perf-turn-badge {
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .perf-turn-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+  }
+  .perf-turn-metric {
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(136,160,184,.08);
+    border-radius: 8px;
+    padding: .5rem;
+  }
+  .perf-turn-metric-label {
+    font-size: .56rem;
+    color: var(--muted);
+    margin-bottom: .1rem;
+  }
+  .perf-turn-metric strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    color: #eef4f8;
+  }
+  .perf-turn-bar {
+    display: grid;
+    gap: .18rem;
+  }
+  .perf-turn-bar-value {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    color: #d7e2ec;
+  }
+  .perf-turn-bar-track {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.04);
+  }
+  .perf-turn-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .perf-days {
+    display: grid;
+    gap: .45rem;
+  }
+  .perf-day-row {
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    gap: .5rem;
+    align-items: center;
+    padding: .45rem .5rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,.018);
+    border: 1px solid rgba(136,160,184,.08);
+  }
+  .perf-day-date {
+    font-size: .66rem;
+    color: var(--muted);
+  }
+  .perf-day-label {
+    font-size: .68rem;
+    color: #dce7f1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .perf-day-value {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    color: var(--muted);
+  }
   .eff-downtime-summary {
     display: grid;
     grid-template-columns: minmax(220px, 1.2fr) minmax(220px, .95fr);
@@ -1213,6 +1348,45 @@
       </div>
     </section>
 
+    <section id="module-view-performance" class="module-view" hidden>
+      <div>
+        <div class="section-label">Performance — <span id="perf-period-label">—</span></div>
+        <section id="perf-kpi-row" class="perf-kpi-row">
+          <div class="msg">Carregando performance por turno...</div>
+        </section>
+      </div>
+
+      <div class="perf-grid">
+        <section class="panel">
+          <div class="panel-title">Turno 1</div>
+          <div id="perf-turn-1"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Turno 2</div>
+          <div id="perf-turn-2"></div>
+        </section>
+
+        <section class="panel panel-span">
+          <div class="panel-title">Evolução diária por turno</div>
+          <div class="chart-wrap"><canvas id="chart-performance-daily"></canvas></div>
+          <div id="perf-daily-msg" class="msg" hidden></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Qualidade por turno</div>
+          <div class="chart-wrap"><canvas id="chart-performance-quality"></canvas></div>
+          <div id="perf-quality-msg" class="msg" hidden></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Dias decisivos</div>
+          <div id="perf-days" class="perf-days"></div>
+          <div id="perf-days-msg" class="msg" hidden></div>
+        </section>
+      </div>
+    </section>
+
     <section id="module-view-placeholder" class="module-view" hidden>
       <div class="module-empty">
         <div class="module-empty-card">
@@ -1297,6 +1471,7 @@ Chart.defaults.scale.ticks.font = { family: "'Inter', system-ui, sans-serif", we
 const MODULES = [
   { id: 'quality', label: 'Qualidade', desc: 'Conformidade, perdas e desempenho por máquina.', status: 'active' },
   { id: 'efficiency', label: 'Eficiência', desc: 'Aproveitamento, paradas e produtividade.', status: 'active' },
+  { id: 'performance', label: 'Performance', desc: 'Comparativo operacional entre Turno 1 e Turno 2.', status: 'active' },
   { id: 'production', label: 'Produção', desc: 'Volume, ritmo e capacidade produtiva.', status: 'soon' },
   { id: 'maintenance', label: 'Manutenção', desc: 'Disponibilidade, ocorrências e intervenções.', status: 'soon' },
 ];
@@ -1309,6 +1484,8 @@ let dailyChart = null;
 let yieldChart = null;
 let efficiencyTurnChart = null;
 let efficiencyDowntimeChart = null;
+let performanceDailyChart = null;
+let performanceQualityChart = null;
 
 function escapeHTML(str) {
   const div = document.createElement('div');
@@ -1391,11 +1568,13 @@ function syncModuleView() {
 
   const qualityView = document.getElementById('module-view-quality');
   const efficiencyView = document.getElementById('module-view-efficiency');
+  const performanceView = document.getElementById('module-view-performance');
   const placeholderView = document.getElementById('module-view-placeholder');
 
   if (state.module === 'quality') {
     qualityView.hidden = false;
     efficiencyView.hidden = true;
+    performanceView.hidden = true;
     placeholderView.hidden = true;
     return;
   }
@@ -1403,12 +1582,22 @@ function syncModuleView() {
   if (state.module === 'efficiency') {
     qualityView.hidden = true;
     efficiencyView.hidden = false;
+    performanceView.hidden = true;
+    placeholderView.hidden = true;
+    return;
+  }
+
+  if (state.module === 'performance') {
+    qualityView.hidden = true;
+    efficiencyView.hidden = true;
+    performanceView.hidden = false;
     placeholderView.hidden = true;
     return;
   }
 
   qualityView.hidden = true;
   efficiencyView.hidden = true;
+  performanceView.hidden = true;
   placeholderView.hidden = false;
   document.getElementById('module-empty-title').textContent = currentModule.label;
   document.getElementById('module-empty-text').textContent = `O módulo de ${currentModule.label.toLowerCase()} já está reservado e pronto para receber os próximos painéis analíticos.`;
@@ -2779,6 +2968,8 @@ function updatePeriodLabel() {
   document.getElementById('period-label').textContent = `${MESES[state.month - 1]} ${state.year}`;
   const effLabel = document.getElementById('eff-period-label');
   if (effLabel) effLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
+  const perfLabel = document.getElementById('perf-period-label');
+  if (perfLabel) perfLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
 }
 
 function getEfficiencyStatus(pct) {
@@ -2792,6 +2983,13 @@ function getEfficiencyColor(pct) {
   const status = getEfficiencyStatus(pct);
   if (status === 'good') return '#27C77A';
   if (status === 'warn') return '#EF9F27';
+  return '#e05252';
+}
+
+function getQualityTone(pct) {
+  const value = Number(pct) || 0;
+  if (value >= 98) return '#27C77A';
+  if (value >= 95) return '#EF9F27';
   return '#e05252';
 }
 
@@ -3159,6 +3357,369 @@ function renderEfficiencyDowntimeChart(data) {
   msgEl.hidden = true;
 }
 
+function summarizePerformance(summary, entries) {
+  const shiftMap = new Map([
+    [1, { shift: 1, label: 'Turno 1', produced: 0, meta: 0, downtime: 0, repair: 0, second: 0 }],
+    [2, { shift: 2, label: 'Turno 2', produced: 0, meta: 0, downtime: 0, repair: 0, second: 0 }],
+  ]);
+
+  (summary.machines || []).forEach((item) => {
+    const shift = shiftMap.get(item.shift);
+    if (!shift) return;
+    shift.produced += item.total_produced || 0;
+    shift.meta += item.meta1 || 0;
+    shift.downtime += item.total_downtime || 0;
+    shift.repair += item.repair_qty || 0;
+    shift.second += item.second_quality_qty || 0;
+  });
+
+  const shifts = [...shiftMap.values()].map((item) => {
+    const nonConforme = item.repair + item.second;
+    const pctMeta = item.meta > 0 ? (item.produced / item.meta) * 100 : 0;
+    const qualityPct = item.produced > 0 ? ((item.produced - nonConforme) / item.produced) * 100 : 0;
+    return {
+      ...item,
+      nonConforme,
+      pctMeta,
+      qualityPct,
+      downtimeHours: item.downtime / 60,
+      saldo: item.produced - item.meta,
+    };
+  });
+
+  const dayMap = new Map();
+  (entries || []).forEach((item) => {
+    const rawDate = item.entry_date ? String(item.entry_date).slice(8, 10) : '--';
+    const row = dayMap.get(rawDate) || {
+      day: rawDate,
+      t1: { produced: 0, repair: 0, second: 0 },
+      t2: { produced: 0, repair: 0, second: 0 },
+    };
+    const bucket = item.shift === 2 ? row.t2 : row.t1;
+    bucket.produced += item.quantity || 0;
+    bucket.repair += item.repair_qty || 0;
+    bucket.second += item.second_quality_qty || 0;
+    dayMap.set(rawDate, row);
+  });
+
+  const daily = [...dayMap.values()].sort((a, b) => Number(a.day) - Number(b.day));
+  const comparativeGap = Math.abs((shifts[0]?.pctMeta || 0) - (shifts[1]?.pctMeta || 0));
+  const betterShift = [...shifts].sort((a, b) => b.pctMeta - a.pctMeta)[0] || null;
+  const strongestDays = daily
+    .map((item) => {
+      const bestTurn = item.t1.produced >= item.t2.produced ? 'Turno 1' : 'Turno 2';
+      const bestValue = Math.max(item.t1.produced, item.t2.produced);
+      return { day: item.day, bestTurn, bestValue };
+    })
+    .sort((a, b) => b.bestValue - a.bestValue)
+    .slice(0, 5);
+
+  return {
+    shifts,
+    daily,
+    comparativeGap,
+    betterShift,
+    strongestDays,
+  };
+}
+
+function renderPerformanceKPIs(data) {
+  const row = document.getElementById('perf-kpi-row');
+  const shift1 = data.shifts.find((item) => item.shift === 1) || null;
+  const shift2 = data.shifts.find((item) => item.shift === 2) || null;
+  const bestColor = data.betterShift ? getEfficiencyColor(data.betterShift.pctMeta) : '#d7e2ec';
+
+  const items = [
+    {
+      label: 'Melhor turno',
+      value: data.betterShift ? data.betterShift.label : '—',
+      sub: data.betterShift ? `${formatPct(data.betterShift.pctMeta)} da meta no mês` : 'Sem base para comparação',
+      color: bestColor,
+    },
+    {
+      label: 'Diferença entre turnos',
+      value: formatPct(data.comparativeGap),
+      sub: 'distância de performance no período',
+      color: data.comparativeGap >= 8 ? '#EF9F27' : '#8ab8ff',
+    },
+    {
+      label: 'Qualidade Turno 1',
+      value: formatPct(shift1?.qualityPct || 0),
+      sub: `${formatNumber(shift1?.produced || 0)} peças produzidas`,
+      color: getQualityTone(shift1?.qualityPct || 0),
+    },
+    {
+      label: 'Qualidade Turno 2',
+      value: formatPct(shift2?.qualityPct || 0),
+      sub: `${formatNumber(shift2?.produced || 0)} peças produzidas`,
+      color: getQualityTone(shift2?.qualityPct || 0),
+    },
+  ];
+
+  row.innerHTML = items.map((item) => `
+    <div class="perf-kpi">
+      <div class="perf-kpi-label">${item.label}</div>
+      <div class="perf-kpi-value" style="color:${item.color}">${item.value}</div>
+      <div class="perf-kpi-sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderPerformanceTurnCard(targetId, turn) {
+  const el = document.getElementById(targetId);
+  const statusColor = getEfficiencyColor(turn.pctMeta);
+  const statusLabel = turn.pctMeta >= 100 ? 'Acima da meta' : turn.pctMeta >= 92 ? 'Ritmo atento' : 'Abaixo do esperado';
+
+  el.innerHTML = `
+    <article class="perf-turn-card">
+      <div class="perf-turn-head">
+        <div>
+          <div class="perf-turn-title">${escapeHTML(turn.label)}</div>
+          <div class="perf-turn-sub">${statusLabel}</div>
+        </div>
+        <div class="perf-turn-badge" style="color:${statusColor}; border-color:${statusColor}55">${formatPct(turn.pctMeta)}</div>
+      </div>
+
+      <div class="perf-turn-metrics">
+        <div class="perf-turn-metric">
+          <span>Produzido</span>
+          <strong>${formatNumber(turn.produced)}</strong>
+        </div>
+        <div class="perf-turn-metric">
+          <span>Meta</span>
+          <strong>${formatNumber(turn.meta)}</strong>
+        </div>
+        <div class="perf-turn-metric">
+          <span>Qualidade</span>
+          <strong style="color:${getQualityTone(turn.qualityPct)}">${formatPct(turn.qualityPct)}</strong>
+        </div>
+        <div class="perf-turn-metric">
+          <span>Paradas</span>
+          <strong>${turn.downtimeHours.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h</strong>
+        </div>
+      </div>
+
+      <div class="perf-turn-bar">
+        <div class="perf-turn-bar-fill" style="width:${Math.min(turn.pctMeta, 100)}%; background:${statusColor}"></div>
+      </div>
+
+      <div class="perf-turn-footer">
+        <span>Não conforme: ${formatNumber(turn.nonConforme)} peças</span>
+        <span>Saldo: ${formatNumber(turn.saldo)}</span>
+      </div>
+    </article>
+  `;
+}
+
+function renderPerformanceDailyChart(data) {
+  const msgEl = document.getElementById('perf-daily-msg');
+  const ctx = document.getElementById('chart-performance-daily').getContext('2d');
+  const labels = data.daily.map((item) => item.day);
+  const t1 = data.daily.map((item) => item.t1.produced);
+  const t2 = data.daily.map((item) => item.t2.produced);
+
+  if (performanceDailyChart) performanceDailyChart.destroy();
+  performanceDailyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Turno 1',
+          data: t1,
+          borderColor: '#8ab8ff',
+          backgroundColor: 'rgba(138,184,255,.16)',
+          pointBackgroundColor: '#8ab8ff',
+          pointRadius: 2.5,
+          tension: .3,
+          fill: true,
+        },
+        {
+          label: 'Turno 2',
+          data: t2,
+          borderColor: '#27C77A',
+          backgroundColor: 'rgba(39,199,122,.12)',
+          pointBackgroundColor: '#27C77A',
+          pointRadius: 2.5,
+          tension: .3,
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'bottom' } },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { maxRotation: 0, minRotation: 0 },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => formatNumber(value) },
+          grid: { color: 'rgba(136,160,184,.12)' },
+        },
+      },
+    },
+  });
+  msgEl.hidden = true;
+}
+
+function renderPerformanceQualityChart(data) {
+  const msgEl = document.getElementById('perf-quality-msg');
+  const ctx = document.getElementById('chart-performance-quality').getContext('2d');
+  const labels = data.shifts.map((item) => item.label);
+  const quality = data.shifts.map((item) => Number(item.qualityPct.toFixed(2)));
+  const downtime = data.shifts.map((item) => Number(item.downtimeHours.toFixed(1)));
+
+  if (performanceQualityChart) performanceQualityChart.destroy();
+  performanceQualityChart = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Paradas (h)',
+          data: downtime,
+          backgroundColor: ['rgba(138,184,255,.55)', 'rgba(39,199,122,.55)'],
+          borderRadius: 8,
+          yAxisID: 'y1',
+        },
+        {
+          type: 'line',
+          label: 'Qualidade (%)',
+          data: quality,
+          borderColor: '#f3f6fb',
+          pointBackgroundColor: quality.map((value) => getQualityTone(value)),
+          pointRadius: 4,
+          borderWidth: 2,
+          tension: .25,
+          yAxisID: 'y',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'bottom' } },
+      scales: {
+        x: {
+          grid: { display: false },
+        },
+        y: {
+          position: 'left',
+          min: Math.max(0, Math.min(...quality, 90) - 2),
+          max: 100,
+          ticks: { callback: (value) => `${value}%` },
+          grid: { color: 'rgba(136,160,184,.12)' },
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          ticks: { callback: (value) => `${value} h` },
+          grid: { drawOnChartArea: false },
+        },
+      },
+    },
+  });
+  msgEl.hidden = true;
+}
+
+function renderPerformanceDays(data) {
+  const listEl = document.getElementById('perf-days');
+  listEl.innerHTML = data.strongestDays.map((item, index) => `
+    <div class="perf-day-row">
+      <div class="perf-day-rank">${index + 1}</div>
+      <div class="perf-day-copy">
+        <strong>Dia ${item.day}</strong>
+        <span>${item.bestTurn} liderou o volume no dia</span>
+      </div>
+      <div class="perf-day-value">${formatNumber(item.bestValue)}</div>
+    </div>
+  `).join('');
+}
+
+async function loadPerformanceAll() {
+  const kpiRow = document.getElementById('perf-kpi-row');
+  const turn1El = document.getElementById('perf-turn-1');
+  const turn2El = document.getElementById('perf-turn-2');
+  const daysEl = document.getElementById('perf-days');
+  const dailyMsg = document.getElementById('perf-daily-msg');
+  const qualityMsg = document.getElementById('perf-quality-msg');
+  const daysMsg = document.getElementById('perf-days-msg');
+
+  try {
+    const [summary, entries] = await Promise.all([
+      fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`),
+      fetchJSON(`/api/entries/${state.year}/${state.month}`),
+    ]);
+
+    if (!summary.machines?.length) {
+      if (performanceDailyChart) {
+        performanceDailyChart.destroy();
+        performanceDailyChart = null;
+      }
+      if (performanceQualityChart) {
+        performanceQualityChart.destroy();
+        performanceQualityChart = null;
+      }
+      kpiRow.innerHTML = '<div class="msg">Sem dados suficientes para performance por turno no período.</div>';
+      turn1El.innerHTML = '';
+      turn2El.innerHTML = '';
+      daysEl.innerHTML = '';
+      dailyMsg.hidden = true;
+      qualityMsg.hidden = true;
+      daysMsg.hidden = true;
+      return;
+    }
+
+    const data = summarizePerformance(summary, entries);
+    renderPerformanceKPIs(data);
+
+    const shift1 = data.shifts.find((item) => item.shift === 1) || data.shifts[0];
+    const shift2 = data.shifts.find((item) => item.shift === 2) || data.shifts[1];
+    if (shift1) renderPerformanceTurnCard('perf-turn-1', shift1);
+    if (shift2) renderPerformanceTurnCard('perf-turn-2', shift2);
+
+    if (data.daily.length) {
+      renderPerformanceDailyChart(data);
+      dailyMsg.hidden = true;
+    } else {
+      if (performanceDailyChart) {
+        performanceDailyChart.destroy();
+        performanceDailyChart = null;
+      }
+      dailyMsg.hidden = false;
+      dailyMsg.textContent = 'Sem histórico diário para comparar os turnos neste período.';
+    }
+
+    renderPerformanceQualityChart(data);
+    qualityMsg.hidden = true;
+    renderPerformanceDays(data);
+    daysMsg.hidden = !data.strongestDays.length;
+    if (!data.strongestDays.length) {
+      daysMsg.textContent = 'Sem dias suficientes para destacar o ranking do período.';
+    }
+  } catch (err) {
+    if (performanceDailyChart) {
+      performanceDailyChart.destroy();
+      performanceDailyChart = null;
+    }
+    if (performanceQualityChart) {
+      performanceQualityChart.destroy();
+      performanceQualityChart = null;
+    }
+    kpiRow.innerHTML = `<div class="msg msg-error">Não foi possível carregar a performance por turno (${escapeHTML(err.message)}).</div>`;
+    turn1El.innerHTML = '';
+    turn2El.innerHTML = '';
+    daysEl.innerHTML = '';
+    dailyMsg.hidden = true;
+    qualityMsg.hidden = true;
+    daysMsg.hidden = true;
+  }
+}
+
 async function loadEfficiencyAll() {
   try {
     const summary = await fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`);
@@ -3201,6 +3762,10 @@ async function loadAll() {
   }
   if (state.module === 'efficiency') {
     await loadEfficiencyAll();
+    return;
+  }
+  if (state.module === 'performance') {
+    await loadPerformanceAll();
   }
 }
 
