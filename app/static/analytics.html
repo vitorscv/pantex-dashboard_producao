@@ -513,6 +513,319 @@
     font-size: .68rem;
     color: var(--muted);
   }
+  .prev-layout {
+    display: grid;
+    gap: .9rem;
+  }
+  .prev-grid {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: .9rem;
+  }
+  .prev-grid .panel-span {
+    grid-column: 1 / -1;
+  }
+  .prev-ref-note {
+    margin-top: -.12rem;
+    font-size: .66rem;
+    color: var(--muted);
+  }
+  .prev-summary {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.1fr) repeat(3, minmax(150px, .8fr));
+    gap: .75rem;
+  }
+  .prev-summary-main,
+  .prev-summary-card {
+    min-width: 0;
+    border-radius: 12px;
+    border: 1px solid rgba(136,160,184,.14);
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+    padding: .92rem .96rem;
+  }
+  .prev-summary-main {
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(120deg, rgba(138,184,255,.14), rgba(138,184,255,0)),
+      linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  }
+  .prev-summary-main::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(39,199,122,.08), rgba(39,199,122,0));
+    pointer-events: none;
+  }
+  .prev-summary-kicker {
+    position: relative;
+    z-index: 1;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+    margin-bottom: .28rem;
+  }
+  .prev-summary-title {
+    position: relative;
+    z-index: 1;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f3f7fa;
+  }
+  .prev-summary-text {
+    position: relative;
+    z-index: 1;
+    margin-top: .22rem;
+    font-size: .68rem;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .prev-summary-value {
+    font-family: var(--font-mono);
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: #f3f7fa;
+  }
+  .prev-summary-sub {
+    margin-top: .18rem;
+    font-size: .63rem;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .prev-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+  }
+  .prev-metric {
+    padding: .84rem .88rem;
+    border-radius: 10px;
+    border: 1px solid rgba(136,160,184,.14);
+    background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01));
+  }
+  .prev-metric-label {
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+    margin-bottom: .34rem;
+  }
+  .prev-metric-value {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f3f7fa;
+  }
+  .prev-metric-sub {
+    margin-top: .22rem;
+    font-size: .63rem;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .prev-turn-table {
+    display: grid;
+    gap: .45rem;
+  }
+  .prev-turn-head,
+  .prev-turn-item {
+    display: grid;
+    grid-template-columns: minmax(90px, 1fr) repeat(3, minmax(70px, .9fr));
+    gap: .55rem;
+    align-items: center;
+  }
+  .prev-turn-head {
+    padding: 0 .12rem;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+  }
+  .prev-turn-item {
+    padding: .72rem .78rem;
+    border-radius: 10px;
+    border: 1px solid rgba(136,160,184,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+  }
+  .prev-turn-name strong {
+    display: block;
+    font-size: .76rem;
+    color: #f3f7fa;
+  }
+  .prev-turn-name span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .61rem;
+    color: var(--muted);
+  }
+  .prev-turn-cell {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    color: #dbe7f2;
+    text-align: right;
+  }
+  .prev-turn-cell strong {
+    font-size: .76rem;
+  }
+  .prev-mix {
+    display: grid;
+    gap: .72rem;
+  }
+  .prev-mix-list {
+    display: grid;
+    gap: .42rem;
+  }
+  .prev-mix-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .55rem;
+    align-items: center;
+    padding: .5rem .56rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,.018);
+    border: 1px solid rgba(136,160,184,.08);
+  }
+  .prev-mix-copy strong {
+    display: block;
+    font-size: .7rem;
+    color: #eef4f8;
+  }
+  .prev-mix-copy span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .6rem;
+    color: var(--muted);
+  }
+  .prev-mix-value {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    color: #dbe7f2;
+    text-align: right;
+  }
+  .prev-machine-grid {
+    display: grid;
+    grid-template-columns: .95fr 1.05fr;
+    gap: .8rem;
+  }
+  .prev-machine-list {
+    display: grid;
+    gap: .42rem;
+  }
+  .prev-machine-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .55rem;
+    margin-bottom: .14rem;
+  }
+  .prev-machine-title {
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+  }
+  .prev-machine-subtitle {
+    font-size: .62rem;
+    color: var(--muted);
+  }
+  .prev-machine-row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: .48rem;
+    align-items: start;
+    padding: .56rem .6rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,.018);
+    border: 1px solid rgba(136,160,184,.08);
+  }
+  .prev-machine-rank {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    font-size: .62rem;
+    font-weight: 700;
+    color: #dbe7f2;
+    background: rgba(138,184,255,.12);
+    border: 1px solid rgba(138,184,255,.2);
+  }
+  .prev-machine-row.is-risk .prev-machine-rank {
+    background: rgba(224,82,82,.16);
+    border-color: rgba(224,82,82,.25);
+    color: #ffb2b2;
+  }
+  .prev-machine-copy {
+    min-width: 0;
+  }
+  .prev-machine-copy strong {
+    display: block;
+    font-size: .71rem;
+    color: #eef4f8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .prev-machine-copy span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .6rem;
+    color: var(--muted);
+  }
+  .prev-machine-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .32rem;
+    margin-top: .28rem;
+  }
+  .prev-machine-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: .16rem .4rem;
+    border-radius: 999px;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    border: 1px solid rgba(136,160,184,.12);
+    background: rgba(255,255,255,.035);
+    color: #dbe7f2;
+  }
+  .prev-machine-pill.good {
+    color: #8df0b2;
+    border-color: rgba(39,199,122,.22);
+    background: rgba(39,199,122,.08);
+  }
+  .prev-machine-pill.warn {
+    color: #ffd48a;
+    border-color: rgba(239,159,39,.24);
+    background: rgba(239,159,39,.08);
+  }
+  .prev-machine-pill.bad {
+    color: #ffb2b2;
+    border-color: rgba(224,82,82,.24);
+    background: rgba(224,82,82,.08);
+  }
+  .prev-machine-value {
+    font-family: var(--font-mono);
+    font-size: .67rem;
+    text-align: right;
+    color: #dbe7f2;
+  }
+  .prev-machine-value strong {
+    display: block;
+    font-size: .74rem;
+    color: #f3f7fa;
+  }
+  .prev-machine-value span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .58rem;
+    color: var(--muted);
+  }
   .eff-downtime-summary {
     display: grid;
     grid-template-columns: minmax(220px, 1.2fr) minmax(220px, .95fr);
@@ -1040,6 +1353,9 @@
     .panel-quality { grid-column: 1 / -1; }
     #panel-composition { grid-column: span 1; }
     #panel-daily { grid-column: span 2; }
+    .prev-grid { grid-template-columns: 1fr; }
+    .prev-summary { grid-template-columns: 1fr 1fr; }
+    .prev-machine-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 700px) {
     .panels-grid { grid-template-columns: 1fr; }
@@ -1054,6 +1370,10 @@
     .daily-highlights { grid-template-columns: 1fr; }
     .machine-meta { grid-template-columns: 1fr 1fr; }
     .eff-downtime-summary { grid-template-columns: 1fr; }
+    .prev-summary { grid-template-columns: 1fr; }
+    .prev-metrics { grid-template-columns: 1fr; }
+    .prev-turn-head,
+    .prev-turn-item { grid-template-columns: minmax(90px, 1fr) repeat(3, minmax(56px, .85fr)); }
   }
   @media (max-width: 640px) {
     #header { height: auto; padding: .75rem 1rem; }
@@ -1387,6 +1707,93 @@
       </div>
     </section>
 
+    <section id="module-view-previous-day" class="module-view" hidden>
+      <div>
+        <div class="section-label">Indicadores do dia anterior — <span id="prev-period-label">—</span></div>
+        <div id="prev-ref-note" class="prev-ref-note"></div>
+      </div>
+
+      <div class="prev-layout">
+        <section class="prev-summary">
+          <div class="prev-summary-main">
+            <div class="prev-summary-kicker">Fechamento</div>
+            <div id="prev-summary-title" class="prev-summary-title">Aguardando consolidado</div>
+            <div id="prev-summary-text" class="prev-summary-text">O módulo vai resumir o último dia útil com produção registrada.</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Melhor turno</div>
+            <div id="prev-summary-shift" class="prev-summary-value">—</div>
+            <div id="prev-summary-shift-sub" class="prev-summary-sub">Sem comparação disponível</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Máquinas ativas</div>
+            <div id="prev-summary-machines" class="prev-summary-value">—</div>
+            <div id="prev-summary-machines-sub" class="prev-summary-sub">Sem registros processados</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Risco do dia</div>
+            <div id="prev-summary-risk" class="prev-summary-value">—</div>
+            <div id="prev-summary-risk-sub" class="prev-summary-sub">Sem leitura de risco</div>
+          </div>
+        </section>
+
+        <section id="prev-metrics" class="prev-metrics">
+          <div class="msg">Carregando consolidado do dia anterior...</div>
+        </section>
+
+        <div class="prev-grid">
+          <section class="panel">
+            <div class="panel-title">Turnos do dia</div>
+            <div class="prev-turn-table">
+              <div class="prev-turn-head">
+                <div>Turno</div>
+                <div style="text-align:right">Produzido</div>
+                <div style="text-align:right">Conforme</div>
+                <div style="text-align:right">Não conf.</div>
+              </div>
+              <div id="prev-turn-table"></div>
+            </div>
+            <div id="prev-turn-msg" class="msg" hidden></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">Composição do fechamento</div>
+            <div class="prev-mix">
+              <div class="chart-wrap"><canvas id="chart-previous-day-composition"></canvas></div>
+              <div id="prev-mix-list" class="prev-mix-list"></div>
+            </div>
+            <div id="prev-composition-msg" class="msg" hidden></div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Máquinas do dia</div>
+            <div class="prev-machine-grid">
+              <div>
+                <div class="prev-machine-head">
+                  <div class="prev-machine-title">Maiores volumes</div>
+                  <div class="prev-machine-subtitle">quem puxou a produção</div>
+                </div>
+                <div id="prev-volume-list" class="prev-machine-list"></div>
+              </div>
+              <div>
+                <div class="prev-machine-head">
+                  <div class="prev-machine-title">Maiores perdas</div>
+                  <div class="prev-machine-subtitle">onde olhar primeiro</div>
+                </div>
+                <div id="prev-alert-list" class="prev-machine-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Leitura por máquina</div>
+            <div class="chart-wrap"><canvas id="chart-previous-day-machines"></canvas></div>
+            <div id="prev-machine-chart-msg" class="msg" hidden></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
     <section id="module-view-placeholder" class="module-view" hidden>
       <div class="module-empty">
         <div class="module-empty-card">
@@ -1472,8 +1879,8 @@ const MODULES = [
   { id: 'quality', label: 'Qualidade', desc: 'Conformidade, perdas e desempenho por máquina.', status: 'active' },
   { id: 'efficiency', label: 'Eficiência', desc: 'Aproveitamento, paradas e produtividade.', status: 'active' },
   { id: 'performance', label: 'Performance', desc: 'Comparativo operacional entre Turno 1 e Turno 2.', status: 'active' },
+  { id: 'previous-day', label: 'Dia anterior', desc: 'Consolidado operacional do último dia relevante do período.', status: 'active' },
   { id: 'production', label: 'Produção', desc: 'Volume, ritmo e capacidade produtiva.', status: 'soon' },
-  { id: 'maintenance', label: 'Manutenção', desc: 'Disponibilidade, ocorrências e intervenções.', status: 'soon' },
 ];
 
 const state = { year: null, month: null, module: 'quality' };
@@ -1486,6 +1893,8 @@ let efficiencyTurnChart = null;
 let efficiencyDowntimeChart = null;
 let performanceDailyChart = null;
 let performanceQualityChart = null;
+let previousDayCompositionChart = null;
+let previousDayMachineChart = null;
 
 function escapeHTML(str) {
   const div = document.createElement('div');
@@ -1569,12 +1978,14 @@ function syncModuleView() {
   const qualityView = document.getElementById('module-view-quality');
   const efficiencyView = document.getElementById('module-view-efficiency');
   const performanceView = document.getElementById('module-view-performance');
+  const previousDayView = document.getElementById('module-view-previous-day');
   const placeholderView = document.getElementById('module-view-placeholder');
 
   if (state.module === 'quality') {
     qualityView.hidden = false;
     efficiencyView.hidden = true;
     performanceView.hidden = true;
+    previousDayView.hidden = true;
     placeholderView.hidden = true;
     return;
   }
@@ -1583,6 +1994,7 @@ function syncModuleView() {
     qualityView.hidden = true;
     efficiencyView.hidden = false;
     performanceView.hidden = true;
+    previousDayView.hidden = true;
     placeholderView.hidden = true;
     return;
   }
@@ -1591,6 +2003,16 @@ function syncModuleView() {
     qualityView.hidden = true;
     efficiencyView.hidden = true;
     performanceView.hidden = false;
+    previousDayView.hidden = true;
+    placeholderView.hidden = true;
+    return;
+  }
+
+  if (state.module === 'previous-day') {
+    qualityView.hidden = true;
+    efficiencyView.hidden = true;
+    performanceView.hidden = true;
+    previousDayView.hidden = false;
     placeholderView.hidden = true;
     return;
   }
@@ -1598,6 +2020,7 @@ function syncModuleView() {
   qualityView.hidden = true;
   efficiencyView.hidden = true;
   performanceView.hidden = true;
+  previousDayView.hidden = true;
   placeholderView.hidden = false;
   document.getElementById('module-empty-title').textContent = currentModule.label;
   document.getElementById('module-empty-text').textContent = `O módulo de ${currentModule.label.toLowerCase()} já está reservado e pronto para receber os próximos painéis analíticos.`;
@@ -2970,6 +3393,8 @@ function updatePeriodLabel() {
   if (effLabel) effLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
   const perfLabel = document.getElementById('perf-period-label');
   if (perfLabel) perfLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
+  const prevLabel = document.getElementById('prev-period-label');
+  if (prevLabel) prevLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
 }
 
 function getEfficiencyStatus(pct) {
@@ -3720,6 +4145,493 @@ async function loadPerformanceAll() {
   }
 }
 
+function formatDatePt(dateStr) {
+  const [year, month, day] = String(dateStr).split('-').map(Number);
+  return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+}
+
+function getYesterdayIso() {
+  const now = new Date();
+  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getMachineShortLabel(machineId) {
+  return `MÁQ. ${machineId}`;
+}
+
+function getReferencePreviousDay(entries) {
+  const dates = [...new Set((entries || []).map((item) => String(item.entry_date)).filter(Boolean))].sort();
+  if (!dates.length) return null;
+
+  const today = new Date();
+  const isCurrentPeriod = state.year === today.getFullYear() && state.month === (today.getMonth() + 1);
+  if (isCurrentPeriod) {
+    const yesterdayIso = getYesterdayIso();
+    const previousDates = dates.filter((date) => date <= yesterdayIso);
+    return previousDates[previousDates.length - 1] || null;
+  }
+
+  return dates[dates.length - 1];
+}
+
+function summarizePreviousDay(entries, referenceDate) {
+  const monthDayMap = new Map();
+  (entries || []).forEach((item) => {
+    const key = String(item.entry_date);
+    const bucket = monthDayMap.get(key) || { produced: 0, nonConforme: 0 };
+    bucket.produced += item.quantity || 0;
+    bucket.nonConforme += (item.repair_qty || 0) + (item.second_quality_qty || 0);
+    monthDayMap.set(key, bucket);
+  });
+
+  const activeDays = [...monthDayMap.values()];
+  const averageProduced = activeDays.length
+    ? activeDays.reduce((sum, item) => sum + item.produced, 0) / activeDays.length
+    : 0;
+  const averageNonConformePct = activeDays.length
+    ? activeDays.reduce((sum, item) => sum + (item.produced > 0 ? (item.nonConforme / item.produced) * 100 : 0), 0) / activeDays.length
+    : 0;
+
+  const dayEntries = (entries || []).filter((item) => String(item.entry_date) === referenceDate);
+  const totalProduced = dayEntries.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const totalRepair = dayEntries.reduce((sum, item) => sum + (item.repair_qty || 0), 0);
+  const totalSecond = dayEntries.reduce((sum, item) => sum + (item.second_quality_qty || 0), 0);
+  const totalNonConforme = totalRepair + totalSecond;
+  const totalConforme = Math.max(totalProduced - totalNonConforme, 0);
+  const qualityPct = totalProduced > 0 ? (totalConforme / totalProduced) * 100 : 0;
+  const nonConformePct = totalProduced > 0 ? (totalNonConforme / totalProduced) * 100 : 0;
+
+  const shiftMap = new Map([
+    [1, { shift: 1, label: 'Turno 1', produced: 0, repair: 0, second: 0 }],
+    [2, { shift: 2, label: 'Turno 2', produced: 0, repair: 0, second: 0 }],
+  ]);
+  const machineMap = new Map();
+
+  dayEntries.forEach((item) => {
+    const shift = shiftMap.get(item.shift) || shiftMap.get(1);
+    shift.produced += item.quantity || 0;
+    shift.repair += item.repair_qty || 0;
+    shift.second += item.second_quality_qty || 0;
+
+    const machine = machineMap.get(item.machine_id) || {
+      machineId: item.machine_id,
+      label: getMachineShortLabel(item.machine_id),
+      produced: 0,
+      repair: 0,
+      second: 0,
+    };
+    machine.produced += item.quantity || 0;
+    machine.repair += item.repair_qty || 0;
+    machine.second += item.second_quality_qty || 0;
+    machineMap.set(item.machine_id, machine);
+  });
+
+  const shifts = [...shiftMap.values()].map((item) => {
+    const nonConforme = item.repair + item.second;
+    const quality = item.produced > 0 ? ((item.produced - nonConforme) / item.produced) * 100 : 0;
+    return { ...item, nonConforme, quality };
+  });
+
+  const machines = [...machineMap.values()].map((item) => {
+    const nonConforme = item.repair + item.second;
+    const quality = item.produced > 0 ? ((item.produced - nonConforme) / item.produced) * 100 : 0;
+    const nonConformePctByProduced = item.produced > 0 ? (nonConforme / item.produced) * 100 : 0;
+    return { ...item, nonConforme, quality, nonConformePctByProduced };
+  });
+
+  const bestMachines = [...machines]
+    .sort((a, b) => (b.quality - a.quality) || (b.produced - a.produced))
+    .slice(0, 4);
+  const worstMachines = [...machines]
+    .sort((a, b) => (b.nonConformePctByProduced - a.nonConformePctByProduced) || (b.nonConforme - a.nonConforme))
+    .slice(0, 4);
+  const topMachine = [...machines].sort((a, b) => b.produced - a.produced)[0] || null;
+
+  return {
+    referenceDate,
+    totalProduced,
+    totalRepair,
+    totalSecond,
+    totalNonConforme,
+    totalConforme,
+    qualityPct,
+    nonConformePct,
+    averageProduced,
+    averageNonConformePct,
+    shifts,
+    machines,
+    bestMachines,
+    worstMachines,
+    topMachine,
+  };
+}
+
+function getPreviousDayDeltaColor(current, baseline, higherIsBetter = true) {
+  if (!baseline) return '#8ab8ff';
+  const better = higherIsBetter ? current >= baseline : current <= baseline;
+  return better ? '#27C77A' : '#e05252';
+}
+
+function getPreviousDayRisk(data) {
+  if (data.nonConformePct >= 4) {
+    return { label: 'Crítico', color: '#e05252', sub: 'não conforme acima do padrão do dia' };
+  }
+  if (data.nonConformePct >= 2) {
+    return { label: 'Atenção', color: '#EF9F27', sub: 'perdas pedem leitura do detalhe por máquina' };
+  }
+  return { label: 'Controlado', color: '#27C77A', sub: 'qualidade sob controle no fechamento do dia' };
+}
+
+function renderPreviousDaySummary(data) {
+  const bestShift = [...data.shifts].sort((a, b) => b.quality - a.quality || b.produced - a.produced)[0] || null;
+  const risk = getPreviousDayRisk(data);
+  const titleEl = document.getElementById('prev-summary-title');
+  const textEl = document.getElementById('prev-summary-text');
+  const shiftEl = document.getElementById('prev-summary-shift');
+  const shiftSubEl = document.getElementById('prev-summary-shift-sub');
+  const machineEl = document.getElementById('prev-summary-machines');
+  const machineSubEl = document.getElementById('prev-summary-machines-sub');
+  const riskEl = document.getElementById('prev-summary-risk');
+  const riskSubEl = document.getElementById('prev-summary-risk-sub');
+
+  titleEl.textContent = `Fechamento de ${formatDatePt(data.referenceDate)}`;
+  textEl.textContent = `${formatNumber(data.totalProduced)} peças registradas no dia, com ${formatPct(data.qualityPct)} de conformidade geral e ${formatPct(data.nonConformePct)} de não conforme.`;
+  shiftEl.textContent = bestShift ? bestShift.label : '—';
+  shiftEl.style.color = bestShift ? getQualityTone(bestShift.quality) : '#f3f7fa';
+  shiftSubEl.textContent = bestShift
+    ? `${formatPct(bestShift.quality)} de conformidade com ${formatNumber(bestShift.produced)} peças`
+    : 'Sem comparação disponível';
+  machineEl.textContent = String(data.machines.length);
+  machineSubEl.textContent = data.topMachine
+    ? `${data.topMachine.label} liderou o volume com ${formatNumber(data.topMachine.produced)} peças`
+    : 'Sem registros processados';
+  riskEl.textContent = risk.label;
+  riskEl.style.color = risk.color;
+  riskSubEl.textContent = risk.sub;
+}
+
+function resetPreviousDaySummary() {
+  document.getElementById('prev-summary-title').textContent = 'Aguardando consolidado';
+  document.getElementById('prev-summary-text').textContent = 'O módulo vai resumir o último dia útil com produção registrada.';
+  document.getElementById('prev-summary-shift').textContent = '—';
+  document.getElementById('prev-summary-shift').style.color = '#f3f7fa';
+  document.getElementById('prev-summary-shift-sub').textContent = 'Sem comparação disponível';
+  document.getElementById('prev-summary-machines').textContent = '—';
+  document.getElementById('prev-summary-machines-sub').textContent = 'Sem registros processados';
+  document.getElementById('prev-summary-risk').textContent = '—';
+  document.getElementById('prev-summary-risk').style.color = '#f3f7fa';
+  document.getElementById('prev-summary-risk-sub').textContent = 'Sem leitura de risco';
+}
+
+function renderPreviousDayMetrics(data) {
+  const row = document.getElementById('prev-metrics');
+  const items = [
+    {
+      label: 'Produzido',
+      value: formatNumber(data.totalProduced),
+      sub: `média do mês: ${formatNumber(Math.round(data.averageProduced || 0))}`,
+      color: getPreviousDayDeltaColor(data.totalProduced, data.averageProduced, true),
+    },
+    {
+      label: 'Conformidade',
+      value: formatPct(data.qualityPct),
+      sub: `${formatNumber(data.totalConforme)} peças conformes`,
+      color: getQualityTone(data.qualityPct),
+    },
+    {
+      label: 'Não Conforme',
+      value: formatPct(data.nonConformePct),
+      sub: `${formatNumber(data.totalNonConforme)} peças fora do padrão`,
+      color: getPreviousDayDeltaColor(data.nonConformePct, data.averageNonConformePct, false),
+    },
+  ];
+
+  row.innerHTML = items.map((item) => `
+    <div class="prev-metric">
+      <div class="prev-metric-label">${item.label}</div>
+      <div class="prev-metric-value" style="color:${item.color}">${item.value}</div>
+      <div class="prev-metric-sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderPreviousDayTurns(data) {
+  const listEl = document.getElementById('prev-turn-table');
+  const msgEl = document.getElementById('prev-turn-msg');
+  listEl.innerHTML = data.shifts.map((shift) => {
+    const share = data.totalProduced > 0 ? (shift.produced / data.totalProduced) * 100 : 0;
+    const qualityColor = getQualityTone(shift.quality);
+    return `
+      <div class="prev-turn-item">
+        <div class="prev-turn-name">
+          <strong>${shift.label}</strong>
+          <span>${formatPct(share)} do volume do dia</span>
+        </div>
+        <div class="prev-turn-cell"><strong>${formatNumber(shift.produced)}</strong></div>
+        <div class="prev-turn-cell" style="color:${qualityColor}"><strong>${formatPct(shift.quality)}</strong></div>
+        <div class="prev-turn-cell">${formatNumber(shift.nonConforme)}</div>
+      </div>
+    `;
+  }).join('');
+  msgEl.hidden = true;
+}
+
+function renderPreviousDayCompositionChart(data) {
+  const ctx = document.getElementById('chart-previous-day-composition').getContext('2d');
+  const msgEl = document.getElementById('prev-composition-msg');
+  const mixEl = document.getElementById('prev-mix-list');
+  const rows = [
+    { label: 'Conforme', value: data.totalConforme, pct: data.totalProduced > 0 ? (data.totalConforme / data.totalProduced) * 100 : 0, color: '#27C77A' },
+    { label: 'Reparo', value: data.totalRepair, pct: data.totalProduced > 0 ? (data.totalRepair / data.totalProduced) * 100 : 0, color: '#EF9F27' },
+    { label: 'Segunda Qualidade', value: data.totalSecond, pct: data.totalProduced > 0 ? (data.totalSecond / data.totalProduced) * 100 : 0, color: '#e05252' },
+  ];
+  if (previousDayCompositionChart) previousDayCompositionChart.destroy();
+  previousDayCompositionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Fechamento'],
+      datasets: rows.map((row) => ({
+        label: row.label,
+        data: [row.value],
+        backgroundColor: row.color,
+        borderRadius: 6,
+        stack: 'day',
+      })),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${formatNumber(context.raw)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          ticks: { callback: (value) => formatNumber(value) },
+          grid: { color: 'rgba(136,160,184,.12)' },
+        },
+      },
+    },
+  });
+  mixEl.innerHTML = rows.map((row) => `
+    <div class="prev-mix-row">
+      <div class="prev-mix-copy">
+        <strong style="color:${row.color}">${row.label}</strong>
+        <span>${formatPct(row.pct)} do total do dia</span>
+      </div>
+      <div class="prev-mix-value">${formatNumber(row.value)}</div>
+    </div>
+  `).join('');
+  msgEl.hidden = true;
+}
+
+function renderPreviousDayMachineLists(data) {
+  const volumeEl = document.getElementById('prev-volume-list');
+  const alertEl = document.getElementById('prev-alert-list');
+  const volumeList = [...data.machines].sort((a, b) => b.produced - a.produced).slice(0, 5);
+  const alertList = [...data.machines]
+    .sort((a, b) => (b.nonConformePctByProduced - a.nonConformePctByProduced) || (b.nonConforme - a.nonConforme))
+    .slice(0, 5);
+
+  function getMachineRiskPill(item) {
+    if (item.nonConformePctByProduced >= 4) {
+      return { cls: 'bad', label: `${formatPct(item.nonConformePctByProduced)} não conf.` };
+    }
+    if (item.nonConformePctByProduced >= 2) {
+      return { cls: 'warn', label: `${formatPct(item.nonConformePctByProduced)} não conf.` };
+    }
+    return { cls: 'good', label: `${formatPct(item.nonConformePctByProduced)} não conf.` };
+  }
+
+  volumeEl.innerHTML = volumeList.map((item, index) => `
+    <div class="prev-machine-row">
+      <div class="prev-machine-rank">${index + 1}</div>
+      <div class="prev-machine-copy">
+        <strong>${escapeHTML(item.label)}</strong>
+        <span>Maior volume do dia com ${formatPct(item.quality)} de conformidade</span>
+        <div class="prev-machine-meta">
+          <span class="prev-machine-pill ${getMachineRiskPill(item).cls}">${getMachineRiskPill(item).label}</span>
+          <span class="prev-machine-pill">${formatNumber(item.nonConforme)} peças perdidas</span>
+        </div>
+      </div>
+      <div class="prev-machine-value">
+        <strong>${formatNumber(item.produced)}</strong>
+        <span>produzidas</span>
+      </div>
+    </div>
+  `).join('');
+
+  alertEl.innerHTML = alertList.map((item, index) => `
+    <div class="prev-machine-row is-risk">
+      <div class="prev-machine-rank">${index + 1}</div>
+      <div class="prev-machine-copy">
+        <strong>${escapeHTML(item.label)}</strong>
+        <span>Concentrou mais perdas no fechamento do dia</span>
+        <div class="prev-machine-meta">
+          <span class="prev-machine-pill ${getMachineRiskPill(item).cls}">${getMachineRiskPill(item).label}</span>
+          <span class="prev-machine-pill">${formatPct(item.quality)} conformidade</span>
+        </div>
+      </div>
+      <div class="prev-machine-value">
+        <strong>${formatNumber(item.nonConforme)}</strong>
+        <span>não conformes</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPreviousDayMachineChart(data) {
+  const ctx = document.getElementById('chart-previous-day-machines').getContext('2d');
+  const msgEl = document.getElementById('prev-machine-chart-msg');
+  const ranked = [...data.machines].sort((a, b) => b.produced - a.produced);
+  if (previousDayMachineChart) previousDayMachineChart.destroy();
+  previousDayMachineChart = new Chart(ctx, {
+    data: {
+      labels: ranked.map((item) => item.label),
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Produzido',
+          data: ranked.map((item) => item.produced),
+          backgroundColor: 'rgba(138,184,255,.72)',
+          borderColor: 'rgba(138,184,255,.95)',
+          borderWidth: 1,
+          borderRadius: 8,
+          yAxisID: 'y',
+        },
+        {
+          type: 'line',
+          label: 'Não conforme (%)',
+          data: ranked.map((item) => Number(item.nonConformePctByProduced.toFixed(2))),
+          borderColor: '#e05252',
+          backgroundColor: 'rgba(224,82,82,.18)',
+          pointBackgroundColor: ranked.map((item) => getPreviousDayRisk({ nonConformePct: item.nonConformePctByProduced }).color),
+          pointRadius: 4,
+          pointHoverRadius: 4,
+          borderWidth: 2,
+          tension: .28,
+          yAxisID: 'y1',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              if (context.dataset.yAxisID === 'y1') {
+                return `${context.dataset.label}: ${context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+              }
+              return `${context.dataset.label}: ${formatNumber(context.raw)}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => formatNumber(value) },
+          grid: { color: 'rgba(136,160,184,.12)' },
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          max: 12,
+          ticks: { callback: (value) => `${value}%` },
+          grid: { drawOnChartArea: false },
+        },
+      },
+    },
+  });
+  msgEl.hidden = true;
+}
+
+async function loadPreviousDayAll() {
+  const metricsRow = document.getElementById('prev-metrics');
+  const refNote = document.getElementById('prev-ref-note');
+  const turnList = document.getElementById('prev-turn-table');
+  const volumeList = document.getElementById('prev-volume-list');
+  const alertList = document.getElementById('prev-alert-list');
+  const mixList = document.getElementById('prev-mix-list');
+
+  try {
+    const entries = await fetchJSON(`/api/entries/${state.year}/${state.month}`);
+    const referenceDate = getReferencePreviousDay(entries);
+
+    if (!referenceDate) {
+      if (previousDayCompositionChart) {
+        previousDayCompositionChart.destroy();
+        previousDayCompositionChart = null;
+      }
+      if (previousDayMachineChart) {
+        previousDayMachineChart.destroy();
+        previousDayMachineChart = null;
+      }
+      resetPreviousDaySummary();
+      metricsRow.innerHTML = '<div class="msg">Sem dados suficientes para montar o consolidado do dia anterior neste período.</div>';
+      refNote.textContent = '';
+      turnList.innerHTML = '';
+      volumeList.innerHTML = '';
+      alertList.innerHTML = '';
+      mixList.innerHTML = '';
+      return;
+    }
+
+    const data = summarizePreviousDay(entries, referenceDate);
+    const yesterdayIso = getYesterdayIso();
+    const today = new Date();
+    const isCurrentPeriod = state.year === today.getFullYear() && state.month === (today.getMonth() + 1);
+    refNote.textContent = isCurrentPeriod
+      ? (referenceDate === yesterdayIso
+          ? `Base real de ontem: ${formatDatePt(referenceDate)}.`
+          : `Sem registro em ontem; exibindo o último dia com dados: ${formatDatePt(referenceDate)}.`)
+      : `Último dia com dados do período selecionado: ${formatDatePt(referenceDate)}.`;
+
+    renderPreviousDaySummary(data);
+    renderPreviousDayMetrics(data);
+    renderPreviousDayTurns(data);
+    renderPreviousDayCompositionChart(data);
+    renderPreviousDayMachineLists(data);
+    renderPreviousDayMachineChart(data);
+  } catch (err) {
+    if (previousDayCompositionChart) {
+      previousDayCompositionChart.destroy();
+      previousDayCompositionChart = null;
+    }
+    if (previousDayMachineChart) {
+      previousDayMachineChart.destroy();
+      previousDayMachineChart = null;
+    }
+    resetPreviousDaySummary();
+    metricsRow.innerHTML = `<div class="msg msg-error">Não foi possível carregar os indicadores do dia anterior (${escapeHTML(err.message)}).</div>`;
+    refNote.textContent = '';
+    turnList.innerHTML = '';
+    volumeList.innerHTML = '';
+    alertList.innerHTML = '';
+    mixList.innerHTML = '';
+  }
+}
+
 async function loadEfficiencyAll() {
   try {
     const summary = await fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`);
@@ -3766,6 +4678,10 @@ async function loadAll() {
   }
   if (state.module === 'performance') {
     await loadPerformanceAll();
+    return;
+  }
+  if (state.module === 'previous-day') {
+    await loadPreviousDayAll();
   }
 }
 

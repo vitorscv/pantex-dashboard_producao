@@ -13,7 +13,7 @@ import os
 import sys
 from pathlib import Path
 
-# ── Dependências ───────────────────────────────────────────────────────────────
+#Dependências
 try:
     import psycopg2
 except ImportError:
@@ -26,7 +26,7 @@ except ImportError:
     print("[ERRO] python-dotenv não encontrado. Execute: pip install python-dotenv")
     sys.exit(1)
 
-# ── Configuração ───────────────────────────────────────────────────────────────
+#Configuração
 BASE_DIR = Path(__file__).parent
 SQL_DIR  = BASE_DIR / "sql"
 
@@ -35,7 +35,7 @@ SQL_FILES = [
     SQL_DIR / "02_seed_machine_config.sql",
 ]
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+#Helpers
 def ok(msg: str)  -> None: print(f"  [OK]  {msg}")
 def err(msg: str) -> None: print(f"  [ERRO] {msg}")
 def sep()         -> None: print("-" * 60)
@@ -68,7 +68,7 @@ def list_tables(cur) -> list[str]:
     return [row[0] for row in cur.fetchall()]
 
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+#Main
 def main() -> None:
     print()
     print("=" * 60)
@@ -90,7 +90,7 @@ def main() -> None:
         err("DATABASE_URL não definida no .env")
         sys.exit(1)
 
-    # Mascara a senha no print
+    #Mascara a senha no print
     display_url = db_url
     if "@" in db_url:
         before, after = db_url.rsplit("@", 1)
@@ -100,7 +100,7 @@ def main() -> None:
 
     ok(f"DATABASE_URL = {display_url}")
 
-    # 2. Conecta
+    #Conecta
     sep()
     print("2. Conectando ao PostgreSQL ...")
     try:
@@ -112,7 +112,7 @@ def main() -> None:
         err(f"Falha na conexão: {e}")
         sys.exit(1)
 
-    # 3–4. Executa os arquivos SQL
+    #Executa os arquivos SQL
     sep()
     print("3. Executando scripts SQL ...")
     try:
@@ -133,7 +133,7 @@ def main() -> None:
         conn.close()
         sys.exit(1)
 
-    # 5. Lista tabelas criadas
+    #Lista tabelas criadas
     sep()
     print("4. Verificando tabelas no banco ...")
     tables = list_tables(cur)
