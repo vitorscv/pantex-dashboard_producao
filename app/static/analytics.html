@@ -530,6 +530,609 @@
     font-size: .66rem;
     color: var(--muted);
   }
+  .prev-toolbar {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin-top: .7rem;
+  }
+  .prev-action-btn {
+    appearance: none;
+    border: 1px solid rgba(136,160,184,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+    color: #e8f0f7;
+    border-radius: 8px;
+    padding: .56rem .78rem;
+    font-size: .67rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, color .2s;
+  }
+  .prev-action-btn:hover {
+    border-color: rgba(136,160,184,.32);
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+  }
+  .prev-action-btn.primary {
+    border-color: rgba(138,184,255,.28);
+    color: #dfeeff;
+  }
+  .prev-report-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 240;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(6, 13, 24, .72);
+    backdrop-filter: blur(6px);
+  }
+  .prev-report-modal[hidden] {
+    display: none !important;
+  }
+  .prev-report-panel {
+    width: min(100%, 1080px);
+    max-height: calc(100vh - 2.5rem);
+    overflow: auto;
+    border: 1px solid rgba(136,160,184,.16);
+    border-radius: 14px;
+    background: #0f1a2b;
+    padding: 1rem 1rem 1.1rem;
+    box-shadow: 0 28px 70px rgba(2,8,23,.45);
+  }
+  .prev-report-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-bottom: .8rem;
+  }
+  .prev-report-title {
+    font-size: .92rem;
+    font-weight: 700;
+    color: #f3f7fa;
+  }
+  .prev-report-sub {
+    margin-top: .12rem;
+    font-size: .64rem;
+    color: var(--muted);
+  }
+  .prev-report-actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+  .prev-report-body {
+    display: grid;
+    gap: .8rem;
+    justify-items: center;
+  }
+  .prev-print-sheet {
+    width: 210mm;
+    min-height: 297mm;
+    display: grid;
+    align-content: start;
+    gap: .48rem;
+    background: #ffffff;
+    color: #111827;
+    border-radius: 6px;
+    padding: 8mm 8.5mm;
+    box-shadow: 0 18px 48px rgba(2,8,23,.35);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-header {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: .55rem;
+    align-items: start;
+    padding-bottom: .4rem;
+    border-bottom: 2px solid #d7e2ee;
+  }
+  .prev-print-brand {
+    display: grid;
+    gap: .18rem;
+  }
+  .prev-print-brand-kicker {
+    font-size: .54rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #60748a;
+  }
+  .prev-print-brand-title {
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: #0f172a;
+  }
+  .prev-print-brand-text {
+    font-size: .58rem;
+    line-height: 1.32;
+    color: #60748a;
+    max-width: 420px;
+  }
+  .prev-print-meta {
+    display: grid;
+    gap: .26rem;
+    justify-items: end;
+  }
+  .prev-print-meta-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: .45rem;
+    align-items: center;
+    padding: .25rem .38rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #dde5ef;
+  }
+  .prev-print-meta-row span {
+    font-size: .52rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #60748a;
+  }
+  .prev-print-meta-row strong {
+    font-size: .62rem;
+    color: #111827;
+    text-align: right;
+  }
+  .prev-print-lead {
+    padding: .62rem .7rem;
+    border-radius: 10px;
+    background: #f8fbff;
+    border: 1px solid #dbe7f3;
+    font-size: .68rem;
+    line-height: 1.5;
+    color: #334155;
+  }
+  .prev-print-overview {
+    display: grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: .5rem;
+  }
+  .prev-print-highlight {
+    border: 1px solid #dbe7f3;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #f8fbff, #ffffff);
+    padding: .58rem .62rem;
+  }
+  .prev-print-highlight-kicker {
+    font-size: .54rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #60748a;
+    margin-bottom: .24rem;
+  }
+  .prev-print-highlight-title {
+    font-size: .9rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .prev-print-highlight-text {
+    margin-top: .18rem;
+    font-size: .58rem;
+    line-height: 1.32;
+    color: #475569;
+  }
+  .prev-print-status-stack {
+    display: grid;
+    gap: .36rem;
+  }
+  .prev-print-status-card {
+    border-radius: 10px;
+    padding: .46rem .52rem;
+    border: 1px solid #dde5ef;
+    background: #f8fafc;
+  }
+  .prev-print-status-card.good {
+    border-color: #bce7ce;
+    background: #f3fcf6;
+  }
+  .prev-print-status-card.warn {
+    border-color: #f5d69c;
+    background: #fffaf1;
+  }
+  .prev-print-status-card.bad {
+    border-color: #f0c0c0;
+    background: #fff6f6;
+  }
+  .prev-print-status-label {
+    font-size: .52rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #60748a;
+    margin-bottom: .14rem;
+  }
+  .prev-print-status-value {
+    font-size: .72rem;
+    font-weight: 800;
+    color: #111827;
+  }
+  .prev-print-status-sub {
+    margin-top: .08rem;
+    font-size: .55rem;
+    color: #60748a;
+  }
+  .prev-print-section-title {
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #60748a;
+    margin-bottom: .45rem;
+  }
+  .prev-print-block {
+    border: 1px solid #d5dde8;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: .58rem .62rem;
+  }
+  .prev-print-block h4 {
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #60748a;
+    margin-bottom: .32rem;
+  }
+  .prev-print-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .36rem;
+  }
+  .prev-print-composition {
+    display: grid;
+    gap: .36rem;
+  }
+  .prev-print-stack {
+    display: flex;
+    width: 100%;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    border: 1px solid #d7e2ee;
+    background: #eef3f8;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-stack-segment {
+    height: 100%;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-stack-segment.conforme {
+    background: #27C77A;
+  }
+  .prev-print-stack-segment.reparo {
+    background: #EF9F27;
+  }
+  .prev-print-stack-segment.segunda {
+    background: #e05252;
+  }
+  .prev-print-legend {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .3rem;
+  }
+  .prev-print-legend-row {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    gap: .3rem;
+    align-items: center;
+    padding: .26rem .32rem;
+    border-radius: 8px;
+    background: #fbfdff;
+    border: 1px solid #e2e8f0;
+  }
+  .prev-print-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+  }
+  .prev-print-dot.conforme {
+    background: #27C77A;
+  }
+  .prev-print-dot.reparo {
+    background: #EF9F27;
+  }
+  .prev-print-dot.segunda {
+    background: #e05252;
+  }
+  .prev-print-legend-row strong {
+    font-size: .58rem;
+    color: #111827;
+  }
+  .prev-print-legend-row span {
+    font-size: .55rem;
+    color: #60748a;
+    text-align: right;
+  }
+  .prev-print-metric {
+    padding: .34rem .38rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #dde5ef;
+  }
+  .prev-print-metric span {
+    display: block;
+    font-size: .54rem;
+    color: #60748a;
+    margin-bottom: .08rem;
+  }
+  .prev-print-metric strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: .66rem;
+    color: #111827;
+  }
+  .prev-print-metric-bar {
+    margin-top: .22rem;
+    display: grid;
+    gap: .14rem;
+  }
+  .prev-print-metric-track {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e7edf4;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-metric-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #8ab8ff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-metric-fill.good {
+    background: #27C77A;
+  }
+  .prev-print-metric-fill.warn {
+    background: #EF9F27;
+  }
+  .prev-print-metric-fill.bad {
+    background: #e05252;
+  }
+  .prev-print-metric-note {
+    font-size: .5rem;
+    color: #60748a;
+  }
+  .prev-print-table {
+    display: grid;
+    gap: .25rem;
+  }
+  .prev-print-turn-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .4rem;
+  }
+  .prev-print-turn-card {
+    border: 1px solid #dde5ef;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: .45rem .5rem;
+  }
+  .prev-print-turn-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: .4rem;
+    align-items: baseline;
+    margin-bottom: .28rem;
+  }
+  .prev-print-turn-card strong {
+    font-size: .76rem;
+    color: #111827;
+  }
+  .prev-print-turn-card span {
+    font-size: .58rem;
+    color: #60748a;
+  }
+  .prev-print-turn-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .24rem;
+  }
+  .prev-print-turn-bars {
+    display: grid;
+    gap: .18rem;
+    margin-top: .28rem;
+  }
+  .prev-print-turn-bar-row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 48px;
+    gap: .24rem;
+    align-items: center;
+  }
+  .prev-print-turn-bar-row span,
+  .prev-print-turn-bar-row strong {
+    font-size: .5rem;
+    color: #60748a;
+  }
+  .prev-print-turn-bar-row strong {
+    text-align: right;
+  }
+  .prev-print-turn-bar-track {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e7edf4;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-turn-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-turn-mini {
+    padding: .24rem .28rem;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+  }
+  .prev-print-turn-mini label {
+    display: block;
+    font-size: .5rem;
+    color: #60748a;
+    margin-bottom: .06rem;
+  }
+  .prev-print-turn-mini b {
+    font-size: .58rem;
+    color: #0f172a;
+  }
+  .prev-print-machine-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .36rem;
+    margin-bottom: .42rem;
+  }
+  .prev-print-summary-chip {
+    padding: .34rem .38rem;
+    border-radius: 9px;
+    border: 1px solid #dde5ef;
+    background: #f8fafc;
+  }
+  .prev-print-summary-chip span {
+    display: block;
+    font-size: .48rem;
+    color: #60748a;
+    margin-bottom: .08rem;
+  }
+  .prev-print-summary-chip strong {
+    display: block;
+    font-size: .64rem;
+    color: #111827;
+  }
+  .prev-print-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .45rem;
+  }
+  .prev-print-column {
+    display: grid;
+    gap: .24rem;
+  }
+  .prev-print-column-title {
+    font-size: .54rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #60748a;
+  }
+  .prev-print-list {
+    display: grid;
+    gap: .24rem;
+  }
+  .prev-print-item {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    gap: .32rem;
+    align-items: center;
+    padding: .3rem .34rem;
+    border-radius: 8px;
+    background: #fbfdff;
+    border: 1px solid #e2e8f0;
+  }
+  .prev-print-rank {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    font-size: .6rem;
+    font-weight: 700;
+    color: #37506d;
+    background: #e9f1fb;
+    border: 1px solid #cfe0f4;
+  }
+  .prev-print-item strong {
+    display: block;
+    font-size: .61rem;
+    color: #111827;
+  }
+  .prev-print-item span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .54rem;
+    color: #60748a;
+  }
+  .prev-print-value {
+    font-family: var(--font-mono);
+    font-size: .6rem;
+    color: #111827;
+    text-align: right;
+  }
+  .prev-print-value strong {
+    display: block;
+    font-size: .65rem;
+    color: #111827;
+  }
+  .prev-print-value span {
+    display: block;
+    margin-top: .08rem;
+    font-size: .5rem;
+    color: #60748a;
+  }
+  .prev-print-machine-bar {
+    margin-top: .2rem;
+    display: grid;
+    gap: .18rem;
+  }
+  .prev-print-machine-track {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e9eff6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-machine-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #8ab8ff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prev-print-machine-fill.risk {
+    background: #e05252;
+  }
+  .prev-print-footer {
+    display: grid;
+    grid-template-columns: 1fr 180px;
+    gap: .7rem;
+    align-items: end;
+    padding-top: .1rem;
+  }
+  .prev-print-note {
+    font-size: .48rem;
+    line-height: 1.2;
+    color: #60748a;
+  }
+  .prev-print-signature {
+    display: grid;
+    gap: .22rem;
+    justify-items: stretch;
+  }
+  .prev-print-signature-line {
+    border-top: 1px solid #94a3b8;
+    height: 1px;
+  }
+  .prev-print-signature span {
+    font-size: .56rem;
+    color: #60748a;
+    text-align: center;
+  }
   .prev-summary {
     display: grid;
     grid-template-columns: minmax(260px, 1.1fr) repeat(3, minmax(150px, .8fr));
@@ -1356,6 +1959,7 @@
     .prev-grid { grid-template-columns: 1fr; }
     .prev-summary { grid-template-columns: 1fr 1fr; }
     .prev-machine-grid { grid-template-columns: 1fr; }
+    .prev-print-split { grid-template-columns: 1fr; }
   }
   @media (max-width: 700px) {
     .panels-grid { grid-template-columns: 1fr; }
@@ -1372,8 +1976,76 @@
     .eff-downtime-summary { grid-template-columns: 1fr; }
     .prev-summary { grid-template-columns: 1fr; }
     .prev-metrics { grid-template-columns: 1fr; }
+    .prev-toolbar { flex-direction: column; align-items: stretch; }
+    .prev-report-modal { padding: .6rem; }
+    .prev-report-panel { max-height: calc(100vh - 1.2rem); padding: .8rem; }
+    .prev-report-head { flex-direction: column; }
+    .prev-report-actions { width: 100%; }
+    .prev-action-btn { width: 100%; }
+    .prev-print-grid { grid-template-columns: 1fr; }
+    .prev-print-sheet {
+      width: 100%;
+      min-height: auto;
+      padding: 1rem;
+    }
+    .prev-print-overview,
+    .prev-print-turn-cards {
+      grid-template-columns: 1fr;
+    }
+    .prev-print-machine-summary {
+      grid-template-columns: 1fr;
+    }
+    .prev-print-header,
+    .prev-print-footer {
+      grid-template-columns: 1fr;
+    }
+    .prev-print-meta {
+      justify-items: stretch;
+    }
     .prev-turn-head,
     .prev-turn-item { grid-template-columns: minmax(90px, 1fr) repeat(3, minmax(56px, .85fr)); }
+  }
+  @media print {
+    body.print-previous-day-report {
+      padding-top: 0;
+      background: #ffffff;
+      color: #111827;
+    }
+    body.print-previous-day-report #header,
+    body.print-previous-day-report #main > div > :not(#print-previous-day-root) {
+      display: none !important;
+    }
+    body.print-previous-day-report #print-previous-day-root {
+      display: block !important;
+      visibility: visible !important;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+    }
+    body.print-previous-day-report #print-previous-day-root[hidden] {
+      display: block !important;
+    }
+    body.print-previous-day-report .prev-print-sheet,
+    body.print-previous-day-report .prev-print-block,
+    body.print-previous-day-report .prev-print-metric,
+    body.print-previous-day-report .prev-print-row,
+    body.print-previous-day-report .prev-print-item {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border-color: #d1d5db !important;
+      box-shadow: none !important;
+    }
+    body.print-previous-day-report .prev-print-item strong,
+    body.print-previous-day-report .prev-print-value,
+    body.print-previous-day-report .prev-print-metric strong,
+    body.print-previous-day-report .prev-print-block h4 {
+      color: #111827 !important;
+    }
+    body.print-previous-day-report .prev-print-item span,
+    body.print-previous-day-report .prev-print-row.head,
+    body.print-previous-day-report .prev-print-metric span {
+      color: #4b5563 !important;
+    }
   }
   @media (max-width: 640px) {
     #header { height: auto; padding: .75rem 1rem; }
@@ -1711,9 +2383,28 @@
       <div>
         <div class="section-label">Indicadores do dia anterior — <span id="prev-period-label">—</span></div>
         <div id="prev-ref-note" class="prev-ref-note"></div>
+        <div class="prev-toolbar">
+          <button id="prev-preview-btn" type="button" class="prev-action-btn primary">Pré-visualizar relatório</button>
+        </div>
       </div>
 
       <div class="prev-layout">
+        <section id="prev-report-modal" class="prev-report-modal" hidden>
+          <div id="prev-report-panel" class="prev-report-panel">
+            <div class="prev-report-head">
+              <div>
+                <div class="prev-report-title">Pré-visualização do relatório do dia anterior</div>
+                <div id="prev-report-sub" class="prev-report-sub">Gere a prévia para revisar antes de imprimir.</div>
+              </div>
+              <div class="prev-report-actions">
+                <button id="prev-print-btn" type="button" class="prev-action-btn primary">Imprimir relatório</button>
+                <button id="prev-close-preview-btn" type="button" class="prev-action-btn">Fechar prévia</button>
+              </div>
+            </div>
+            <div id="prev-report-preview" class="prev-report-body"></div>
+          </div>
+        </section>
+
         <section class="prev-summary">
           <div class="prev-summary-main">
             <div class="prev-summary-kicker">Fechamento</div>
@@ -1803,6 +2494,8 @@
         </div>
       </div>
     </section>
+
+    <section id="print-previous-day-root" hidden></section>
   </div>
 </main>
 
@@ -1895,6 +2588,7 @@ let performanceDailyChart = null;
 let performanceQualityChart = null;
 let previousDayCompositionChart = null;
 let previousDayMachineChart = null;
+let previousDayReportData = null;
 
 function escapeHTML(str) {
   const div = document.createElement('div');
@@ -4327,6 +5021,356 @@ function resetPreviousDaySummary() {
   document.getElementById('prev-summary-risk-sub').textContent = 'Sem leitura de risco';
 }
 
+function setPreviousDayReportOpen(isOpen) {
+  const modal = document.getElementById('prev-report-modal');
+  if (!modal) return;
+  modal.hidden = !isOpen;
+  document.body.classList.toggle('prev-report-open', isOpen);
+}
+
+function buildPreviousDayReportMarkup(data) {
+  const risk = getPreviousDayRisk(data);
+  const bestShift = [...data.shifts].sort((a, b) => b.quality - a.quality || b.produced - a.produced)[0] || null;
+  const volumeList = [...data.machines].sort((a, b) => b.produced - a.produced).slice(0, 4);
+  const alertList = [...data.machines]
+    .sort((a, b) => (b.nonConformePctByProduced - a.nonConformePctByProduced) || (b.nonConforme - a.nonConforme))
+    .slice(0, 4);
+  const generatedAt = new Date().toLocaleString('pt-BR');
+  const riskClass = risk.label === 'Crítico' ? 'bad' : risk.label === 'Atenção' ? 'warn' : 'good';
+  const bestMachine = volumeList[0] || null;
+  const maxProduced = Math.max(...data.machines.map((item) => item.produced), 1);
+  const maxNonConforme = Math.max(...data.machines.map((item) => item.nonConforme), 1);
+  const averageProducedPct = data.averageProduced > 0 ? Math.min((data.totalProduced / data.averageProduced) * 100, 140) : 0;
+  const qualityFillClass = data.qualityPct >= 98 ? 'good' : data.qualityPct >= 95 ? 'warn' : 'bad';
+  const ncFillClass = data.nonConformePct >= 4 ? 'bad' : data.nonConformePct >= 2 ? 'warn' : 'good';
+  const compositionRows = [
+    {
+      key: 'conforme',
+      label: 'Conforme',
+      value: data.totalConforme,
+      pct: data.totalProduced > 0 ? (data.totalConforme / data.totalProduced) * 100 : 0,
+    },
+    {
+      key: 'reparo',
+      label: 'Reparo',
+      value: data.totalRepair,
+      pct: data.totalProduced > 0 ? (data.totalRepair / data.totalProduced) * 100 : 0,
+    },
+    {
+      key: 'segunda',
+      label: 'Segunda qualidade',
+      value: data.totalSecond,
+      pct: data.totalProduced > 0 ? (data.totalSecond / data.totalProduced) * 100 : 0,
+    },
+  ];
+
+  return `
+    <article class="prev-print-sheet">
+      <header class="prev-print-header">
+        <div class="prev-print-brand">
+          <div class="prev-print-brand-kicker">Painel Analítico</div>
+          <div class="prev-print-brand-title">Relatório do Dia Anterior</div>
+          <div class="prev-print-brand-text">Consolidado operacional para conferência, impressão e acompanhamento do fechamento diário de produção e qualidade.</div>
+        </div>
+        <div class="prev-print-meta">
+          <div class="prev-print-meta-row">
+            <span>Data base</span>
+            <strong>${formatDatePt(data.referenceDate)}</strong>
+          </div>
+          <div class="prev-print-meta-row">
+            <span>Risco</span>
+            <strong style="color:${risk.color}">${risk.label}</strong>
+          </div>
+          <div class="prev-print-meta-row">
+            <span>Emitido em</span>
+            <strong>${generatedAt}</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="prev-print-overview">
+        <div class="prev-print-highlight">
+          <div class="prev-print-highlight-kicker">Leitura rápida</div>
+          <div class="prev-print-highlight-title">${formatPct(data.qualityPct)} de conformidade no fechamento</div>
+          <div class="prev-print-highlight-text">
+            ${formatNumber(data.totalProduced)} peças registradas no dia. ${bestShift ? `${escapeHTML(bestShift.label)} liderou os turnos com ${formatPct(bestShift.quality)} de conformidade.` : 'Sem destaque de turno suficiente para comparação.'} ${bestMachine ? `${escapeHTML(bestMachine.label)} puxou o maior volume do dia com ${formatNumber(bestMachine.produced)} peças.` : ''}
+          </div>
+        </div>
+        <div class="prev-print-status-stack">
+          <div class="prev-print-status-card ${riskClass}">
+            <div class="prev-print-status-label">Risco do dia</div>
+            <div class="prev-print-status-value" style="color:${risk.color}">${risk.label}</div>
+            <div class="prev-print-status-sub">${risk.sub}</div>
+          </div>
+          <div class="prev-print-status-card ${data.totalProduced >= data.averageProduced ? 'good' : 'warn'}">
+            <div class="prev-print-status-label">Ritmo x média mensal</div>
+            <div class="prev-print-status-value">${data.totalProduced >= data.averageProduced ? 'Acima da média' : 'Abaixo da média'}</div>
+            <div class="prev-print-status-sub">Dia fechou com ${formatNumber(data.totalProduced)} peças versus média de ${formatNumber(Math.round(data.averageProduced || 0))}.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Resumo do fechamento</h4>
+        <div class="prev-print-grid">
+          <div class="prev-print-metric">
+            <span>Produzido</span>
+            <strong>${formatNumber(data.totalProduced)}</strong>
+            <div class="prev-print-metric-bar">
+              <div class="prev-print-metric-track">
+                <div class="prev-print-metric-fill ${data.totalProduced >= data.averageProduced ? 'good' : 'warn'}" style="width:${averageProducedPct}%"></div>
+              </div>
+              <div class="prev-print-metric-note">Média mensal: ${formatNumber(Math.round(data.averageProduced || 0))}</div>
+            </div>
+          </div>
+          <div class="prev-print-metric">
+            <span>Conformidade</span>
+            <strong>${formatPct(data.qualityPct)}</strong>
+            <div class="prev-print-metric-bar">
+              <div class="prev-print-metric-track">
+                <div class="prev-print-metric-fill ${qualityFillClass}" style="width:${Math.min(data.qualityPct, 100)}%"></div>
+              </div>
+              <div class="prev-print-metric-note">${formatNumber(data.totalConforme)} peças conformes</div>
+            </div>
+          </div>
+          <div class="prev-print-metric">
+            <span>Não conforme</span>
+            <strong>${formatPct(data.nonConformePct)}</strong>
+            <div class="prev-print-metric-bar">
+              <div class="prev-print-metric-track">
+                <div class="prev-print-metric-fill ${ncFillClass}" style="width:${Math.min(data.nonConformePct * 8, 100)}%"></div>
+              </div>
+              <div class="prev-print-metric-note">${formatNumber(data.totalNonConforme)} peças fora do padrão</div>
+            </div>
+          </div>
+          <div class="prev-print-metric">
+            <span>Melhor turno</span>
+            <strong>${bestShift ? escapeHTML(bestShift.label) : '—'}</strong>
+            <div class="prev-print-metric-bar">
+              <div class="prev-print-metric-track">
+                <div class="prev-print-metric-fill good" style="width:${bestShift ? Math.min(bestShift.quality, 100) : 0}%"></div>
+              </div>
+              <div class="prev-print-metric-note">${bestShift ? `${formatPct(bestShift.quality)} de conformidade` : 'Sem comparação disponível'}</div>
+            </div>
+          </div>
+          <div class="prev-print-metric">
+            <span>Risco do dia</span>
+            <strong style="color:${risk.color}">${risk.label}</strong>
+            <div class="prev-print-metric-bar">
+              <div class="prev-print-metric-track">
+                <div class="prev-print-metric-fill ${riskClass}" style="width:${risk.label === 'Crítico' ? 100 : risk.label === 'Atenção' ? 62 : 28}%"></div>
+              </div>
+              <div class="prev-print-metric-note">${risk.sub}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Turnos do dia</h4>
+        <div class="prev-print-turn-cards">
+          ${data.shifts.map((shift) => `
+            <div class="prev-print-turn-card">
+              <div class="prev-print-turn-card-head">
+                <strong>${escapeHTML(shift.label)}</strong>
+                <span style="color:${getQualityTone(shift.quality)}">${formatPct(shift.quality)}</span>
+              </div>
+              <div class="prev-print-turn-card-grid">
+                <div class="prev-print-turn-mini">
+                  <label>Produzido</label>
+                  <b>${formatNumber(shift.produced)}</b>
+                </div>
+                <div class="prev-print-turn-mini">
+                  <label>Conforme</label>
+                  <b>${formatPct(shift.quality)}</b>
+                </div>
+                <div class="prev-print-turn-mini">
+                  <label>Não conf.</label>
+                  <b>${formatNumber(shift.nonConforme)}</b>
+                </div>
+              </div>
+              <div class="prev-print-turn-bars">
+                <div class="prev-print-turn-bar-row">
+                  <span>Volume</span>
+                  <div class="prev-print-turn-bar-track">
+                    <div class="prev-print-turn-bar-fill" style="width:${data.totalProduced > 0 ? (shift.produced / data.totalProduced) * 100 : 0}%; background:#8ab8ff"></div>
+                  </div>
+                  <strong>${data.totalProduced > 0 ? formatPct((shift.produced / data.totalProduced) * 100) : '0,00%'}</strong>
+                </div>
+                <div class="prev-print-turn-bar-row">
+                  <span>Qualidade</span>
+                  <div class="prev-print-turn-bar-track">
+                    <div class="prev-print-turn-bar-fill" style="width:${Math.min(shift.quality, 100)}%; background:${getQualityTone(shift.quality)}"></div>
+                  </div>
+                  <strong>${formatPct(shift.quality)}</strong>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Composição do fechamento</h4>
+        <div class="prev-print-composition">
+          <div class="prev-print-stack">
+            ${compositionRows.map((row) => `
+              <div class="prev-print-stack-segment ${row.key}" style="width:${Math.max(row.pct, row.value > 0 ? 1.6 : 0)}%"></div>
+            `).join('')}
+          </div>
+          <div class="prev-print-legend">
+            ${compositionRows.map((row) => `
+              <div class="prev-print-legend-row">
+                <div class="prev-print-dot ${row.key}"></div>
+                <strong>${row.label}</strong>
+                <span>${formatPct(row.pct)} · ${formatNumber(row.value)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Máquinas do dia</h4>
+        <div class="prev-print-machine-summary">
+          <div class="prev-print-summary-chip">
+            <span>Máquina líder em volume</span>
+            <strong>${bestMachine ? `${escapeHTML(bestMachine.label)} · ${formatNumber(bestMachine.produced)} peças` : 'Sem destaque'}</strong>
+          </div>
+          <div class="prev-print-summary-chip">
+            <span>Maior ponto de atenção</span>
+            <strong>${alertList[0] ? `${escapeHTML(alertList[0].label)} · ${formatPct(alertList[0].nonConformePctByProduced)} não conforme` : 'Sem ponto crítico'}</strong>
+          </div>
+        </div>
+        <div class="prev-print-split">
+          <div class="prev-print-column">
+            <div class="prev-print-column-title">Maiores volumes</div>
+            <div class="prev-print-list">
+            ${volumeList.map((item, index) => `
+              <div class="prev-print-item">
+                <div class="prev-print-rank">${index + 1}</div>
+                <div>
+                  <strong>${escapeHTML(item.label)}</strong>
+                  <span>${formatPct(item.quality)} de conformidade</span>
+                  <div class="prev-print-machine-bar">
+                    <div class="prev-print-machine-track">
+                      <div class="prev-print-machine-fill" style="width:${(item.produced / maxProduced) * 100}%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="prev-print-value">
+                  <strong>${formatNumber(item.produced)}</strong>
+                  <span>${formatPct((item.produced / maxProduced) * 100)} do líder</span>
+                </div>
+              </div>
+            `).join('')}
+            </div>
+          </div>
+          <div class="prev-print-column">
+            <div class="prev-print-column-title">Maiores perdas</div>
+            <div class="prev-print-list">
+            ${alertList.map((item, index) => `
+              <div class="prev-print-item">
+                <div class="prev-print-rank">${index + 1}</div>
+                <div>
+                  <strong>${escapeHTML(item.label)}</strong>
+                  <span>${formatPct(item.nonConformePctByProduced)} não conforme</span>
+                  <div class="prev-print-machine-bar">
+                    <div class="prev-print-machine-track">
+                      <div class="prev-print-machine-fill risk" style="width:${(item.nonConforme / maxNonConforme) * 100}%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="prev-print-value">
+                  <strong>${formatNumber(item.nonConforme)}</strong>
+                  <span>${formatPct((item.nonConforme / maxNonConforme) * 100)} do topo de perda</span>
+                </div>
+              </div>
+            `).join('')}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="prev-print-footer">
+        <div class="prev-print-note">
+          Documento gerado a partir do módulo de indicadores do dia anterior, com base no último dia válido do período selecionado.
+        </div>
+        <div class="prev-print-signature">
+          <div class="prev-print-signature-line"></div>
+          <span>Responsável pela conferência</span>
+        </div>
+      </footer>
+    </article>
+  `;
+}
+
+function renderPreviousDayReportPreview() {
+  const previewEl = document.getElementById('prev-report-preview');
+  const rootEl = document.getElementById('print-previous-day-root');
+  const subEl = document.getElementById('prev-report-sub');
+
+  if (!previousDayReportData) {
+    previewEl.innerHTML = '<div class="msg">Carregue os indicadores do dia anterior para gerar a prévia do relatório.</div>';
+    rootEl.innerHTML = '';
+    subEl.textContent = 'Gere a prévia para revisar antes de imprimir.';
+    return;
+  }
+
+  const markup = buildPreviousDayReportMarkup(previousDayReportData);
+  previewEl.innerHTML = markup;
+  rootEl.innerHTML = markup;
+  subEl.textContent = `Prévia pronta para impressão com base em ${formatDatePt(previousDayReportData.referenceDate)}.`;
+}
+
+function printPreviousDayReport() {
+  if (!previousDayReportData) return;
+  renderPreviousDayReportPreview();
+  document.body.classList.add('print-previous-day-report');
+  window.print();
+  window.setTimeout(() => {
+    document.body.classList.remove('print-previous-day-report');
+  }, 150);
+}
+
+function initPreviousDayReportActions() {
+  const previewBtn = document.getElementById('prev-preview-btn');
+  const closeBtn = document.getElementById('prev-close-preview-btn');
+  const printBtn = document.getElementById('prev-print-btn');
+  const modal = document.getElementById('prev-report-modal');
+  const panel = document.getElementById('prev-report-panel');
+  if (!previewBtn || !closeBtn || !printBtn) return;
+
+  previewBtn.addEventListener('click', () => {
+    renderPreviousDayReportPreview();
+    setPreviousDayReportOpen(true);
+  });
+  closeBtn.addEventListener('click', () => {
+    setPreviousDayReportOpen(false);
+  });
+  printBtn.addEventListener('click', () => {
+    printPreviousDayReport();
+  });
+  if (modal && panel) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        setPreviousDayReportOpen(false);
+      }
+    });
+    panel.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+  }
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      setPreviousDayReportOpen(false);
+    }
+  });
+  window.addEventListener('afterprint', () => {
+    document.body.classList.remove('print-previous-day-report');
+  });
+}
+
 function renderPreviousDayMetrics(data) {
   const row = document.getElementById('prev-metrics');
   const items = [
@@ -4587,7 +5631,10 @@ async function loadPreviousDayAll() {
         previousDayMachineChart.destroy();
         previousDayMachineChart = null;
       }
+      previousDayReportData = null;
       resetPreviousDaySummary();
+      renderPreviousDayReportPreview();
+      setPreviousDayReportOpen(false);
       metricsRow.innerHTML = '<div class="msg">Sem dados suficientes para montar o consolidado do dia anterior neste período.</div>';
       refNote.textContent = '';
       turnList.innerHTML = '';
@@ -4607,12 +5654,14 @@ async function loadPreviousDayAll() {
           : `Sem registro em ontem; exibindo o último dia com dados: ${formatDatePt(referenceDate)}.`)
       : `Último dia com dados do período selecionado: ${formatDatePt(referenceDate)}.`;
 
+    previousDayReportData = data;
     renderPreviousDaySummary(data);
     renderPreviousDayMetrics(data);
     renderPreviousDayTurns(data);
     renderPreviousDayCompositionChart(data);
     renderPreviousDayMachineLists(data);
     renderPreviousDayMachineChart(data);
+    renderPreviousDayReportPreview();
   } catch (err) {
     if (previousDayCompositionChart) {
       previousDayCompositionChart.destroy();
@@ -4622,7 +5671,10 @@ async function loadPreviousDayAll() {
       previousDayMachineChart.destroy();
       previousDayMachineChart = null;
     }
+    previousDayReportData = null;
     resetPreviousDaySummary();
+    renderPreviousDayReportPreview();
+    setPreviousDayReportOpen(false);
     metricsRow.innerHTML = `<div class="msg msg-error">Não foi possível carregar os indicadores do dia anterior (${escapeHTML(err.message)}).</div>`;
     refNote.textContent = '';
     turnList.innerHTML = '';
@@ -4702,6 +5754,7 @@ function toggleTheme() {
 })();
 
 populateSelectors();
+initPreviousDayReportActions();
 renderModuleRail();
 syncModuleView();
 loadAll();
