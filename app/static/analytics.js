@@ -2823,12 +2823,48 @@ function renderPreviousDayReportPreview() {
 
 function printPreviousDayReport() {
   if (!previousDayReportData) return;
+
   renderPreviousDayReportPreview();
-  document.body.classList.add('print-previous-day-report');
-  window.print();
-  window.setTimeout(() => {
-    document.body.classList.remove('print-previous-day-report');
-  }, 150);
+  const markup = buildPreviousDayReportMarkup(previousDayReportData);
+  const printWindow = window.open('', '_blank', 'width=980,height=1280');
+  if (!printWindow) return;
+
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Relatório do Dia Anterior</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="/static/analytics.css">
+    </head>
+    <body class="print-previous-day-report print-popup-report">
+      <section id="print-previous-day-root">${markup}</section>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+
+  const runPrint = () => {
+    printWindow.focus();
+    window.setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
+  if (printWindow.document.readyState === 'complete') {
+    runPrint();
+  } else {
+    printWindow.addEventListener('load', runPrint, { once: true });
+  }
+
+  printWindow.addEventListener('afterprint', () => {
+    printWindow.close();
+  }, { once: true });
 }
 
 function initPreviousDayReportActions() {
