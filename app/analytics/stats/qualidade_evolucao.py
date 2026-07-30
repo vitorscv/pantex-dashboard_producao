@@ -1,7 +1,7 @@
 from typing import Any
 
+from app.analytics.schemas import QualityMonthPoint, QualityTrendStat
 from app.database import get_db
-from analytics.schemas import QualityMonthPoint, QualityTrendStat
 
 
 def _last_months(year: int, month: int, months_back: int) -> list[tuple[int, int]]:
@@ -74,3 +74,4 @@ def get_quality_trend(year: int, month: int, months_back: int = 6) -> QualityTre
         )
 
     return QualityTrendStat(months=points)
+

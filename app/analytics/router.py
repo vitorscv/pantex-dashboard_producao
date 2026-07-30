@@ -3,9 +3,9 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from analytics.registry import STATS_REGISTRY, list_stats
-from analytics.schemas import QualityStat, StatMeta
-from analytics.stats.qualidade import get_quality_stat
+from app.analytics.registry import STATS_REGISTRY, list_stats
+from app.analytics.schemas import QualityStat, StatMeta
+from app.analytics.stats.qualidade import get_quality_stat
 
 router = APIRouter()
 

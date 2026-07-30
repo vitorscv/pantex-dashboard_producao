@@ -71,3 +71,4 @@ class QualityDailyStat(BaseModel):
     year: int
     month: int
     days: list[QualityDayPoint]
+

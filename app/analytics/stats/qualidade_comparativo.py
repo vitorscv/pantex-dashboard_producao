@@ -1,5 +1,5 @@
-from analytics.schemas import QualityComparisonStat
-from analytics.stats.qualidade import get_quality_stat
+from app.analytics.schemas import QualityComparisonStat
+from app.analytics.stats.qualidade import get_quality_stat
 
 
 def _previous_month(year: int, month: int) -> tuple[int, int]:
@@ -23,3 +23,4 @@ def get_quality_comparison(year: int, month: int) -> QualityComparisonStat:
         previous=previous,
         delta_pct_non_conforme=delta_pct_non_conforme,
     )
+

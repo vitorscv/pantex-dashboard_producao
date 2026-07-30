@@ -2,12 +2,12 @@ from typing import Callable
 
 from pydantic import BaseModel
 
-from analytics.schemas import StatMeta
-from analytics.stats.qualidade import get_quality_stat
-from analytics.stats.qualidade_comparativo import get_quality_comparison
-from analytics.stats.qualidade_diaria import get_quality_daily
-from analytics.stats.qualidade_evolucao import get_quality_trend
-from analytics.stats.qualidade_por_maquina import get_quality_by_machine
+from app.analytics.schemas import StatMeta
+from app.analytics.stats.qualidade import get_quality_stat
+from app.analytics.stats.qualidade_comparativo import get_quality_comparison
+from app.analytics.stats.qualidade_diaria import get_quality_daily
+from app.analytics.stats.qualidade_evolucao import get_quality_trend
+from app.analytics.stats.qualidade_por_maquina import get_quality_by_machine
 
 
 STATS_REGISTRY: dict[str, tuple[StatMeta, Callable[[int, int], BaseModel]]] = {
@@ -56,3 +56,4 @@ STATS_REGISTRY: dict[str, tuple[StatMeta, Callable[[int, int], BaseModel]]] = {
 
 def list_stats() -> list[StatMeta]:
     return [meta for meta, _ in STATS_REGISTRY.values()]
+

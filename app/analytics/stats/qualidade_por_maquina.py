@@ -1,7 +1,7 @@
 from typing import Any
 
+from app.analytics.schemas import MachineQuality, QualityByMachineStat
 from app.database import get_db
-from analytics.schemas import MachineQuality, QualityByMachineStat
 
 
 def get_quality_by_machine(year: int, month: int) -> QualityByMachineStat:

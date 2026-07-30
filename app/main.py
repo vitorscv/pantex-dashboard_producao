@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.analytics.router import router as analytics_router
 from app.routers import entries, summary
 from app.services.scheduler import start_scheduler
-from analytics.router import router as analytics_router
 
 STATIC_DIR = Path(__file__).parent / "static"
 

@@ -1,7 +1,7 @@
 from typing import Any
 
+from app.analytics.schemas import QualityStat
 from app.database import get_db
-from analytics.schemas import QualityStat
 
 
 def get_quality_stat(year: int, month: int) -> QualityStat:
@@ -45,3 +45,4 @@ def get_quality_stat(year: int, month: int) -> QualityStat:
         pct_second_quality=pct_second_quality,
         pct_non_conforme=pct_non_conforme,
     )
+

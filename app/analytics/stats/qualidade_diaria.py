@@ -1,8 +1,8 @@
 from calendar import monthrange
 from typing import Any
 
+from app.analytics.schemas import QualityDailyStat, QualityDayPoint
 from app.database import get_db
-from analytics.schemas import QualityDailyStat, QualityDayPoint
 
 
 def get_quality_daily(year: int, month: int) -> QualityDailyStat:
@@ -55,3 +55,4 @@ def get_quality_daily(year: int, month: int) -> QualityDailyStat:
         )
 
     return QualityDailyStat(year=year, month=month, days=days)
+
