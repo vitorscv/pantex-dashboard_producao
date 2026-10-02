@@ -320,6 +320,93 @@
       </div>
     </section>
 
+    <section id="module-view-previous-month" class="module-view" hidden>
+      <div>
+        <div class="section-label">Mês anterior vs atual — <span id="pm-period-label">—</span></div>
+        <div id="pm-ref-note" class="prev-ref-note"></div>
+        <div class="prev-toolbar">
+          <button id="pm-preview-btn" type="button" class="prev-action-btn primary">Pré-visualizar relatório</button>
+        </div>
+      </div>
+
+      <div class="prev-layout">
+        <section id="pm-report-modal" class="prev-report-modal" hidden>
+          <div id="pm-report-panel" class="prev-report-panel">
+            <div class="prev-report-head">
+              <div>
+                <div class="prev-report-title">Pré-visualização do relatório mês anterior vs atual</div>
+                <div id="pm-report-sub" class="prev-report-sub">Gere a prévia para revisar antes de imprimir.</div>
+              </div>
+              <div class="prev-report-actions">
+                <button id="pm-print-btn" type="button" class="prev-action-btn primary">Imprimir relatório</button>
+                <button id="pm-close-preview-btn" type="button" class="prev-action-btn">Fechar prévia</button>
+              </div>
+            </div>
+            <div id="pm-report-preview" class="prev-report-body"></div>
+          </div>
+        </section>
+
+        <section class="prev-summary">
+          <div class="prev-summary-main">
+            <div class="prev-summary-kicker">Comparativo</div>
+            <div id="pm-summary-title" class="prev-summary-title">Aguardando consolidado</div>
+            <div id="pm-summary-text" class="prev-summary-text">O módulo compara o mês selecionado com o mês anterior.</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Ritmo diário</div>
+            <div id="pm-summary-pace" class="prev-summary-value">—</div>
+            <div id="pm-summary-pace-sub" class="prev-summary-sub">Sem comparação disponível</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Conformidade</div>
+            <div id="pm-summary-quality" class="prev-summary-value">—</div>
+            <div id="pm-summary-quality-sub" class="prev-summary-sub">Sem comparação disponível</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Dias com registro</div>
+            <div id="pm-summary-days" class="prev-summary-value">—</div>
+            <div id="pm-summary-days-sub" class="prev-summary-sub">Sem registros processados</div>
+          </div>
+        </section>
+
+        <section id="pm-metrics" class="prev-metrics pm-metrics">
+          <div class="msg">Carregando comparativo do mês anterior...</div>
+        </section>
+
+        <div class="prev-grid">
+          <section class="panel">
+            <div class="panel-title">Turnos — anterior vs atual</div>
+            <div class="prev-turn-table">
+              <div class="prev-turn-head">
+                <div>Turno</div>
+                <div style="text-align:right" id="pm-head-prev">Anterior</div>
+                <div style="text-align:right" id="pm-head-cur">Atual</div>
+                <div style="text-align:right">Δ</div>
+              </div>
+              <div id="pm-turn-table"></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">Composição de qualidade</div>
+            <div class="chart-wrap"><canvas id="chart-pm-composition"></canvas></div>
+            <div id="pm-composition-msg" class="msg" hidden></div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Produção por máquina</div>
+            <div class="chart-wrap"><canvas id="chart-pm-machines"></canvas></div>
+            <div id="pm-machine-chart-msg" class="msg" hidden></div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Variação por máquina</div>
+            <div id="pm-machine-list" class="prev-machine-list"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
     <section id="module-view-placeholder" class="module-view" hidden>
       <div class="module-empty">
         <div class="module-empty-card">

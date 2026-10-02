@@ -71,7 +71,7 @@ const MODULES = [
   { id: 'efficiency', label: 'Eficiência', desc: 'Aproveitamento, paradas e produtividade.', status: 'active' },
   { id: 'performance', label: 'Performance', desc: 'Comparativo operacional entre Turno 1 e Turno 2.', status: 'active' },
   { id: 'previous-day', label: 'Dia anterior', desc: 'Consolidado operacional do último dia relevante do período.', status: 'active' },
-  { id: 'production', label: 'Produção', desc: 'Volume, ritmo e capacidade produtiva.', status: 'soon' },
+  { id: 'previous-month', label: 'Mês anterior', desc: 'Fechamento do mês anterior comparado com o mês selecionado.', status: 'active' },
 ];
 
 const state = { year: null, month: null, module: 'quality' };
@@ -87,6 +87,9 @@ let performanceQualityChart = null;
 let previousDayCompositionChart = null;
 let previousDayMachineChart = null;
 let previousDayReportData = null;
+let previousMonthCompositionChart = null;
+let previousMonthMachineChart = null;
+let previousMonthReportData = null;
 
 function escapeHTML(str) {
   const div = document.createElement('div');
@@ -171,49 +174,23 @@ function syncModuleView() {
   const efficiencyView = document.getElementById('module-view-efficiency');
   const performanceView = document.getElementById('module-view-performance');
   const previousDayView = document.getElementById('module-view-previous-day');
+  const previousMonthView = document.getElementById('module-view-previous-month');
   const placeholderView = document.getElementById('module-view-placeholder');
 
-  if (state.module === 'quality') {
-    qualityView.hidden = false;
-    efficiencyView.hidden = true;
-    performanceView.hidden = true;
-    previousDayView.hidden = true;
-    placeholderView.hidden = true;
-    return;
-  }
+  const viewByModule = {
+    'quality': qualityView,
+    'efficiency': efficiencyView,
+    'performance': performanceView,
+    'previous-day': previousDayView,
+    'previous-month': previousMonthView,
+  };
+  const activeView = viewByModule[state.module] || null;
 
-  if (state.module === 'efficiency') {
-    qualityView.hidden = true;
-    efficiencyView.hidden = false;
-    performanceView.hidden = true;
-    previousDayView.hidden = true;
-    placeholderView.hidden = true;
-    return;
-  }
+  [qualityView, efficiencyView, performanceView, previousDayView, previousMonthView, placeholderView]
+    .forEach((view) => { view.hidden = view !== (activeView || placeholderView); });
 
-  if (state.module === 'performance') {
-    qualityView.hidden = true;
-    efficiencyView.hidden = true;
-    performanceView.hidden = false;
-    previousDayView.hidden = true;
-    placeholderView.hidden = true;
-    return;
-  }
+  if (activeView) return;
 
-  if (state.module === 'previous-day') {
-    qualityView.hidden = true;
-    efficiencyView.hidden = true;
-    performanceView.hidden = true;
-    previousDayView.hidden = false;
-    placeholderView.hidden = true;
-    return;
-  }
-
-  qualityView.hidden = true;
-  efficiencyView.hidden = true;
-  performanceView.hidden = true;
-  previousDayView.hidden = true;
-  placeholderView.hidden = false;
   document.getElementById('module-empty-title').textContent = currentModule.label;
   document.getElementById('module-empty-text').textContent = `O módulo de ${currentModule.label.toLowerCase()} já está reservado e pronto para receber os próximos painéis analíticos.`;
 }
@@ -1587,6 +1564,11 @@ function updatePeriodLabel() {
   if (perfLabel) perfLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
   const prevLabel = document.getElementById('prev-period-label');
   if (prevLabel) prevLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
+  const pmLabel = document.getElementById('pm-period-label');
+  if (pmLabel) {
+    const [prev] = getPreviousMonthPeriods(state.year, state.month, 1);
+    pmLabel.textContent = `${MESES[prev.month - 1]} ${prev.year} → ${MESES[state.month - 1]} ${state.year}`;
+  }
 }
 
 function getEfficiencyStatus(pct) {
@@ -1628,7 +1610,7 @@ function summarizeEfficiency(summary) {
   shifts.forEach((item) => {
     const entry = byMachine.get(item.machine_id) || {
       machineId: item.machine_id,
-      label: item.label,
+      label: getMachineShortLabel(item.machine_id),
       totalProduced: 0,
       meta1: 0,
       totalDowntime: 0,
@@ -1808,7 +1790,7 @@ function renderEfficiencyTables(data) {
 function renderEfficiencyTurnChart(data) {
   const msgEl = document.getElementById('eff-turn-msg');
   const ctx = document.getElementById('chart-efficiency-turn').getContext('2d');
-  const labels = data.shifts.map((item) => `${item.label} · T${item.shift}`);
+  const labels = data.shifts.map((item) => item.label);
   const produced = data.shifts.map((item) => item.total_produced || 0);
   const meta = data.shifts.map((item) => item.meta1 || 0);
 
@@ -2402,6 +2384,7 @@ function summarizePreviousDay(entries, referenceDate) {
     [2, { shift: 2, label: 'Turno 2', produced: 0, repair: 0, second: 0 }],
   ]);
   const machineMap = new Map();
+  const machineShiftMap = new Map();
 
   dayEntries.forEach((item) => {
     const shift = shiftMap.get(item.shift) || shiftMap.get(1);
@@ -2420,6 +2403,21 @@ function summarizePreviousDay(entries, referenceDate) {
     machine.repair += item.repair_qty || 0;
     machine.second += item.second_quality_qty || 0;
     machineMap.set(item.machine_id, machine);
+
+    const machineShiftKey = `${item.shift}-${item.machine_id}`;
+    const machineShift = machineShiftMap.get(machineShiftKey) || {
+      shift: item.shift,
+      shiftLabel: item.shift === 2 ? 'Turno 2' : 'Turno 1',
+      machineId: item.machine_id,
+      label: getMachineShortLabel(item.machine_id),
+      produced: 0,
+      repair: 0,
+      second: 0,
+    };
+    machineShift.produced += item.quantity || 0;
+    machineShift.repair += item.repair_qty || 0;
+    machineShift.second += item.second_quality_qty || 0;
+    machineShiftMap.set(machineShiftKey, machineShift);
   });
 
   const shifts = [...shiftMap.values()].map((item) => {
@@ -2433,6 +2431,26 @@ function summarizePreviousDay(entries, referenceDate) {
     const quality = item.produced > 0 ? ((item.produced - nonConforme) / item.produced) * 100 : 0;
     const nonConformePctByProduced = item.produced > 0 ? (nonConforme / item.produced) * 100 : 0;
     return { ...item, nonConforme, quality, nonConformePctByProduced };
+  });
+
+  const machinesByShift = [1, 2].map((shiftId) => {
+    const items = [...machineShiftMap.values()]
+      .filter((item) => item.shift === shiftId)
+      .map((item) => {
+        const nonConforme = item.repair + item.second;
+        const quality = item.produced > 0 ? ((item.produced - nonConforme) / item.produced) * 100 : 0;
+        const nonConformePctByProduced = item.produced > 0 ? (nonConforme / item.produced) * 100 : 0;
+        return { ...item, nonConforme, quality, nonConformePctByProduced };
+      })
+      .sort((a, b) => b.produced - a.produced || a.nonConformePctByProduced - b.nonConformePctByProduced);
+
+    return {
+      shift: shiftId,
+      label: shiftId === 2 ? 'Turno 2' : 'Turno 1',
+      items,
+      topVolume: items[0] || null,
+      topLoss: [...items].sort((a, b) => (b.nonConformePctByProduced - a.nonConformePctByProduced) || (b.nonConforme - a.nonConforme))[0] || null,
+    };
   });
 
   const bestMachines = [...machines]
@@ -2456,6 +2474,7 @@ function summarizePreviousDay(entries, referenceDate) {
     averageNonConformePct,
     shifts,
     machines,
+    machinesByShift,
     bestMachines,
     worstMachines,
     topMachine,
@@ -2526,13 +2545,15 @@ function setPreviousDayReportOpen(isOpen) {
   document.body.classList.toggle('prev-report-open', isOpen);
 }
 
-function buildPreviousDayReportMarkup(data) {
+function buildPreviousDayReportMarkup(data, options = {}) {
+  const { splitMachinesByShift = false } = options;
   const risk = getPreviousDayRisk(data);
   const bestShift = [...data.shifts].sort((a, b) => b.quality - a.quality || b.produced - a.produced)[0] || null;
   const volumeList = [...data.machines].sort((a, b) => b.produced - a.produced).slice(0, 4);
   const alertList = [...data.machines]
     .sort((a, b) => (b.nonConformePctByProduced - a.nonConformePctByProduced) || (b.nonConforme - a.nonConforme))
     .slice(0, 4);
+  const machinesByShift = Array.isArray(data.machinesByShift) ? data.machinesByShift : [];
   const generatedAt = new Date().toLocaleString('pt-BR');
   const riskClass = risk.label === 'Crítico' ? 'bad' : risk.label === 'Atenção' ? 'warn' : 'good';
   const bestMachine = volumeList[0] || null;
@@ -2741,52 +2762,85 @@ function buildPreviousDayReportMarkup(data) {
           </div>
         </div>
         <div class="prev-print-split">
-          <div class="prev-print-column">
-            <div class="prev-print-column-title">Maiores volumes</div>
-            <div class="prev-print-list">
-            ${volumeList.map((item, index) => `
-              <div class="prev-print-item">
-                <div class="prev-print-rank">${index + 1}</div>
-                <div>
-                  <strong>${escapeHTML(item.label)}</strong>
-                  <span>${formatPct(item.quality)} de conformidade</span>
-                  <div class="prev-print-machine-bar">
-                    <div class="prev-print-machine-track">
-                      <div class="prev-print-machine-fill" style="width:${(item.produced / maxProduced) * 100}%"></div>
+          ${splitMachinesByShift ? machinesByShift.map((group) => `
+            <div class="prev-print-column">
+              <div class="prev-print-column-title">${group.label}</div>
+              <div class="prev-print-list">
+              ${group.items.length ? group.items.slice(0, 4).map((item, index) => `
+                <div class="prev-print-item">
+                  <div class="prev-print-rank">${index + 1}</div>
+                  <div>
+                    <strong>${escapeHTML(item.label)}</strong>
+                    <span>${formatPct(item.quality)} de conformidade · ${formatPct(item.nonConformePctByProduced)} não conforme</span>
+                    <div class="prev-print-machine-bar">
+                      <div class="prev-print-machine-track">
+                        <div class="prev-print-machine-fill" style="width:${maxProduced > 0 ? (item.produced / maxProduced) * 100 : 0}%"></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="prev-print-value">
-                  <strong>${formatNumber(item.produced)}</strong>
-                  <span>${formatPct((item.produced / maxProduced) * 100)} do líder</span>
-                </div>
-              </div>
-            `).join('')}
-            </div>
-          </div>
-          <div class="prev-print-column">
-            <div class="prev-print-column-title">Maiores perdas</div>
-            <div class="prev-print-list">
-            ${alertList.map((item, index) => `
-              <div class="prev-print-item">
-                <div class="prev-print-rank">${index + 1}</div>
-                <div>
-                  <strong>${escapeHTML(item.label)}</strong>
-                  <span>${formatPct(item.nonConformePctByProduced)} não conforme</span>
-                  <div class="prev-print-machine-bar">
-                    <div class="prev-print-machine-track">
-                      <div class="prev-print-machine-fill risk" style="width:${(item.nonConforme / maxNonConforme) * 100}%"></div>
-                    </div>
+                  <div class="prev-print-value">
+                    <strong>${formatNumber(item.produced)}</strong>
+                    <span>${formatNumber(item.nonConforme)} não conf.</span>
                   </div>
                 </div>
-                <div class="prev-print-value">
-                  <strong>${formatNumber(item.nonConforme)}</strong>
-                  <span>${formatPct((item.nonConforme / maxNonConforme) * 100)} do topo de perda</span>
+              `).join('') : `
+                <div class="prev-print-item">
+                  <div>
+                    <strong>Sem produção no turno</strong>
+                    <span>Não houve máquinas com apontamento neste fechamento.</span>
+                  </div>
                 </div>
+              `}
               </div>
-            `).join('')}
             </div>
-          </div>
+          `).join('') : `
+            <div class="prev-print-column">
+              <div class="prev-print-column-title">Maiores volumes</div>
+              <div class="prev-print-list">
+              ${volumeList.map((item, index) => `
+                <div class="prev-print-item">
+                  <div class="prev-print-rank">${index + 1}</div>
+                  <div>
+                    <strong>${escapeHTML(item.label)}</strong>
+                    <span>${formatPct(item.quality)} de conformidade</span>
+                    <div class="prev-print-machine-bar">
+                      <div class="prev-print-machine-track">
+                        <div class="prev-print-machine-fill" style="width:${(item.produced / maxProduced) * 100}%"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="prev-print-value">
+                    <strong>${formatNumber(item.produced)}</strong>
+                    <span>${formatPct((item.produced / maxProduced) * 100)} do líder</span>
+                  </div>
+                </div>
+              `).join('')}
+              </div>
+            </div>
+            <div class="prev-print-column">
+              <div class="prev-print-column-title">Maiores perdas</div>
+              <div class="prev-print-list">
+              ${alertList.map((item, index) => `
+                <div class="prev-print-item">
+                  <div class="prev-print-rank">${index + 1}</div>
+                  <div>
+                    <strong>${escapeHTML(item.label)}</strong>
+                    <span>${formatPct(item.nonConformePctByProduced)} não conforme</span>
+                    <div class="prev-print-machine-bar">
+                      <div class="prev-print-machine-track">
+                        <div class="prev-print-machine-fill risk" style="width:${(item.nonConforme / maxNonConforme) * 100}%"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="prev-print-value">
+                    <strong>${formatNumber(item.nonConforme)}</strong>
+                    <span>${formatPct((item.nonConforme / maxNonConforme) * 100)} do topo de perda</span>
+                  </div>
+                </div>
+              `).join('')}
+              </div>
+            </div>
+          `}
         </div>
       </section>
 
@@ -2815,7 +2869,7 @@ function renderPreviousDayReportPreview() {
     return;
   }
 
-  const markup = buildPreviousDayReportMarkup(previousDayReportData);
+  const markup = buildPreviousDayReportMarkup(previousDayReportData, { splitMachinesByShift: true });
   previewEl.innerHTML = markup;
   rootEl.innerHTML = markup;
   subEl.textContent = `Prévia pronta para impressão com base em ${formatDatePt(previousDayReportData.referenceDate)}.`;
@@ -2825,7 +2879,11 @@ function printPreviousDayReport() {
   if (!previousDayReportData) return;
 
   renderPreviousDayReportPreview();
-  const markup = buildPreviousDayReportMarkup(previousDayReportData);
+  const markup = buildPreviousDayReportMarkup(previousDayReportData, { splitMachinesByShift: true });
+  openReportPrintWindow('Relatório do Dia Anterior', markup);
+}
+
+function openReportPrintWindow(title, markup) {
   const printWindow = window.open('', '_blank', 'width=980,height=1280');
   if (!printWindow) return;
 
@@ -2836,7 +2894,7 @@ function printPreviousDayReport() {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Relatório do Dia Anterior</title>
+      <title>${escapeHTML(title)}</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -3218,6 +3276,597 @@ async function loadPreviousDayAll() {
   }
 }
 
+/*  Módulo Mês anterior — compara o fechamento do mês anterior com o mês selecionado  */
+function summarizeMonthEntries(entries) {
+  const dayKeys = new Set();
+  const shifts = new Map([[1, { produced: 0, nonConforme: 0 }], [2, { produced: 0, nonConforme: 0 }]]);
+  const machines = new Map();
+  let produced = 0;
+  let repair = 0;
+  let second = 0;
+
+  (entries || []).forEach((item) => {
+    const qty = item.quantity || 0;
+    const rep = item.repair_qty || 0;
+    const sec = item.second_quality_qty || 0;
+    if (qty > 0) dayKeys.add(String(item.entry_date));
+    produced += qty;
+    repair += rep;
+    second += sec;
+
+    const shift = shifts.get(item.shift) || shifts.get(1);
+    shift.produced += qty;
+    shift.nonConforme += rep + sec;
+
+    const machine = machines.get(item.machine_id) || { machineId: item.machine_id, produced: 0, nonConforme: 0 };
+    machine.produced += qty;
+    machine.nonConforme += rep + sec;
+    machines.set(item.machine_id, machine);
+  });
+
+  const nonConforme = repair + second;
+  const days = dayKeys.size;
+  return {
+    produced,
+    repair,
+    second,
+    nonConforme,
+    conforme: Math.max(produced - nonConforme, 0),
+    qualityPct: produced > 0 ? ((produced - nonConforme) / produced) * 100 : 0,
+    nonConformePct: produced > 0 ? (nonConforme / produced) * 100 : 0,
+    days,
+    avgPerDay: days > 0 ? produced / days : 0,
+    shifts,
+    machines,
+  };
+}
+
+function formatSignedNumber(n) {
+  const v = Math.round(Number(n) || 0);
+  return `${v > 0 ? '+' : ''}${formatNumber(v)}`;
+}
+
+function formatSignedRelPct(current, baseline) {
+  if (!baseline) return '—';
+  const v = ((current - baseline) / baseline) * 100;
+  return `${v > 0 ? '+' : ''}${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
+function getDeltaColor(delta, higherIsBetter = true) {
+  if (Math.abs(delta) < 0.005) return '#8ab8ff';
+  return (delta > 0) === higherIsBetter ? '#27C77A' : '#e05252';
+}
+
+function renderPreviousMonthSummary(cur, prev, labels) {
+  const paceDelta = cur.avgPerDay - prev.avgPerDay;
+  const qualityDelta = cur.qualityPct - prev.qualityPct;
+
+  document.getElementById('pm-summary-title').textContent = `${labels.cur} vs ${labels.prev}`;
+  document.getElementById('pm-summary-text').textContent =
+    `${formatNumber(cur.produced)} peças em ${labels.cur} contra ${formatNumber(prev.produced)} em ${labels.prev}. ` +
+    `Como o mês pode estar em andamento, o ritmo por dia com registro é a comparação mais justa.`;
+
+  const paceEl = document.getElementById('pm-summary-pace');
+  paceEl.textContent = formatSignedRelPct(cur.avgPerDay, prev.avgPerDay);
+  paceEl.style.color = prev.avgPerDay ? getDeltaColor(paceDelta, true) : '#f3f7fa';
+  document.getElementById('pm-summary-pace-sub').textContent =
+    `${formatNumber(Math.round(cur.avgPerDay))} vs ${formatNumber(Math.round(prev.avgPerDay))} peças/dia`;
+
+  const qualityEl = document.getElementById('pm-summary-quality');
+  qualityEl.textContent = formatSignedPct(qualityDelta);
+  qualityEl.style.color = getDeltaColor(qualityDelta, true);
+  document.getElementById('pm-summary-quality-sub').textContent =
+    `${formatPct(cur.qualityPct)} vs ${formatPct(prev.qualityPct)}`;
+
+  document.getElementById('pm-summary-days').textContent = `${cur.days} / ${prev.days}`;
+  document.getElementById('pm-summary-days-sub').textContent = `${labels.cur} / ${labels.prev}`;
+}
+
+function renderPreviousMonthMetrics(cur, prev, labels) {
+  const items = [
+    {
+      label: 'Produzido',
+      value: formatNumber(cur.produced),
+      delta: formatSignedNumber(cur.produced - prev.produced),
+      sub: `${labels.prev}: ${formatNumber(prev.produced)}`,
+      color: getDeltaColor(cur.produced - prev.produced, true),
+    },
+    {
+      label: 'Média por dia',
+      value: formatNumber(Math.round(cur.avgPerDay)),
+      delta: formatSignedRelPct(cur.avgPerDay, prev.avgPerDay),
+      sub: `${labels.prev}: ${formatNumber(Math.round(prev.avgPerDay))}`,
+      color: getDeltaColor(cur.avgPerDay - prev.avgPerDay, true),
+    },
+    {
+      label: 'Conformidade',
+      value: formatPct(cur.qualityPct),
+      delta: formatSignedPct(cur.qualityPct - prev.qualityPct),
+      sub: `${labels.prev}: ${formatPct(prev.qualityPct)}`,
+      color: getDeltaColor(cur.qualityPct - prev.qualityPct, true),
+    },
+    {
+      label: 'Não Conforme',
+      value: formatPct(cur.nonConformePct),
+      delta: formatSignedPct(cur.nonConformePct - prev.nonConformePct),
+      sub: `${labels.prev}: ${formatPct(prev.nonConformePct)}`,
+      color: getDeltaColor(cur.nonConformePct - prev.nonConformePct, false),
+    },
+  ];
+
+  document.getElementById('pm-metrics').innerHTML = items.map((item) => `
+    <div class="prev-metric">
+      <div class="prev-metric-label">${item.label}</div>
+      <div class="prev-metric-value">${item.value}</div>
+      <div class="prev-metric-sub"><strong style="color:${item.color}">${item.delta}</strong> · ${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderPreviousMonthTurns(cur, prev, labels) {
+  document.getElementById('pm-head-prev').textContent = labels.prev;
+  document.getElementById('pm-head-cur').textContent = labels.cur;
+  document.getElementById('pm-turn-table').innerHTML = [1, 2].map((id) => {
+    const c = cur.shifts.get(id);
+    const p = prev.shifts.get(id);
+    const color = getDeltaColor(c.produced - p.produced, true);
+    return `
+      <div class="prev-turn-item">
+        <div class="prev-turn-name">
+          <strong>Turno ${id}</strong>
+          <span>${formatPct(c.produced > 0 ? ((c.produced - c.nonConforme) / c.produced) * 100 : 0)} conforme</span>
+        </div>
+        <div class="prev-turn-cell">${formatNumber(p.produced)}</div>
+        <div class="prev-turn-cell"><strong>${formatNumber(c.produced)}</strong></div>
+        <div class="prev-turn-cell" style="color:${color}"><strong>${formatSignedRelPct(c.produced, p.produced)}</strong></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPreviousMonthCompositionChart(cur, prev, labels) {
+  const ctx = document.getElementById('chart-pm-composition').getContext('2d');
+  const series = [
+    { label: 'Conforme', color: '#27C77A', key: 'qualityPct', count: 'conforme' },
+    { label: 'Reparo', color: '#EF9F27', key: null, count: 'repair' },
+    { label: 'Segunda Qualidade', color: '#e05252', key: null, count: 'second' },
+  ];
+  const pct = (summary, count) => (summary.produced > 0 ? (summary[count] / summary.produced) * 100 : 0);
+
+  if (previousMonthCompositionChart) previousMonthCompositionChart.destroy();
+  previousMonthCompositionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [labels.prev, labels.cur],
+      datasets: series.map((s) => ({
+        label: s.label,
+        data: [pct(prev, s.count), pct(cur, s.count)],
+        backgroundColor: s.color,
+        borderRadius: 6,
+        stack: 'mix',
+      })),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatPct(context.raw)}` } },
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: {
+          stacked: true,
+          min: 0,
+          max: 100,
+          ticks: { callback: (value) => `${value}%` },
+          grid: { color: 'rgba(136,160,184,.12)' },
+        },
+      },
+    },
+  });
+  document.getElementById('pm-composition-msg').hidden = true;
+}
+
+function renderPreviousMonthMachines(cur, prev, labels) {
+  const ids = [...new Set([...cur.machines.keys(), ...prev.machines.keys()])].sort((a, b) => a - b);
+  const rows = ids.map((id) => {
+    const c = cur.machines.get(id) || { produced: 0, nonConforme: 0 };
+    const p = prev.machines.get(id) || { produced: 0, nonConforme: 0 };
+    return {
+      id,
+      label: getMachineShortLabel(id),
+      cur: c.produced,
+      prev: p.produced,
+      curNc: c.produced > 0 ? (c.nonConforme / c.produced) * 100 : 0,
+      prevNc: p.produced > 0 ? (p.nonConforme / p.produced) * 100 : 0,
+    };
+  });
+
+  const ctx = document.getElementById('chart-pm-machines').getContext('2d');
+  if (previousMonthMachineChart) previousMonthMachineChart.destroy();
+  previousMonthMachineChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map((r) => r.label),
+      datasets: [
+        { label: labels.prev, data: rows.map((r) => r.prev), backgroundColor: 'rgba(136,160,184,.55)', borderRadius: 6 },
+        { label: labels.cur, data: rows.map((r) => r.cur), backgroundColor: 'rgba(138,184,255,.85)', borderRadius: 6 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatNumber(context.raw)}` } },
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { callback: (value) => formatNumber(value) }, grid: { color: 'rgba(136,160,184,.12)' } },
+      },
+    },
+  });
+  document.getElementById('pm-machine-chart-msg').hidden = true;
+
+  document.getElementById('pm-machine-list').innerHTML = [...rows]
+    .sort((a, b) => (b.cur - b.prev) - (a.cur - a.prev))
+    .map((r, index) => {
+      const ncDelta = r.curNc - r.prevNc;
+      return `
+        <div class="prev-machine-row">
+          <div class="prev-machine-rank">${index + 1}</div>
+          <div class="prev-machine-copy">
+            <strong>${escapeHTML(r.label)}</strong>
+            <span>${formatNumber(r.prev)} → ${formatNumber(r.cur)} peças</span>
+            <div class="prev-machine-meta">
+              <span class="prev-machine-pill ${ncDelta > 0.005 ? 'bad' : 'good'}">${formatPct(r.curNc)} não conf. (${formatSignedPct(ncDelta)})</span>
+            </div>
+          </div>
+          <div class="prev-machine-value">
+            <strong style="color:${getDeltaColor(r.cur - r.prev, true)}">${formatSignedNumber(r.cur - r.prev)}</strong>
+            <span>${formatSignedRelPct(r.cur, r.prev)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+function getMonthRisk(nonConformePct) {
+  return getPreviousDayRisk({ nonConformePct });
+}
+
+function buildPreviousMonthReportMarkup(data) {
+  const { cur, prev, names, isCurrentPeriod } = data;
+  const risk = getMonthRisk(cur.nonConformePct);
+  const riskClass = risk.label === 'Crítico' ? 'bad' : risk.label === 'Atenção' ? 'warn' : 'good';
+  const generatedAt = new Date().toLocaleString('pt-BR');
+  const paceDelta = cur.avgPerDay - prev.avgPerDay;
+  const qualityDelta = cur.qualityPct - prev.qualityPct;
+  const ncDelta = cur.nonConformePct - prev.nonConformePct;
+  const pct = (summary, key) => (summary.produced > 0 ? (summary[key] / summary.produced) * 100 : 0);
+  const paceRatio = prev.avgPerDay > 0 ? Math.min((cur.avgPerDay / prev.avgPerDay) * 100, 140) : 0;
+
+  const machineIds = [...new Set([...cur.machines.keys(), ...prev.machines.keys()])].sort((a, b) => a - b);
+  const machineRows = machineIds.map((id) => {
+    const c = cur.machines.get(id) || { produced: 0, nonConforme: 0 };
+    const p = prev.machines.get(id) || { produced: 0, nonConforme: 0 };
+    return {
+      label: getMachineShortLabel(id),
+      cur: c.produced,
+      prev: p.produced,
+      curNc: c.produced > 0 ? (c.nonConforme / c.produced) * 100 : 0,
+      prevNc: p.produced > 0 ? (p.nonConforme / p.produced) * 100 : 0,
+    };
+  }).sort((a, b) => (b.cur - b.prev) - (a.cur - a.prev));
+  const maxMachine = Math.max(...machineRows.map((r) => Math.max(r.cur, r.prev)), 1);
+  const topGain = machineRows[0] && machineRows[0].cur - machineRows[0].prev > 0 ? machineRows[0] : null;
+  const topDrop = machineRows.length > 1 && machineRows[machineRows.length - 1].cur - machineRows[machineRows.length - 1].prev < 0
+    ? machineRows[machineRows.length - 1] : null;
+
+  const compositionBlock = (title, summary) => {
+    const rows = [
+      { key: 'conforme', label: 'Conforme', value: summary.conforme, pct: pct(summary, 'conforme') },
+      { key: 'reparo', label: 'Reparo', value: summary.repair, pct: pct(summary, 'repair') },
+      { key: 'segunda', label: 'Segunda qualidade', value: summary.second, pct: pct(summary, 'second') },
+    ];
+    return `
+      <div>
+        <div class="prev-print-column-title">${escapeHTML(title)}</div>
+        <div class="prev-print-composition">
+          <div class="prev-print-stack">
+            ${rows.map((row) => `<div class="prev-print-stack-segment ${row.key}" style="width:${Math.max(row.pct, row.value > 0 ? 1.6 : 0)}%"></div>`).join('')}
+          </div>
+          <div class="prev-print-legend">
+            ${rows.map((row) => `
+              <div class="prev-print-legend-row">
+                <div class="prev-print-dot ${row.key}"></div>
+                <strong>${row.label}</strong>
+                <span>${formatPct(row.pct)} · ${formatNumber(row.value)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  const metricCard = (label, value, fillClass, width, note) => `
+    <div class="prev-print-metric">
+      <span>${label}</span>
+      <strong>${value}</strong>
+      <div class="prev-print-metric-bar">
+        <div class="prev-print-metric-track">
+          <div class="prev-print-metric-fill ${fillClass}" style="width:${width}%"></div>
+        </div>
+        <div class="prev-print-metric-note">${note}</div>
+      </div>
+    </div>
+  `;
+
+  return `
+    <article class="prev-print-sheet">
+      <header class="prev-print-header">
+        <div class="prev-print-brand">
+          <div class="prev-print-brand-kicker">Painel Analítico</div>
+          <div class="prev-print-brand-title">Relatório Mês Anterior vs Atual</div>
+          <div class="prev-print-brand-text">Comparativo operacional entre ${escapeHTML(names.prev)} e ${escapeHTML(names.cur)} para conferência, impressão e acompanhamento de produção e qualidade.</div>
+        </div>
+        <div class="prev-print-meta">
+          <div class="prev-print-meta-row"><span>Mês anterior</span><strong>${escapeHTML(names.prev)}</strong></div>
+          <div class="prev-print-meta-row"><span>Mês atual</span><strong>${escapeHTML(names.cur)}${isCurrentPeriod ? ' (em andamento)' : ''}</strong></div>
+          <div class="prev-print-meta-row"><span>Emitido em</span><strong>${generatedAt}</strong></div>
+        </div>
+      </header>
+
+      <section class="prev-print-overview">
+        <div class="prev-print-highlight">
+          <div class="prev-print-highlight-kicker">Leitura rápida</div>
+          <div class="prev-print-highlight-title">${formatSignedRelPct(cur.avgPerDay, prev.avgPerDay)} no ritmo diário de produção</div>
+          <div class="prev-print-highlight-text">
+            ${formatNumber(cur.produced)} peças em ${escapeHTML(names.cur)} (${cur.days} dias com registro) contra ${formatNumber(prev.produced)} em ${escapeHTML(names.prev)} (${prev.days} dias).
+            A conformidade foi de ${formatPct(cur.qualityPct)}, ${qualityDelta === 0 ? 'estável' : `${formatSignedPct(qualityDelta)} em relação ao mês anterior`}.
+            ${topGain ? `${escapeHTML(topGain.label)} teve a maior alta de volume (${formatSignedNumber(topGain.cur - topGain.prev)} peças).` : ''}
+            ${topDrop ? `${escapeHTML(topDrop.label)} teve a maior queda (${formatSignedNumber(topDrop.cur - topDrop.prev)} peças).` : ''}
+          </div>
+        </div>
+        <div class="prev-print-status-stack">
+          <div class="prev-print-status-card ${riskClass}">
+            <div class="prev-print-status-label">Risco do mês atual</div>
+            <div class="prev-print-status-value" style="color:${risk.color}">${risk.label}</div>
+            <div class="prev-print-status-sub">${formatPct(cur.nonConformePct)} de não conforme</div>
+          </div>
+          <div class="prev-print-status-card ${paceDelta >= 0 ? 'good' : 'warn'}">
+            <div class="prev-print-status-label">Ritmo diário</div>
+            <div class="prev-print-status-value">${paceDelta >= 0 ? 'Acima do mês anterior' : 'Abaixo do mês anterior'}</div>
+            <div class="prev-print-status-sub">${formatNumber(Math.round(cur.avgPerDay))} vs ${formatNumber(Math.round(prev.avgPerDay))} peças por dia.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Resumo comparativo</h4>
+        <div class="prev-print-grid">
+          ${metricCard('Produzido', formatNumber(cur.produced), cur.produced >= prev.produced ? 'good' : 'warn',
+            prev.produced > 0 ? Math.min((cur.produced / prev.produced) * 100, 140) : 0,
+            `${formatSignedNumber(cur.produced - prev.produced)} vs ${escapeHTML(names.prev)} (${formatNumber(prev.produced)})`)}
+          ${metricCard('Média por dia', formatNumber(Math.round(cur.avgPerDay)), paceDelta >= 0 ? 'good' : 'warn', paceRatio,
+            `${formatSignedRelPct(cur.avgPerDay, prev.avgPerDay)} vs ${formatNumber(Math.round(prev.avgPerDay))} por dia`)}
+          ${metricCard('Conformidade', formatPct(cur.qualityPct), cur.qualityPct >= 98 ? 'good' : cur.qualityPct >= 95 ? 'warn' : 'bad', Math.min(cur.qualityPct, 100),
+            `${formatSignedPct(qualityDelta)} vs ${formatPct(prev.qualityPct)}`)}
+          ${metricCard('Não conforme', formatPct(cur.nonConformePct), cur.nonConformePct >= 4 ? 'bad' : cur.nonConformePct >= 2 ? 'warn' : 'good', Math.min(cur.nonConformePct * 8, 100),
+            `${formatSignedPct(ncDelta)} vs ${formatPct(prev.nonConformePct)} · ${formatNumber(cur.nonConforme)} peças`)}
+          ${metricCard('Risco do mês atual', `<span style="color:${risk.color}">${risk.label}</span>`, riskClass, risk.label === 'Crítico' ? 100 : risk.label === 'Atenção' ? 62 : 28, risk.sub)}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Turnos — anterior vs atual</h4>
+        <div class="prev-print-turn-cards">
+          ${[1, 2].map((id) => {
+            const c = cur.shifts.get(id);
+            const p = prev.shifts.get(id);
+            const cq = c.produced > 0 ? ((c.produced - c.nonConforme) / c.produced) * 100 : 0;
+            const pq = p.produced > 0 ? ((p.produced - p.nonConforme) / p.produced) * 100 : 0;
+            return `
+              <div class="prev-print-turn-card">
+                <div class="prev-print-turn-card-head">
+                  <strong>Turno ${id}</strong>
+                  <span style="color:${getDeltaColor(c.produced - p.produced, true)}">${formatSignedRelPct(c.produced, p.produced)}</span>
+                </div>
+                <div class="prev-print-turn-card-grid">
+                  <div class="prev-print-turn-mini"><label>${escapeHTML(names.prev)}</label><b>${formatNumber(p.produced)}</b></div>
+                  <div class="prev-print-turn-mini"><label>${escapeHTML(names.cur)}</label><b>${formatNumber(c.produced)}</b></div>
+                  <div class="prev-print-turn-mini"><label>Variação</label><b>${formatSignedNumber(c.produced - p.produced)}</b></div>
+                </div>
+                <div class="prev-print-turn-bars">
+                  <div class="prev-print-turn-bar-row">
+                    <span>Conf. ant.</span>
+                    <div class="prev-print-turn-bar-track"><div class="prev-print-turn-bar-fill" style="width:${Math.min(pq, 100)}%; background:${getQualityTone(pq)}"></div></div>
+                    <strong>${formatPct(pq)}</strong>
+                  </div>
+                  <div class="prev-print-turn-bar-row">
+                    <span>Conf. atual</span>
+                    <div class="prev-print-turn-bar-track"><div class="prev-print-turn-bar-fill" style="width:${Math.min(cq, 100)}%; background:${getQualityTone(cq)}"></div></div>
+                    <strong>${formatPct(cq)}</strong>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Composição de qualidade</h4>
+        <div class="prev-print-split">
+          ${compositionBlock(names.prev, prev)}
+          ${compositionBlock(names.cur, cur)}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Máquinas — variação de volume</h4>
+        <div class="prev-print-list">
+          ${machineRows.length ? machineRows.map((r, index) => `
+            <div class="prev-print-item">
+              <div class="prev-print-rank">${index + 1}</div>
+              <div>
+                <strong>${escapeHTML(r.label)}</strong>
+                <span>${formatNumber(r.prev)} → ${formatNumber(r.cur)} peças · ${formatPct(r.curNc)} não conforme (${formatSignedPct(r.curNc - r.prevNc)})</span>
+                <div class="prev-print-machine-bar">
+                  <div class="prev-print-machine-track">
+                    <div class="prev-print-machine-fill" style="width:${(r.cur / maxMachine) * 100}%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="prev-print-value">
+                <strong style="color:${getDeltaColor(r.cur - r.prev, true)}">${formatSignedNumber(r.cur - r.prev)}</strong>
+                <span>${formatSignedRelPct(r.cur, r.prev)}</span>
+              </div>
+            </div>
+          `).join('') : `
+            <div class="prev-print-item"><div><strong>Sem máquinas com apontamento</strong></div></div>
+          `}
+        </div>
+      </section>
+
+      <footer class="prev-print-footer">
+        <div class="prev-print-note">
+          Documento gerado a partir do módulo de comparativo mensal. ${isCurrentPeriod ? 'O mês atual está em andamento; o ritmo por dia com registro é a comparação mais justa entre os períodos.' : 'Compara os fechamentos completos dos dois períodos.'}
+        </div>
+        <div class="prev-print-signature">
+          <div class="prev-print-signature-line"></div>
+          <span>Responsável pela conferência</span>
+        </div>
+      </footer>
+    </article>
+  `;
+}
+
+function setPreviousMonthReportOpen(isOpen) {
+  const modal = document.getElementById('pm-report-modal');
+  if (!modal) return;
+  modal.hidden = !isOpen;
+  document.body.classList.toggle('prev-report-open', isOpen);
+}
+
+function renderPreviousMonthReportPreview() {
+  const previewEl = document.getElementById('pm-report-preview');
+  const subEl = document.getElementById('pm-report-sub');
+  if (!previousMonthReportData) {
+    previewEl.innerHTML = '<div class="msg">Carregue o comparativo do mês anterior para gerar a prévia do relatório.</div>';
+    subEl.textContent = 'Gere a prévia para revisar antes de imprimir.';
+    return;
+  }
+  previewEl.innerHTML = buildPreviousMonthReportMarkup(previousMonthReportData);
+  subEl.textContent = `Prévia pronta para impressão: ${previousMonthReportData.names.prev} vs ${previousMonthReportData.names.cur}.`;
+}
+
+function printPreviousMonthReport() {
+  if (!previousMonthReportData) return;
+  renderPreviousMonthReportPreview();
+  openReportPrintWindow('Relatório Mês Anterior vs Atual', buildPreviousMonthReportMarkup(previousMonthReportData));
+}
+
+function initPreviousMonthReportActions() {
+  const previewBtn = document.getElementById('pm-preview-btn');
+  const closeBtn = document.getElementById('pm-close-preview-btn');
+  const printBtn = document.getElementById('pm-print-btn');
+  const modal = document.getElementById('pm-report-modal');
+  const panel = document.getElementById('pm-report-panel');
+  if (!previewBtn || !closeBtn || !printBtn) return;
+
+  previewBtn.addEventListener('click', () => {
+    renderPreviousMonthReportPreview();
+    setPreviousMonthReportOpen(true);
+  });
+  closeBtn.addEventListener('click', () => setPreviousMonthReportOpen(false));
+  printBtn.addEventListener('click', printPreviousMonthReport);
+  if (modal && panel) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) setPreviousMonthReportOpen(false);
+    });
+    panel.addEventListener('click', (event) => event.stopPropagation());
+  }
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setPreviousMonthReportOpen(false);
+  });
+}
+
+function resetPreviousMonthView(message, isError = false) {
+  previousMonthReportData = null;
+  renderPreviousMonthReportPreview();
+  setPreviousMonthReportOpen(false);
+  if (previousMonthCompositionChart) {
+    previousMonthCompositionChart.destroy();
+    previousMonthCompositionChart = null;
+  }
+  if (previousMonthMachineChart) {
+    previousMonthMachineChart.destroy();
+    previousMonthMachineChart = null;
+  }
+  document.getElementById('pm-metrics').innerHTML = `<div class="msg${isError ? ' msg-error' : ''}">${escapeHTML(message)}</div>`;
+  document.getElementById('pm-turn-table').innerHTML = '';
+  document.getElementById('pm-machine-list').innerHTML = '';
+  document.getElementById('pm-ref-note').textContent = '';
+  document.getElementById('pm-summary-title').textContent = 'Aguardando consolidado';
+  document.getElementById('pm-summary-text').textContent = 'O módulo compara o mês selecionado com o mês anterior.';
+  ['pace', 'quality', 'days'].forEach((key) => {
+    const el = document.getElementById(`pm-summary-${key}`);
+    el.textContent = '—';
+    el.style.color = '#f3f7fa';
+    document.getElementById(`pm-summary-${key}-sub`).textContent = 'Sem comparação disponível';
+  });
+}
+
+async function loadPreviousMonthAll() {
+  const [prevPeriod] = getPreviousMonthPeriods(state.year, state.month, 1);
+  const labels = {
+    cur: `${MESES_ABR[state.month - 1]}/${String(state.year).slice(2)}`,
+    prev: `${MESES_ABR[prevPeriod.month - 1]}/${String(prevPeriod.year).slice(2)}`,
+  };
+
+  try {
+    const [curEntries, prevEntries] = await Promise.all([
+      fetchJSON(`/api/entries/${state.year}/${state.month}`),
+      fetchJSON(`/api/entries/${prevPeriod.year}/${prevPeriod.month}`),
+    ]);
+    const cur = summarizeMonthEntries(curEntries);
+    const prev = summarizeMonthEntries(prevEntries);
+
+    if (!prev.produced) {
+      resetPreviousMonthView(`Sem produção registrada em ${MESES[prevPeriod.month - 1]} ${prevPeriod.year} para comparar.`);
+      return;
+    }
+
+    const today = new Date();
+    const isCurrentPeriod = state.year === today.getFullYear() && state.month === (today.getMonth() + 1);
+    document.getElementById('pm-ref-note').textContent = isCurrentPeriod
+      ? `Mês atual em andamento (${cur.days} dias com registro) contra o mês anterior fechado (${prev.days} dias).`
+      : `Fechamento de ${MESES[state.month - 1]} comparado com ${MESES[prevPeriod.month - 1]}.`;
+
+    previousMonthReportData = {
+      cur,
+      prev,
+      isCurrentPeriod,
+      names: {
+        cur: `${MESES[state.month - 1]} ${state.year}`,
+        prev: `${MESES[prevPeriod.month - 1]} ${prevPeriod.year}`,
+      },
+    };
+    renderPreviousMonthReportPreview();
+
+    renderPreviousMonthSummary(cur, prev, labels);
+    renderPreviousMonthMetrics(cur, prev, labels);
+    renderPreviousMonthTurns(cur, prev, labels);
+    renderPreviousMonthCompositionChart(cur, prev, labels);
+    renderPreviousMonthMachines(cur, prev, labels);
+  } catch (err) {
+    resetPreviousMonthView(`Não foi possível carregar o comparativo do mês anterior (${err.message}).`, true);
+  }
+}
+
 async function loadEfficiencyAll() {
   try {
     const summary = await fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`);
@@ -3268,6 +3917,10 @@ async function loadAll() {
   }
   if (state.module === 'previous-day') {
     await loadPreviousDayAll();
+    return;
+  }
+  if (state.module === 'previous-month') {
+    await loadPreviousMonthAll();
   }
 }
 
@@ -3289,6 +3942,7 @@ function toggleTheme() {
 
 populateSelectors();
 initPreviousDayReportActions();
+initPreviousMonthReportActions();
 renderModuleRail();
 syncModuleView();
 loadAll();
