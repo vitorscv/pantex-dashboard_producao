@@ -525,6 +525,26 @@
     gap: .55rem;
     margin-top: .7rem;
   }
+  .prev-date-label {
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+  }
+  .prev-date-input {
+    border: 1px solid rgba(136,160,184,.18);
+    background: rgba(255,255,255,.03);
+    color: #e8f0f7;
+    border-radius: 8px;
+    padding: .5rem .66rem;
+    font-family: inherit;
+    font-size: .7rem;
+    color-scheme: dark;
+  }
+  :root.light .prev-date-input {
+    color-scheme: light;
+  }
   .prev-action-btn {
     appearance: none;
     border: 1px solid rgba(136,160,184,.18);
@@ -1190,6 +1210,60 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: .75rem;
+  }
+  .s6-table {
+    display: grid;
+    gap: .45rem;
+    overflow-x: auto;
+  }
+  .s6-table > div:last-child {
+    display: grid;
+    gap: .45rem;
+    min-width: 760px;
+  }
+  .s6-row {
+    display: grid;
+    grid-template-columns: minmax(80px, 1fr) repeat(6, minmax(70px, .9fr)) minmax(80px, .9fr);
+    gap: .55rem;
+    align-items: center;
+    min-width: 760px;
+    padding: .62rem .78rem;
+    border-radius: 10px;
+    border: 1px solid rgba(136,160,184,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    font-size: .7rem;
+  }
+  .s6-row > div:not(:first-child) {
+    text-align: right;
+    font-family: var(--font-mono);
+  }
+  .s6-row.head {
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
+    background: none;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f96ad;
+  }
+  .s6-row.podium {
+    grid-template-columns: minmax(80px, 1fr) repeat(3, minmax(130px, 1.4fr)) minmax(90px, 1fr);
+    min-width: 640px;
+  }
+  .s6-row.podium > div:not(:first-child):not(:last-child) {
+    text-align: left;
+    font-family: inherit;
+  }
+  .s6-row.best { border-color: rgba(39,199,122,.4); }
+  .s6-row.worst { border-color: rgba(224,82,82,.35); }
+  .s6-row.empty { opacity: .5; }
+  .s6-row small {
+    display: block;
+    font-size: .58rem;
+    color: var(--muted);
+    font-family: inherit;
   }
   .prev-metrics.pm-metrics {
     grid-template-columns: repeat(4, minmax(0, 1fr));

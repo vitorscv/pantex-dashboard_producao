@@ -72,9 +72,10 @@ const MODULES = [
   { id: 'performance', label: 'Performance', desc: 'Comparativo operacional entre Turno 1 e Turno 2.', status: 'active' },
   { id: 'previous-day', label: 'Dia anterior', desc: 'Consolidado operacional do último dia relevante do período.', status: 'active' },
   { id: 'previous-month', label: 'Mês anterior', desc: 'Fechamento do mês anterior comparado com o mês selecionado.', status: 'active' },
+  { id: 'last-six', label: 'Últimos 6 meses', desc: 'Tendência de produção, qualidade, metas, paradas e bonificação.', status: 'active' },
 ];
 
-const state = { year: null, month: null, module: 'quality' };
+const state = { year: null, month: null, module: 'quality', prevDayDate: null };
 let trendChart = null;
 let machineChart = null;
 let compositionChart = null;
@@ -137,10 +138,12 @@ function populateSelectors() {
 
   yearSel.addEventListener('change', () => {
     state.year = Number(yearSel.value);
+    state.prevDayDate = null;
     loadAll();
   });
   monthSel.addEventListener('change', () => {
     state.month = Number(monthSel.value);
+    state.prevDayDate = null;
     loadAll();
   });
 }
@@ -175,6 +178,7 @@ function syncModuleView() {
   const performanceView = document.getElementById('module-view-performance');
   const previousDayView = document.getElementById('module-view-previous-day');
   const previousMonthView = document.getElementById('module-view-previous-month');
+  const lastSixView = document.getElementById('module-view-last-six');
   const placeholderView = document.getElementById('module-view-placeholder');
 
   const viewByModule = {
@@ -183,10 +187,11 @@ function syncModuleView() {
     'performance': performanceView,
     'previous-day': previousDayView,
     'previous-month': previousMonthView,
+    'last-six': lastSixView,
   };
   const activeView = viewByModule[state.module] || null;
 
-  [qualityView, efficiencyView, performanceView, previousDayView, previousMonthView, placeholderView]
+  [qualityView, efficiencyView, performanceView, previousDayView, previousMonthView, lastSixView, placeholderView]
     .forEach((view) => { view.hidden = view !== (activeView || placeholderView); });
 
   if (activeView) return;
@@ -199,6 +204,7 @@ function setModule(moduleId) {
   const moduleExists = MODULES.some((item) => item.id === moduleId);
   if (!moduleExists) return;
   state.module = moduleId;
+  state.prevDayDate = null;
   renderModuleRail();
   syncModuleView();
   loadAll();
@@ -1564,6 +1570,12 @@ function updatePeriodLabel() {
   if (perfLabel) perfLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
   const prevLabel = document.getElementById('prev-period-label');
   if (prevLabel) prevLabel.textContent = `${MESES[state.month - 1]} ${state.year}`;
+  const s6Label = document.getElementById('s6-period-label');
+  if (s6Label) {
+    const end = getLastSixEnd();
+    const [first] = getPreviousMonthPeriods(end.year, end.month, 5).slice(-1);
+    s6Label.textContent = `${MESES[first.month - 1]} ${first.year} → ${MESES[end.month - 1]} ${end.year}`;
+  }
   const pmLabel = document.getElementById('pm-period-label');
   if (pmLabel) {
     const [prev] = getPreviousMonthPeriods(state.year, state.month, 1);
@@ -2331,6 +2343,26 @@ function getYesterdayIso() {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function getTodayIso() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function initPreviousDayDatePicker() {
+  const input = document.getElementById('prev-date-input');
+  const resetBtn = document.getElementById('prev-date-reset-btn');
+  if (!input || !resetBtn) return;
+
+  input.addEventListener('change', () => {
+    state.prevDayDate = input.value || null;
+    loadPreviousDayAll();
+  });
+  resetBtn.addEventListener('click', () => {
+    state.prevDayDate = null;
+    loadPreviousDayAll();
+  });
 }
 
 function getMachineShortLabel(machineId) {
@@ -3210,9 +3242,23 @@ async function loadPreviousDayAll() {
   const alertList = document.getElementById('prev-alert-list');
   const mixList = document.getElementById('prev-mix-list');
 
+  const customDate = state.prevDayDate;
+  const dateInput = document.getElementById('prev-date-input');
+  if (dateInput) {
+    dateInput.max = getTodayIso();
+    if (customDate) dateInput.value = customDate;
+  }
+
   try {
-    const entries = await fetchJSON(`/api/entries/${state.year}/${state.month}`);
-    const referenceDate = getReferencePreviousDay(entries);
+    const [fetchYear, fetchMonth] = customDate
+      ? customDate.split('-').map(Number)
+      : [state.year, state.month];
+    const entries = await fetchJSON(`/api/entries/${fetchYear}/${fetchMonth}`);
+    const referenceDate = customDate
+      ? (entries.some((item) => String(item.entry_date) === customDate) ? customDate : null)
+      : getReferencePreviousDay(entries);
+
+    if (dateInput && referenceDate) dateInput.value = referenceDate;
 
     if (!referenceDate) {
       if (previousDayCompositionChart) {
@@ -3227,7 +3273,9 @@ async function loadPreviousDayAll() {
       resetPreviousDaySummary();
       renderPreviousDayReportPreview();
       setPreviousDayReportOpen(false);
-      metricsRow.innerHTML = '<div class="msg">Sem dados suficientes para montar o consolidado do dia anterior neste período.</div>';
+      metricsRow.innerHTML = customDate
+        ? `<div class="msg">Sem registros de produção em ${formatDatePt(customDate)}.</div>`
+        : '<div class="msg">Sem dados suficientes para montar o consolidado do dia anterior neste período.</div>';
       refNote.textContent = '';
       turnList.innerHTML = '';
       volumeList.innerHTML = '';
@@ -3240,7 +3288,9 @@ async function loadPreviousDayAll() {
     const yesterdayIso = getYesterdayIso();
     const today = new Date();
     const isCurrentPeriod = state.year === today.getFullYear() && state.month === (today.getMonth() + 1);
-    refNote.textContent = isCurrentPeriod
+    refNote.textContent = customDate
+      ? `Data selecionada manualmente: ${formatDatePt(referenceDate)}. Use "Voltar ao dia anterior" para restaurar o padrão.`
+      : isCurrentPeriod
       ? (referenceDate === yesterdayIso
           ? `Base real de ontem: ${formatDatePt(referenceDate)}.`
           : `Sem registro em ontem; exibindo o último dia com dados: ${formatDatePt(referenceDate)}.`)
@@ -3867,6 +3917,800 @@ async function loadPreviousMonthAll() {
   }
 }
 
+/*  Módulo Últimos 6 meses — tendência de produção, qualidade, metas, paradas e bonificação  */
+const s6Charts = {};
+let sixMonthData = null;
+
+/* último mês fechado da janela: se o mês selecionado é o corrente (em andamento), recua um mês */
+function getLastSixEnd() {
+  const today = new Date();
+  const isCurrent = state.year === today.getFullYear() && state.month === today.getMonth() + 1;
+  return isCurrent ? getPreviousMonthPeriods(state.year, state.month, 1)[0] : { year: state.year, month: state.month };
+}
+
+/* premiação do pódio mensal (ranking por % da meta 1, igual ao dashboard TV): 1º ouro, 2º prata, 3º bronze */
+const S6_PODIUM_PRIZES = [200, 150, 100];
+const S6_PODIUM_NAMES = ['Ouro', 'Prata', 'Bronze'];
+const S6_PODIUM_COLORS = ['#EF9F27', '#B4B2A9', '#CD7F32'];
+
+function s6Avg(values) {
+  return values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : 0;
+}
+
+function s6Money(value) {
+  return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/* últimos 3 pontos contra até 3 anteriores (série do mais antigo ao mais novo) */
+function s6Trend(values) {
+  const last = values.slice(-3);
+  const prior = values.slice(0, -3).slice(-3);
+  if (!last.length || !prior.length) return null;
+  return { last: s6Avg(last), prior: s6Avg(prior) };
+}
+
+function s6Chart(key, canvasId, config) {
+  if (s6Charts[key]) s6Charts[key].destroy();
+  s6Charts[key] = new Chart(document.getElementById(canvasId).getContext('2d'), config);
+}
+
+function s6DestroyCharts() {
+  Object.keys(s6Charts).forEach((key) => {
+    s6Charts[key].destroy();
+    delete s6Charts[key];
+  });
+}
+
+function s6Options({ stacked = false, yTick = formatNumber, tooltip = formatNumber, y = {} } = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: (context) => (context.raw === null ? `${context.dataset.label}: —` : `${context.dataset.label}: ${tooltip(context.raw)}`),
+        },
+      },
+    },
+    scales: {
+      x: { stacked, grid: { display: false } },
+      y: { stacked, beginAtZero: true, ticks: { callback: (value) => yTick(value) }, grid: { color: 'rgba(136,160,184,.12)' }, ...y },
+    },
+  };
+}
+
+function summarizeSixMonth(summary, period) {
+  const rows = summary.machines || [];
+  const businessDays = summary.business_days || 0;
+  const days = summary.days_recorded || 0;
+  const sum = (key) => rows.reduce((total, row) => total + (row[key] || 0), 0);
+
+  const produced = sum('total_produced');
+  const repair = sum('repair_qty');
+  const second = sum('second_quality_qty');
+  const nonConforme = repair + second;
+  const meta1 = sum('meta1');
+  const planned = rows.reduce((total, row) => total + businessDays * (row.shift === 2 ? 435 : 525), 0);
+  const downtime = sum('total_downtime');
+
+  const tiers = [0, 0, 0, 0];
+  const podium = rows
+    .filter((row) => (row.total_produced || 0) > 0)
+    .sort((a, b) => (b.pct_meta1 || 0) - (a.pct_meta1 || 0))
+    .slice(0, 3)
+    .map((row, index) => ({
+      place: index + 1,
+      key: `${row.machine_id}-${row.shift}`,
+      label: `MÁQ. ${row.machine_id} · T${row.shift}`,
+      pct: row.pct_meta1 || 0,
+      prize: S6_PODIUM_PRIZES[index],
+    }));
+  const shifts = { 1: 0, 2: 0 };
+  const machines = new Map();
+  rows.forEach((row) => {
+    if ((row.total_produced || 0) > 0) tiers[row.bonus_tier || 0] += 1;
+    shifts[row.shift === 2 ? 2 : 1] += row.total_produced || 0;
+    const machine = machines.get(row.machine_id) || { produced: 0, nc: 0 };
+    machine.produced += row.total_produced || 0;
+    machine.nc += (row.repair_qty || 0) + (row.second_quality_qty || 0);
+    machines.set(row.machine_id, machine);
+  });
+
+  return {
+    period,
+    label: `${MESES_ABR[period.month - 1]}/${String(period.year).slice(2)}`,
+    name: `${MESES[period.month - 1]} ${period.year}`,
+    hasData: produced > 0,
+    produced,
+    repair,
+    second,
+    nonConforme,
+    qualityPct: produced > 0 ? ((produced - nonConforme) / produced) * 100 : 0,
+    ncPct: produced > 0 ? (nonConforme / produced) * 100 : 0,
+    repairPct: produced > 0 ? (repair / produced) * 100 : 0,
+    secondPct: produced > 0 ? (second / produced) * 100 : 0,
+    days,
+    avgPerDay: days > 0 ? produced / days : 0,
+    meta1,
+    pctMeta1: meta1 > 0 ? (produced / meta1) * 100 : 0,
+    planned,
+    availability: planned > 0 ? Math.max(0, ((planned - downtime) / planned) * 100) : 0,
+    downtime,
+    tiers,
+    bonusTotal: sum('bonus_value'),
+    podium,
+    prizeTotal: podium.reduce((total, item) => total + item.prize, 0),
+    shifts,
+    machines,
+  };
+}
+
+function buildSixMonthMachines(months) {
+  const ids = new Set();
+  months.forEach((m) => m.machines.forEach((_, id) => ids.add(id)));
+  return [...ids].sort((a, b) => a - b).map((id) => {
+    let produced = 0;
+    let nc = 0;
+    const perDay = [];
+    months.forEach((m) => {
+      const item = m.machines.get(id);
+      if (item) {
+        produced += item.produced;
+        nc += item.nc;
+      }
+      if (item && m.days > 0 && item.produced > 0) perDay.push(item.produced / m.days);
+    });
+    const trend = s6Trend(perDay);
+    return {
+      id,
+      label: getMachineShortLabel(id),
+      produced,
+      nc,
+      ncPct: produced > 0 ? (nc / produced) * 100 : 0,
+      lastAvg: trend ? trend.last : null,
+      trendPct: trend && trend.prior > 0 ? (trend.last / trend.prior - 1) * 100 : null,
+    };
+  });
+}
+
+function buildSixMonthModel(summaries, periods) {
+  const months = periods.map((period, i) => summarizeSixMonth(
+    summaries[i] || { machines: [], business_days: 0, days_recorded: 0 },
+    period,
+  ));
+  const data = months.filter((m) => m.hasData);
+  const last = months[months.length - 1];
+  const pool = data;
+  const best = pool.length ? pool.reduce((a, b) => (b.avgPerDay > a.avgPerDay ? b : a)) : null;
+  const worst = pool.length >= 3 ? pool.reduce((a, b) => (b.avgPerDay < a.avgPerDay ? b : a)) : null;
+  const tot = (key) => data.reduce((sum, m) => sum + m[key], 0);
+  const produced = tot('produced');
+  const days = tot('days');
+  const nonConforme = tot('nonConforme');
+  const meta1 = tot('meta1');
+  const planned = tot('planned');
+  const downtime = tot('downtime');
+  const aggregate = {
+    produced,
+    days,
+    avgPerDay: days > 0 ? produced / days : 0,
+    avgPerMonth: data.length ? produced / data.length : 0,
+    repairPct: produced > 0 ? (tot('repair') / produced) * 100 : 0,
+    secondPct: produced > 0 ? (tot('second') / produced) * 100 : 0,
+    nonConforme,
+    ncPct: produced > 0 ? (nonConforme / produced) * 100 : 0,
+    qualityPct: produced > 0 ? ((produced - nonConforme) / produced) * 100 : 0,
+    pctMeta1: meta1 > 0 ? (produced / meta1) * 100 : 0,
+    downtime,
+    availability: planned > 0 ? Math.max(0, ((planned - downtime) / planned) * 100) : 0,
+    bonus: tot('bonusTotal'),
+    prize: tot('prizeTotal'),
+  };
+  aggregate.pay = aggregate.bonus + aggregate.prize;
+
+  const podiumMap = new Map();
+  data.forEach((m) => m.podium.forEach((item) => {
+    const entry = podiumMap.get(item.key) || { label: item.label, counts: [0, 0, 0], prize: 0 };
+    entry.counts[item.place - 1] += 1;
+    entry.prize += item.prize;
+    podiumMap.set(item.key, entry);
+  }));
+  const podiumRank = [...podiumMap.values()].sort((a, b) => b.prize - a.prize || b.counts[0] - a.counts[0]);
+
+  return {
+    months,
+    data,
+    last,
+    best,
+    worst,
+    paceTrend: s6Trend(data.map((m) => m.avgPerDay)),
+    qualityTrend: s6Trend(data.map((m) => m.qualityPct)),
+    totals: aggregate,
+    aggregate,
+    podiumRank,
+    machines: buildSixMonthMachines(months),
+    rangeLabel: `${months[0].label} → ${last.label}`,
+    rangeName: `${months[0].name} a ${last.name}`,
+  };
+}
+
+function renderLastSixSummary(model) {
+  const { best, paceTrend, qualityTrend, totals, data } = model;
+  document.getElementById('s6-summary-title').textContent = model.rangeLabel;
+  document.getElementById('s6-summary-text').textContent =
+    `${formatNumber(totals.produced)} peças em ${data.length} ${data.length === 1 ? 'mês' : 'meses'} com produção, ` +
+    `média de ${formatNumber(Math.round(totals.avgPerDay))} por dia com registro. Total pago no período: ${s6Money(totals.pay)} (níveis ${s6Money(totals.bonus)} + pódio ${s6Money(totals.prize)}).`;
+
+  const bestEl = document.getElementById('s6-summary-best');
+  bestEl.textContent = best ? best.label : '—';
+  bestEl.style.color = best ? '#27C77A' : '#f3f7fa';
+  document.getElementById('s6-summary-best-sub').textContent = best
+    ? `${formatNumber(Math.round(best.avgPerDay))} peças/dia · ${formatPct(best.qualityPct)} conformidade`
+    : 'Sem comparação disponível';
+
+  const paceEl = document.getElementById('s6-summary-pace');
+  if (paceTrend && paceTrend.prior > 0) {
+    const rel = (paceTrend.last / paceTrend.prior - 1) * 100;
+    paceEl.textContent = formatSignedRelPct(paceTrend.last, paceTrend.prior);
+    paceEl.style.color = getDeltaColor(rel, true);
+    document.getElementById('s6-summary-pace-sub').textContent =
+      `${formatNumber(Math.round(paceTrend.last))} vs ${formatNumber(Math.round(paceTrend.prior))} peças/dia`;
+  } else {
+    paceEl.textContent = '—';
+    paceEl.style.color = '#f3f7fa';
+    document.getElementById('s6-summary-pace-sub').textContent = 'Histórico insuficiente';
+  }
+
+  const qualityEl = document.getElementById('s6-summary-quality');
+  if (qualityTrend) {
+    const diff = qualityTrend.last - qualityTrend.prior;
+    qualityEl.textContent = formatSignedPct(diff);
+    qualityEl.style.color = getDeltaColor(diff, true);
+    document.getElementById('s6-summary-quality-sub').textContent =
+      `${formatPct(qualityTrend.last)} vs ${formatPct(qualityTrend.prior)}`;
+  } else {
+    qualityEl.textContent = '—';
+    qualityEl.style.color = '#f3f7fa';
+    document.getElementById('s6-summary-quality-sub').textContent = 'Histórico insuficiente';
+  }
+
+  document.getElementById('s6-ref-note').textContent =
+    'Todos os indicadores consolidam os 6 meses fechados da janela; o mês em andamento fica de fora. As variações comparam os últimos 3 meses com os 3 anteriores.';
+}
+
+function buildSixMonthKpis(model) {
+  const { aggregate: agg, data } = model;
+  /* variação: últimos 3 meses do período contra os 3 anteriores */
+  const trendOf = (fn) => s6Trend(data.map(fn));
+  const rel = (fn, higher) => {
+    const t = trendOf(fn);
+    return t && t.prior > 0
+      ? { text: formatSignedRelPct(t.last, t.prior), color: getDeltaColor(t.last - t.prior, higher) }
+      : { text: '—', color: '#8ab8ff' };
+  };
+  const pp = (fn, higher) => {
+    const t = trendOf(fn);
+    return t
+      ? { text: formatSignedPct(t.last - t.prior), color: getDeltaColor(t.last - t.prior, higher) }
+      : { text: '—', color: '#8ab8ff' };
+  };
+
+  return [
+    { label: 'Produzido', value: formatNumber(agg.produced), delta: rel((m) => m.produced, true), sub: `média de ${formatNumber(Math.round(agg.avgPerMonth))} por mês` },
+    { label: 'Média por dia', value: formatNumber(Math.round(agg.avgPerDay)), delta: rel((m) => m.avgPerDay, true), sub: `${formatNumber(agg.days)} dias com registro` },
+    { label: 'Meta 1 atingida', value: formatPct(agg.pctMeta1), delta: pp((m) => m.pctMeta1, true), sub: 'produzido sobre meta 1 acumulada' },
+    { label: 'Conformidade', value: formatPct(agg.qualityPct), delta: pp((m) => m.qualityPct, true), sub: `${formatNumber(agg.nonConforme)} peças fora do padrão` },
+    { label: 'Não Conforme', value: formatPct(agg.ncPct), delta: pp((m) => m.ncPct, false), sub: `reparo ${formatPct(agg.repairPct)} · 2ª qualidade ${formatPct(agg.secondPct)}` },
+    { label: 'Disponibilidade', value: formatPct(agg.availability), delta: pp((m) => m.availability, true), sub: `${formatNumber(Math.round(agg.downtime / 60))} h de paradas` },
+    { label: 'Bonificação por nível', value: s6Money(agg.bonus), delta: rel((m) => m.bonusTotal, true), sub: `média de ${s6Money(data.length ? agg.bonus / data.length : 0)} por mês` },
+    { label: 'Total pago', value: s6Money(agg.pay), delta: rel((m) => m.bonusTotal + m.prizeTotal, true), sub: `níveis ${s6Money(agg.bonus)} + pódio ${s6Money(agg.prize)}` },
+  ];
+}
+
+function renderLastSixMetrics(model) {
+  document.getElementById('s6-metrics').innerHTML = buildSixMonthKpis(model).map((item) => `
+    <div class="prev-metric">
+      <div class="prev-metric-label">${item.label}</div>
+      <div class="prev-metric-value">${item.value}</div>
+      <div class="prev-metric-sub"><strong style="color:${item.delta.color}">${item.delta.text}</strong> · ${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderLastSixCharts(model) {
+  const { months } = model;
+  const labels = months.map((m) => m.label);
+  const orNull = (m, value) => (m.hasData ? value : null);
+
+  s6Chart('production', 'chart-s6-production', {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Produzido',
+          data: months.map((m) => m.produced),
+          backgroundColor: 'rgba(138,184,255,.78)',
+          borderRadius: 8,
+        },
+        {
+          type: 'line',
+          label: 'Meta 1',
+          data: months.map((m) => orNull(m, Math.round(m.meta1))),
+          borderColor: '#EF9F27',
+          backgroundColor: '#EF9F27',
+          pointRadius: 4,
+          borderWidth: 2,
+          tension: 0.25,
+        },
+      ],
+    },
+    options: s6Options(),
+  });
+
+  s6Chart('quality', 'chart-s6-quality', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Reparo', data: months.map((m) => orNull(m, Number(m.repairPct.toFixed(2)))), backgroundColor: '#EF9F27', borderRadius: 4, stack: 'q' },
+        { label: 'Segunda qualidade', data: months.map((m) => orNull(m, Number(m.secondPct.toFixed(2)))), backgroundColor: '#e05252', borderRadius: 4, stack: 'q' },
+      ],
+    },
+    options: s6Options({ stacked: true, yTick: (v) => `${v}%`, tooltip: formatPct }),
+  });
+
+  s6Chart('goal', 'chart-s6-goal', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Meta 1 atingida', data: months.map((m) => orNull(m, Number(m.pctMeta1.toFixed(1)))), borderColor: '#8ab8ff', backgroundColor: '#8ab8ff', pointRadius: 4, tension: 0.25 },
+        { label: 'Disponibilidade', data: months.map((m) => orNull(m, Number(m.availability.toFixed(1)))), borderColor: '#27C77A', backgroundColor: '#27C77A', pointRadius: 4, tension: 0.25 },
+      ],
+    },
+    options: s6Options({ yTick: (v) => `${v}%`, tooltip: formatPct, y: { suggestedMax: 110 } }),
+  });
+
+  const tierDefs = [
+    { label: 'Sem bônus', color: '#6888a8' },
+    { label: 'Nível 1', color: '#EF9F27' },
+    { label: 'Nível 2', color: '#8ab8ff' },
+    { label: 'Nível 3', color: '#27C77A' },
+  ];
+  s6Chart('tiers', 'chart-s6-tiers', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: tierDefs.map((tier, idx) => ({
+        label: tier.label,
+        data: months.map((m) => orNull(m, m.tiers[idx])),
+        backgroundColor: tier.color,
+        borderRadius: 4,
+        stack: 'tier',
+      })),
+    },
+    options: s6Options({ stacked: true, tooltip: (v) => `${v} turnos`, y: { ticks: { precision: 0 } } }),
+  });
+
+  s6Chart('shifts', 'chart-s6-shifts', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Turno 1', data: months.map((m) => m.shifts[1]), backgroundColor: 'rgba(138,184,255,.8)', borderRadius: 6 },
+        { label: 'Turno 2', data: months.map((m) => m.shifts[2]), backgroundColor: 'rgba(39,199,122,.75)', borderRadius: 6 },
+      ],
+    },
+    options: s6Options(),
+  });
+}
+
+function renderLastSixTable(model) {
+  const { months, best, worst } = model;
+  let previousWithData = null;
+  document.getElementById('s6-table-body').innerHTML = months.map((m) => {
+    const prev = previousWithData;
+    if (m.hasData) previousWithData = m;
+
+    if (!m.hasData) {
+      return `<div class="s6-row empty"><div>${m.label}<small>sem produção</small></div><div>—</div><div>—</div><div>—</div><div>—</div><div>—</div><div>—</div><div>—</div></div>`;
+    }
+
+    const delta = prev && prev.avgPerDay > 0 ? (m.avgPerDay / prev.avgPerDay - 1) * 100 : null;
+    const cls = [m === best ? 'best' : '', m === worst ? 'worst' : ''].filter(Boolean).join(' ');
+    const tag = m === best ? 'melhor ritmo' : m === worst ? 'menor ritmo' : '';
+    return `
+      <div class="s6-row ${cls}">
+        <div><strong>${m.label}</strong>${tag ? `<small>${tag}</small>` : ''}</div>
+        <div>${formatNumber(m.produced)}</div>
+        <div>${formatNumber(Math.round(m.avgPerDay))}</div>
+        <div style="color:${getStatusColor(getEfficiencyStatus(m.pctMeta1))}">${formatPct(m.pctMeta1)}</div>
+        <div style="color:${getQualityTone(m.qualityPct)}">${formatPct(m.qualityPct)}</div>
+        <div>${formatPct(m.availability)}</div>
+        <div>${s6Money(m.bonusTotal + m.prizeTotal)}<small>pódio ${s6Money(m.prizeTotal)}</small></div>
+        <div style="color:${delta === null ? '#8ab8ff' : getDeltaColor(delta, true)}">${delta === null ? '—' : `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLastSixPodium(model) {
+  const place = (item) => (item
+    ? `<div><strong style="color:${S6_PODIUM_COLORS[item.place - 1]}">${item.label}</strong><small>${formatPct(item.pct)} da meta 1 · ${s6Money(item.prize)}</small></div>`
+    : '<div>—</div>');
+  document.getElementById('s6-podium-body').innerHTML = model.data.map((m) => `
+    <div class="s6-row podium">
+      <div><strong>${m.label}</strong></div>
+      ${[0, 1, 2].map((i) => place(m.podium[i])).join('')}
+      <div>${s6Money(m.prizeTotal)}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('s6-podium-list').innerHTML = model.podiumRank.length
+    ? model.podiumRank.map((item, index) => `
+      <div class="prev-machine-row">
+        <div class="prev-machine-rank">${index + 1}</div>
+        <div class="prev-machine-copy">
+          <strong>${escapeHTML(item.label)}</strong>
+          <span>${item.counts.map((count, i) => `${S6_PODIUM_NAMES[i]}: ${count}`).join(' · ')}</span>
+        </div>
+        <div class="prev-machine-value">
+          <strong>${s6Money(item.prize)}</strong>
+          <span>em prêmios</span>
+        </div>
+      </div>
+    `).join('')
+    : '<div class="msg">Nenhum pódio registrado no período.</div>';
+}
+
+function renderLastSixMachines(model) {
+  const { machines } = model;
+  const riskCls = (pct) => (pct >= 4 ? 'bad' : pct >= 2 ? 'warn' : 'good');
+
+  document.getElementById('s6-trend-list').innerHTML = [...machines]
+    .sort((a, b) => (b.trendPct ?? -Infinity) - (a.trendPct ?? -Infinity))
+    .map((item, index) => `
+      <div class="prev-machine-row">
+        <div class="prev-machine-rank">${index + 1}</div>
+        <div class="prev-machine-copy">
+          <strong>${escapeHTML(item.label)}</strong>
+          <span>${item.lastAvg === null ? 'Histórico insuficiente' : `${formatNumber(Math.round(item.lastAvg))} peças/dia nos últimos 3 meses`}</span>
+          <div class="prev-machine-meta">
+            <span class="prev-machine-pill">${formatNumber(item.produced)} peças no período</span>
+          </div>
+        </div>
+        <div class="prev-machine-value">
+          <strong style="color:${item.trendPct === null ? '#8ab8ff' : getDeltaColor(item.trendPct, true)}">${item.trendPct === null ? '—' : `${item.trendPct > 0 ? '+' : ''}${item.trendPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</strong>
+          <span>ritmo</span>
+        </div>
+      </div>
+    `).join('');
+
+  document.getElementById('s6-loss-list').innerHTML = [...machines]
+    .sort((a, b) => b.ncPct - a.ncPct || b.nc - a.nc)
+    .map((item, index) => `
+      <div class="prev-machine-row is-risk">
+        <div class="prev-machine-rank">${index + 1}</div>
+        <div class="prev-machine-copy">
+          <strong>${escapeHTML(item.label)}</strong>
+          <span>${formatNumber(item.produced)} peças produzidas no período</span>
+          <div class="prev-machine-meta">
+            <span class="prev-machine-pill ${riskCls(item.ncPct)}">${formatPct(item.ncPct)} não conf.</span>
+          </div>
+        </div>
+        <div class="prev-machine-value">
+          <strong>${formatNumber(item.nc)}</strong>
+          <span>não conformes</span>
+        </div>
+      </div>
+    `).join('');
+}
+
+function buildLastSixReportMarkup(model) {
+  const { months, data, best, worst, paceTrend, qualityTrend, totals, machines } = model;
+  const generatedAt = new Date().toLocaleString('pt-BR');
+  const agg = model.aggregate;
+  const risk = getPreviousDayRisk({ nonConformePct: agg.ncPct });
+  const riskClass = risk.label === 'Crítico' ? 'bad' : risk.label === 'Atenção' ? 'warn' : 'good';
+  const kpis = buildSixMonthKpis(model);
+  const paceRel = paceTrend && paceTrend.prior > 0 ? (paceTrend.last / paceTrend.prior - 1) * 100 : null;
+  const qualityDiff = qualityTrend ? qualityTrend.last - qualityTrend.prior : null;
+  const maxAvg = Math.max(...data.map((m) => m.avgPerDay), 1);
+  const topLoss = [...machines].sort((a, b) => b.ncPct - a.ncPct)[0] || null;
+
+  const highlight = [
+    `${formatNumber(totals.produced)} peças em ${data.length} ${data.length === 1 ? 'mês' : 'meses'} com produção, média de ${formatNumber(Math.round(totals.avgPerDay))} por dia.`,
+    best ? `Melhor ritmo em ${best.label} (${formatNumber(Math.round(best.avgPerDay))} peças/dia).` : '',
+    worst ? `Menor ritmo em ${worst.label} (${formatNumber(Math.round(worst.avgPerDay))} peças/dia).` : '',
+    topLoss ? `${topLoss.label} concentra a maior taxa de não conforme do período (${formatPct(topLoss.ncPct)}).` : '',
+    `Total pago no período: ${s6Money(totals.pay)} (níveis ${s6Money(totals.bonus)} + pódio ${s6Money(totals.prize)}).`,
+  ].filter(Boolean).join(' ');
+
+  const kpiFill = (label) => {
+    if (label === 'Conformidade') return agg.qualityPct >= 98 ? 'good' : agg.qualityPct >= 95 ? 'warn' : 'bad';
+    if (label === 'Não Conforme') return agg.ncPct >= 4 ? 'bad' : agg.ncPct >= 2 ? 'warn' : 'good';
+    if (label === 'Meta 1 atingida') return agg.pctMeta1 >= 100 ? 'good' : agg.pctMeta1 >= 92 ? 'warn' : 'bad';
+    if (label === 'Disponibilidade') return agg.availability >= 92 ? 'good' : agg.availability >= 85 ? 'warn' : 'bad';
+    return 'good';
+  };
+  const kpiWidth = (label) => {
+    if (label === 'Conformidade') return Math.min(agg.qualityPct, 100);
+    if (label === 'Não Conforme') return Math.min(agg.ncPct * 8, 100);
+    if (label === 'Meta 1 atingida') return Math.min(agg.pctMeta1, 100);
+    if (label === 'Disponibilidade') return Math.min(agg.availability, 100);
+    if (label === 'Bonificação por nível' || label === 'Total pago') return 100;
+    return agg.avgPerDay > 0 && maxAvg > 0 ? Math.min((agg.avgPerDay / maxAvg) * 100, 100) : 0;
+  };
+
+  return `
+    <article class="prev-print-sheet">
+      <header class="prev-print-header">
+        <div class="prev-print-brand">
+          <div class="prev-print-brand-kicker">Painel Analítico</div>
+          <div class="prev-print-brand-title">Relatório dos Últimos 6 Meses</div>
+          <div class="prev-print-brand-text">Tendência de produção, qualidade, metas, paradas e bonificação de ${escapeHTML(model.rangeName)}.</div>
+        </div>
+        <div class="prev-print-meta">
+          <div class="prev-print-meta-row"><span>Período</span><strong>${escapeHTML(model.rangeLabel)}</strong></div>
+          <div class="prev-print-meta-row"><span>Meses com produção</span><strong>${data.length} de ${months.length}</strong></div>
+          <div class="prev-print-meta-row"><span>Emitido em</span><strong>${generatedAt}</strong></div>
+        </div>
+      </header>
+
+      <section class="prev-print-overview">
+        <div class="prev-print-highlight">
+          <div class="prev-print-highlight-kicker">Leitura rápida</div>
+          <div class="prev-print-highlight-title">${paceRel === null ? 'Histórico insuficiente para tendência' : `${formatSignedRelPct(paceTrend.last, paceTrend.prior)} no ritmo dos últimos 3 meses`}</div>
+          <div class="prev-print-highlight-text">${highlight}</div>
+        </div>
+        <div class="prev-print-status-stack">
+          <div class="prev-print-status-card ${riskClass}">
+            <div class="prev-print-status-label">Risco de qualidade (6 meses)</div>
+            <div class="prev-print-status-value" style="color:${risk.color}">${risk.label}</div>
+            <div class="prev-print-status-sub">${formatPct(agg.ncPct)} de não conforme no período</div>
+          </div>
+          <div class="prev-print-status-card ${qualityDiff === null || qualityDiff >= 0 ? 'good' : 'warn'}">
+            <div class="prev-print-status-label">Tendência de qualidade</div>
+            <div class="prev-print-status-value">${qualityDiff === null ? '—' : formatSignedPct(qualityDiff)}</div>
+            <div class="prev-print-status-sub">${qualityTrend ? `${formatPct(qualityTrend.last)} vs ${formatPct(qualityTrend.prior)} nos 3 meses anteriores` : 'Histórico insuficiente'}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Indicadores consolidados dos 6 meses</h4>
+        <div class="prev-print-grid">
+          ${kpis.map((item) => `
+            <div class="prev-print-metric">
+              <span>${item.label}</span>
+              <strong>${item.value}</strong>
+              <div class="prev-print-metric-bar">
+                <div class="prev-print-metric-track">
+                  <div class="prev-print-metric-fill ${kpiFill(item.label)}" style="width:${kpiWidth(item.label)}%"></div>
+                </div>
+                <div class="prev-print-metric-note">${item.delta.text} · ${item.sub}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Evolução mensal</h4>
+        <div class="prev-print-list">
+          ${months.map((m, index) => `
+            <div class="prev-print-item">
+              <div class="prev-print-rank">${index + 1}</div>
+              <div>
+                <strong>${m.label}${m === best ? ' · melhor ritmo' : ''}${m === worst ? ' · menor ritmo' : ''}</strong>
+                <span>${m.hasData
+                  ? `${formatNumber(m.produced)} peças · ${formatPct(m.pctMeta1)} da meta 1 · ${formatPct(m.qualityPct)} conforme · ${formatPct(m.availability)} disponib. · pago ${s6Money(m.bonusTotal + m.prizeTotal)}`
+                  : 'Sem produção registrada'}</span>
+                <div class="prev-print-machine-bar">
+                  <div class="prev-print-machine-track">
+                    <div class="prev-print-machine-fill" style="width:${m.hasData ? (m.avgPerDay / maxAvg) * 100 : 0}%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="prev-print-value">
+                <strong>${m.hasData ? formatNumber(Math.round(m.avgPerDay)) : '—'}</strong>
+                <span>peças/dia</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Bonificação — níveis e pódio</h4>
+        <div class="prev-print-list">
+          ${data.map((m) => `
+            <div class="prev-print-item">
+              <div class="prev-print-rank">${m.label.slice(0, 3)}</div>
+              <div>
+                <strong>${m.label}</strong>
+                <span>Sem bônus: ${m.tiers[0]} · Nível 1: ${m.tiers[1]} · Nível 2: ${m.tiers[2]} · Nível 3: ${m.tiers[3]}</span>
+              </div>
+              <div class="prev-print-value">
+                <strong>${s6Money(m.bonusTotal + m.prizeTotal)}</strong>
+                <span>níveis ${s6Money(m.bonusTotal)} + pódio ${s6Money(m.prizeTotal)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Premiação — pódio mensal (ouro R$ 200 · prata R$ 150 · bronze R$ 100)</h4>
+        <div class="prev-print-list">
+          ${data.map((m) => `
+            <div class="prev-print-item">
+              <div class="prev-print-rank">${m.label.slice(0, 3)}</div>
+              <div>
+                <strong>${m.label}</strong>
+                <span>${m.podium.length ? m.podium.map((item) => `${item.place}º ${item.label} (${formatPct(item.pct)})`).join(' · ') : 'Sem pódio no mês'}</span>
+              </div>
+              <div class="prev-print-value">
+                <strong>${s6Money(m.prizeTotal)}</strong>
+                <span>em prêmios</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ${model.podiumRank.length ? `
+          <div class="prev-print-column-title" style="margin-top:.7rem">Mais premiados no período</div>
+          <div class="prev-print-list">
+            ${model.podiumRank.map((item, index) => `
+              <div class="prev-print-item">
+                <div class="prev-print-rank">${index + 1}</div>
+                <div>
+                  <strong>${escapeHTML(item.label)}</strong>
+                  <span>${item.counts.map((count, i) => `${S6_PODIUM_NAMES[i]}: ${count}`).join(' · ')}</span>
+                </div>
+                <div class="prev-print-value">
+                  <strong>${s6Money(item.prize)}</strong>
+                  <span>em prêmios</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </section>
+
+      <section class="prev-print-block">
+        <h4>Máquinas no período</h4>
+        <div class="prev-print-list">
+          ${[...machines].sort((a, b) => b.produced - a.produced).map((item, index) => `
+            <div class="prev-print-item">
+              <div class="prev-print-rank">${index + 1}</div>
+              <div>
+                <strong>${escapeHTML(item.label)}</strong>
+                <span>${formatPct(item.ncPct)} não conforme · ritmo recente ${item.trendPct === null ? '—' : `${item.trendPct > 0 ? '+' : ''}${item.trendPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</span>
+              </div>
+              <div class="prev-print-value">
+                <strong>${formatNumber(item.produced)}</strong>
+                <span>${formatNumber(item.nc)} não conf.</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <footer class="prev-print-footer">
+        <div class="prev-print-note">
+          Documento gerado a partir do módulo dos últimos 6 meses. O mês em andamento não é considerado. Tendências comparam os últimos 3 meses com os 3 anteriores.
+        </div>
+        <div class="prev-print-signature">
+          <div class="prev-print-signature-line"></div>
+          <span>Responsável pela conferência</span>
+        </div>
+      </footer>
+    </article>
+  `;
+}
+
+function setLastSixReportOpen(isOpen) {
+  const modal = document.getElementById('s6-report-modal');
+  if (!modal) return;
+  modal.hidden = !isOpen;
+  document.body.classList.toggle('prev-report-open', isOpen);
+}
+
+function renderLastSixReportPreview() {
+  const previewEl = document.getElementById('s6-report-preview');
+  const subEl = document.getElementById('s6-report-sub');
+  if (!sixMonthData) {
+    previewEl.innerHTML = '<div class="msg">Carregue os indicadores dos últimos 6 meses para gerar a prévia do relatório.</div>';
+    subEl.textContent = 'Gere a prévia para revisar antes de imprimir.';
+    return;
+  }
+  previewEl.innerHTML = buildLastSixReportMarkup(sixMonthData);
+  subEl.textContent = `Prévia pronta para impressão: ${sixMonthData.rangeName}.`;
+}
+
+function initLastSixReportActions() {
+  const previewBtn = document.getElementById('s6-preview-btn');
+  const closeBtn = document.getElementById('s6-close-preview-btn');
+  const printBtn = document.getElementById('s6-print-btn');
+  const modal = document.getElementById('s6-report-modal');
+  const panel = document.getElementById('s6-report-panel');
+  if (!previewBtn || !closeBtn || !printBtn) return;
+
+  previewBtn.addEventListener('click', () => {
+    renderLastSixReportPreview();
+    setLastSixReportOpen(true);
+  });
+  closeBtn.addEventListener('click', () => setLastSixReportOpen(false));
+  printBtn.addEventListener('click', () => {
+    if (!sixMonthData) return;
+    renderLastSixReportPreview();
+    openReportPrintWindow('Relatório dos Últimos 6 Meses', buildLastSixReportMarkup(sixMonthData));
+  });
+  if (modal && panel) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) setLastSixReportOpen(false);
+    });
+    panel.addEventListener('click', (event) => event.stopPropagation());
+  }
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setLastSixReportOpen(false);
+  });
+}
+
+function resetLastSixView(message, isError = false) {
+  sixMonthData = null;
+  s6DestroyCharts();
+  renderLastSixReportPreview();
+  setLastSixReportOpen(false);
+  document.getElementById('s6-metrics').innerHTML = `<div class="msg${isError ? ' msg-error' : ''}">${escapeHTML(message)}</div>`;
+  document.getElementById('s6-table-body').innerHTML = '';
+  document.getElementById('s6-podium-body').innerHTML = '';
+  document.getElementById('s6-podium-list').innerHTML = '';
+  document.getElementById('s6-trend-list').innerHTML = '';
+  document.getElementById('s6-loss-list').innerHTML = '';
+  document.getElementById('s6-ref-note').textContent = '';
+  document.getElementById('s6-summary-title').textContent = 'Aguardando consolidado';
+  document.getElementById('s6-summary-text').textContent = 'O módulo consolida produção, qualidade, metas, paradas e bonificação dos últimos 6 meses.';
+  ['best', 'pace', 'quality'].forEach((key) => {
+    const el = document.getElementById(`s6-summary-${key}`);
+    el.textContent = '—';
+    el.style.color = '#f3f7fa';
+    document.getElementById(`s6-summary-${key}-sub`).textContent = 'Sem comparação disponível';
+  });
+}
+
+async function loadLastSixAll() {
+  const end = getLastSixEnd();
+  const periods = [...getPreviousMonthPeriods(end.year, end.month, 5).reverse(), end];
+  try {
+    const results = await Promise.allSettled(
+      periods.map((period) => fetchJSON(`/api/summary?year=${period.year}&month=${period.month}`)),
+    );
+    if (results.every((result) => result.status === 'rejected')) {
+      throw results[0].reason;
+    }
+
+    const model = buildSixMonthModel(results.map((result) => (result.status === 'fulfilled' ? result.value : null)), periods);
+    if (!model.data.length) {
+      resetLastSixView('Sem produção registrada nos últimos 6 meses para montar os indicadores.');
+      return;
+    }
+
+    sixMonthData = model;
+    renderLastSixSummary(model);
+    renderLastSixMetrics(model);
+    renderLastSixCharts(model);
+    renderLastSixTable(model);
+    renderLastSixPodium(model);
+    renderLastSixMachines(model);
+    renderLastSixReportPreview();
+  } catch (err) {
+    resetLastSixView(`Não foi possível carregar os indicadores dos últimos 6 meses (${err.message}).`, true);
+  }
+}
+
 async function loadEfficiencyAll() {
   try {
     const summary = await fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`);
@@ -3921,6 +4765,10 @@ async function loadAll() {
   }
   if (state.module === 'previous-month') {
     await loadPreviousMonthAll();
+    return;
+  }
+  if (state.module === 'last-six') {
+    await loadLastSixAll();
   }
 }
 
@@ -3942,7 +4790,9 @@ function toggleTheme() {
 
 populateSelectors();
 initPreviousDayReportActions();
+initPreviousDayDatePicker();
 initPreviousMonthReportActions();
+initLastSixReportActions();
 renderModuleRail();
 syncModuleView();
 loadAll();

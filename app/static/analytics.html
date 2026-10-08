@@ -219,6 +219,9 @@
         <div class="section-label">Indicadores do dia anterior — <span id="prev-period-label">—</span></div>
         <div id="prev-ref-note" class="prev-ref-note"></div>
         <div class="prev-toolbar">
+          <label for="prev-date-input" class="prev-date-label">Data</label>
+          <input id="prev-date-input" type="date" class="prev-date-input">
+          <button id="prev-date-reset-btn" type="button" class="prev-action-btn">Voltar ao dia anterior</button>
           <button id="prev-preview-btn" type="button" class="prev-action-btn primary">Pré-visualizar relatório</button>
         </div>
       </div>
@@ -402,6 +405,144 @@
           <section class="panel panel-span">
             <div class="panel-title">Variação por máquina</div>
             <div id="pm-machine-list" class="prev-machine-list"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="module-view-last-six" class="module-view" hidden>
+      <div>
+        <div class="section-label">Últimos 6 meses — <span id="s6-period-label">—</span></div>
+        <div id="s6-ref-note" class="prev-ref-note"></div>
+        <div class="prev-toolbar">
+          <button id="s6-preview-btn" type="button" class="prev-action-btn primary">Pré-visualizar relatório</button>
+        </div>
+      </div>
+
+      <div class="prev-layout">
+        <section id="s6-report-modal" class="prev-report-modal" hidden>
+          <div id="s6-report-panel" class="prev-report-panel">
+            <div class="prev-report-head">
+              <div>
+                <div class="prev-report-title">Pré-visualização do relatório dos últimos 6 meses</div>
+                <div id="s6-report-sub" class="prev-report-sub">Gere a prévia para revisar antes de imprimir.</div>
+              </div>
+              <div class="prev-report-actions">
+                <button id="s6-print-btn" type="button" class="prev-action-btn primary">Imprimir relatório</button>
+                <button id="s6-close-preview-btn" type="button" class="prev-action-btn">Fechar prévia</button>
+              </div>
+            </div>
+            <div id="s6-report-preview" class="prev-report-body"></div>
+          </div>
+        </section>
+
+        <section class="prev-summary">
+          <div class="prev-summary-main">
+            <div class="prev-summary-kicker">Panorama</div>
+            <div id="s6-summary-title" class="prev-summary-title">Aguardando consolidado</div>
+            <div id="s6-summary-text" class="prev-summary-text">O módulo consolida produção, qualidade, metas, paradas e bonificação dos últimos 6 meses.</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Melhor mês</div>
+            <div id="s6-summary-best" class="prev-summary-value">—</div>
+            <div id="s6-summary-best-sub" class="prev-summary-sub">Sem comparação disponível</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Tendência de ritmo</div>
+            <div id="s6-summary-pace" class="prev-summary-value">—</div>
+            <div id="s6-summary-pace-sub" class="prev-summary-sub">Sem comparação disponível</div>
+          </div>
+          <div class="prev-summary-card">
+            <div class="prev-summary-kicker">Tendência de qualidade</div>
+            <div id="s6-summary-quality" class="prev-summary-value">—</div>
+            <div id="s6-summary-quality-sub" class="prev-summary-sub">Sem comparação disponível</div>
+          </div>
+        </section>
+
+        <section id="s6-metrics" class="prev-metrics pm-metrics">
+          <div class="msg">Carregando indicadores dos últimos 6 meses...</div>
+        </section>
+
+        <div class="prev-grid">
+          <section class="panel panel-span">
+            <div class="panel-title">Produção mensal vs meta 1</div>
+            <div class="chart-wrap"><canvas id="chart-s6-production"></canvas></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">Qualidade — reparo e segunda qualidade</div>
+            <div class="chart-wrap"><canvas id="chart-s6-quality"></canvas></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">Atingimento de meta e disponibilidade</div>
+            <div class="chart-wrap"><canvas id="chart-s6-goal"></canvas></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">Bonificação — turnos por nível</div>
+            <div class="chart-wrap"><canvas id="chart-s6-tiers"></canvas></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">Turno 1 vs Turno 2</div>
+            <div class="chart-wrap"><canvas id="chart-s6-shifts"></canvas></div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Mês a mês</div>
+            <div class="s6-table">
+              <div class="s6-row head">
+                <div>Mês</div>
+                <div>Produzido</div>
+                <div>Média/dia</div>
+                <div>% Meta 1</div>
+                <div>Conform.</div>
+                <div>Disponib.</div>
+                <div>Bonificação</div>
+                <div>Δ ritmo</div>
+              </div>
+              <div id="s6-table-body"></div>
+            </div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Premiação — pódio mensal (ouro R$ 200 · prata R$ 150 · bronze R$ 100)</div>
+            <div class="s6-table">
+              <div class="s6-row head podium">
+                <div>Mês</div>
+                <div>1º · Ouro</div>
+                <div>2º · Prata</div>
+                <div>3º · Bronze</div>
+                <div>Prêmios</div>
+              </div>
+              <div id="s6-podium-body"></div>
+            </div>
+            <div class="prev-machine-head" style="margin-top:.9rem">
+              <div class="prev-machine-title">Mais premiados</div>
+              <div class="prev-machine-subtitle">pódios acumulados no período</div>
+            </div>
+            <div id="s6-podium-list" class="prev-machine-list"></div>
+          </section>
+
+          <section class="panel panel-span">
+            <div class="panel-title">Máquinas no período</div>
+            <div class="prev-machine-grid">
+              <div>
+                <div class="prev-machine-head">
+                  <div class="prev-machine-title">Evolução do ritmo</div>
+                  <div class="prev-machine-subtitle">últimos 3 meses vs 3 anteriores</div>
+                </div>
+                <div id="s6-trend-list" class="prev-machine-list"></div>
+              </div>
+              <div>
+                <div class="prev-machine-head">
+                  <div class="prev-machine-title">Maiores perdas</div>
+                  <div class="prev-machine-subtitle">não conforme acumulado em 6 meses</div>
+                </div>
+                <div id="s6-loss-list" class="prev-machine-list"></div>
+              </div>
+            </div>
           </section>
         </div>
       </div>
