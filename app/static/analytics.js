@@ -3995,6 +3995,7 @@ function summarizeSixMonth(summary, period) {
   const downtime = sum('total_downtime');
 
   const tiers = [0, 0, 0, 0];
+  const tierValues = [0, 0, 0, 0];
   const podium = rows
     .filter((row) => (row.total_produced || 0) > 0)
     .sort((a, b) => (b.pct_meta1 || 0) - (a.pct_meta1 || 0))
@@ -4009,7 +4010,10 @@ function summarizeSixMonth(summary, period) {
   const shifts = { 1: 0, 2: 0 };
   const machines = new Map();
   rows.forEach((row) => {
-    if ((row.total_produced || 0) > 0) tiers[row.bonus_tier || 0] += 1;
+    if ((row.total_produced || 0) > 0) {
+      tiers[row.bonus_tier || 0] += 1;
+      tierValues[row.bonus_tier || 0] += row.bonus_value || 0;
+    }
     shifts[row.shift === 2 ? 2 : 1] += row.total_produced || 0;
     const machine = machines.get(row.machine_id) || { produced: 0, nc: 0 };
     machine.produced += row.total_produced || 0;
@@ -4038,6 +4042,7 @@ function summarizeSixMonth(summary, period) {
     availability: planned > 0 ? Math.max(0, ((planned - downtime) / planned) * 100) : 0,
     downtime,
     tiers,
+    tierValues,
     bonusTotal: sum('bonus_value'),
     podium,
     prizeTotal: podium.reduce((total, item) => total + item.prize, 0),
@@ -4107,7 +4112,8 @@ function buildSixMonthModel(summaries, periods) {
     bonus: tot('bonusTotal'),
     prize: tot('prizeTotal'),
   };
-  aggregate.pay = aggregate.bonus + aggregate.prize;
+  aggregate.tierCounts = [0, 1, 2, 3].map((t) => data.reduce((sum, m) => sum + m.tiers[t], 0));
+  aggregate.tierValues = [0, 1, 2, 3].map((t) => data.reduce((sum, m) => sum + m.tierValues[t], 0));
 
   const podiumMap = new Map();
   data.forEach((m) => m.podium.forEach((item) => {
@@ -4140,7 +4146,7 @@ function renderLastSixSummary(model) {
   document.getElementById('s6-summary-title').textContent = model.rangeLabel;
   document.getElementById('s6-summary-text').textContent =
     `${formatNumber(totals.produced)} peças em ${data.length} ${data.length === 1 ? 'mês' : 'meses'} com produção, ` +
-    `média de ${formatNumber(Math.round(totals.avgPerDay))} por dia com registro. Total pago no período: ${s6Money(totals.pay)} (níveis ${s6Money(totals.bonus)} + pódio ${s6Money(totals.prize)}).`;
+    `média de ${formatNumber(Math.round(totals.avgPerDay))} por dia com registro. Bonificação por nível: ${s6Money(totals.bonus)} (B1 ${s6Money(totals.tierValues[1])} · B2 ${s6Money(totals.tierValues[2])} · B3 ${s6Money(totals.tierValues[3])}).`;
 
   const bestEl = document.getElementById('s6-summary-best');
   bestEl.textContent = best ? best.label : '—';
@@ -4203,8 +4209,8 @@ function buildSixMonthKpis(model) {
     { label: 'Conformidade', value: formatPct(agg.qualityPct), delta: pp((m) => m.qualityPct, true), sub: `${formatNumber(agg.nonConforme)} peças fora do padrão` },
     { label: 'Não Conforme', value: formatPct(agg.ncPct), delta: pp((m) => m.ncPct, false), sub: `reparo ${formatPct(agg.repairPct)} · 2ª qualidade ${formatPct(agg.secondPct)}` },
     { label: 'Disponibilidade', value: formatPct(agg.availability), delta: pp((m) => m.availability, true), sub: `${formatNumber(Math.round(agg.downtime / 60))} h de paradas` },
-    { label: 'Bonificação por nível', value: s6Money(agg.bonus), delta: rel((m) => m.bonusTotal, true), sub: `média de ${s6Money(data.length ? agg.bonus / data.length : 0)} por mês` },
-    { label: 'Total pago', value: s6Money(agg.pay), delta: rel((m) => m.bonusTotal + m.prizeTotal, true), sub: `níveis ${s6Money(agg.bonus)} + pódio ${s6Money(agg.prize)}` },
+    { label: 'Bonificação B1 · B2 · B3', value: s6Money(agg.bonus), delta: rel((m) => m.bonusTotal, true), sub: `B1 ${s6Money(agg.tierValues[1])} · B2 ${s6Money(agg.tierValues[2])} · B3 ${s6Money(agg.tierValues[3])}` },
+    { label: 'Turnos com bônus', value: formatNumber(agg.tierCounts[1] + agg.tierCounts[2] + agg.tierCounts[3]), delta: rel((m) => m.tiers[1] + m.tiers[2] + m.tiers[3], true), sub: `B1 ${agg.tierCounts[1]} · B2 ${agg.tierCounts[2]} · B3 ${agg.tierCounts[3]}` },
   ];
 }
 
@@ -4329,7 +4335,7 @@ function renderLastSixTable(model) {
         <div style="color:${getStatusColor(getEfficiencyStatus(m.pctMeta1))}">${formatPct(m.pctMeta1)}</div>
         <div style="color:${getQualityTone(m.qualityPct)}">${formatPct(m.qualityPct)}</div>
         <div>${formatPct(m.availability)}</div>
-        <div>${s6Money(m.bonusTotal + m.prizeTotal)}<small>pódio ${s6Money(m.prizeTotal)}</small></div>
+        <div>${s6Money(m.bonusTotal)}<small>B1 ${m.tiers[1]} · B2 ${m.tiers[2]} · B3 ${m.tiers[3]}</small></div>
         <div style="color:${delta === null ? '#8ab8ff' : getDeltaColor(delta, true)}">${delta === null ? '—' : `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</div>
       </div>
     `;
@@ -4346,7 +4352,12 @@ function renderLastSixPodium(model) {
       ${[0, 1, 2].map((i) => place(m.podium[i])).join('')}
       <div>${s6Money(m.prizeTotal)}</div>
     </div>
-  `).join('');
+  `).join('') + `
+    <div class="s6-row podium">
+      <div><strong>Total</strong></div><div></div><div></div><div></div>
+      <div><strong>${s6Money(model.aggregate.prize)}</strong></div>
+    </div>
+  `;
 
   document.getElementById('s6-podium-list').innerHTML = model.podiumRank.length
     ? model.podiumRank.map((item, index) => `
@@ -4425,7 +4436,8 @@ function buildLastSixReportMarkup(model) {
     best ? `Melhor ritmo em ${best.label} (${formatNumber(Math.round(best.avgPerDay))} peças/dia).` : '',
     worst ? `Menor ritmo em ${worst.label} (${formatNumber(Math.round(worst.avgPerDay))} peças/dia).` : '',
     topLoss ? `${topLoss.label} concentra a maior taxa de não conforme do período (${formatPct(topLoss.ncPct)}).` : '',
-    `Total pago no período: ${s6Money(totals.pay)} (níveis ${s6Money(totals.bonus)} + pódio ${s6Money(totals.prize)}).`,
+    `Bonificação por nível: ${s6Money(totals.bonus)} (B1 ${s6Money(totals.tierValues[1])} · B2 ${s6Money(totals.tierValues[2])} · B3 ${s6Money(totals.tierValues[3])}).`,
+    `Pódio (premiação à parte): ${s6Money(totals.prize)}.`,
   ].filter(Boolean).join(' ');
 
   const kpiFill = (label) => {
@@ -4440,7 +4452,7 @@ function buildLastSixReportMarkup(model) {
     if (label === 'Não Conforme') return Math.min(agg.ncPct * 8, 100);
     if (label === 'Meta 1 atingida') return Math.min(agg.pctMeta1, 100);
     if (label === 'Disponibilidade') return Math.min(agg.availability, 100);
-    if (label === 'Bonificação por nível' || label === 'Total pago') return 100;
+    if (label === 'Bonificação B1 · B2 · B3' || label === 'Turnos com bônus') return 100;
     return agg.avgPerDay > 0 && maxAvg > 0 ? Math.min((agg.avgPerDay / maxAvg) * 100, 100) : 0;
   };
 
@@ -4506,7 +4518,7 @@ function buildLastSixReportMarkup(model) {
               <div>
                 <strong>${m.label}${m === best ? ' · melhor ritmo' : ''}${m === worst ? ' · menor ritmo' : ''}</strong>
                 <span>${m.hasData
-                  ? `${formatNumber(m.produced)} peças · ${formatPct(m.pctMeta1)} da meta 1 · ${formatPct(m.qualityPct)} conforme · ${formatPct(m.availability)} disponib. · pago ${s6Money(m.bonusTotal + m.prizeTotal)}`
+                  ? `${formatNumber(m.produced)} peças · ${formatPct(m.pctMeta1)} da meta 1 · ${formatPct(m.qualityPct)} conforme · ${formatPct(m.availability)} disponib. · bonificação ${s6Money(m.bonusTotal)}`
                   : 'Sem produção registrada'}</span>
                 <div class="prev-print-machine-bar">
                   <div class="prev-print-machine-track">
@@ -4524,18 +4536,18 @@ function buildLastSixReportMarkup(model) {
       </section>
 
       <section class="prev-print-block">
-        <h4>Bonificação — níveis e pódio</h4>
+        <h4>Bonificação — turnos por nível (B1 · B2 · B3)</h4>
         <div class="prev-print-list">
           ${data.map((m) => `
             <div class="prev-print-item">
               <div class="prev-print-rank">${m.label.slice(0, 3)}</div>
               <div>
                 <strong>${m.label}</strong>
-                <span>Sem bônus: ${m.tiers[0]} · Nível 1: ${m.tiers[1]} · Nível 2: ${m.tiers[2]} · Nível 3: ${m.tiers[3]}</span>
+                <span>Sem bônus: ${m.tiers[0]} · B1: ${m.tiers[1]} (${s6Money(m.tierValues[1])}) · B2: ${m.tiers[2]} (${s6Money(m.tierValues[2])}) · B3: ${m.tiers[3]} (${s6Money(m.tierValues[3])})</span>
               </div>
               <div class="prev-print-value">
-                <strong>${s6Money(m.bonusTotal + m.prizeTotal)}</strong>
-                <span>níveis ${s6Money(m.bonusTotal)} + pódio ${s6Money(m.prizeTotal)}</span>
+                <strong>${s6Money(m.bonusTotal)}</strong>
+                <span>bonificação</span>
               </div>
             </div>
           `).join('')}
@@ -4543,7 +4555,7 @@ function buildLastSixReportMarkup(model) {
       </section>
 
       <section class="prev-print-block">
-        <h4>Premiação — pódio mensal (ouro R$ 200 · prata R$ 150 · bronze R$ 100)</h4>
+        <h4>Premiação — pódio mensal (ouro R$ 200 · prata R$ 150 · bronze R$ 100) · total ${s6Money(totals.prize)}</h4>
         <div class="prev-print-list">
           ${data.map((m) => `
             <div class="prev-print-item">
