@@ -121,6 +121,10 @@ A autenticação é feita via header `X-API-Key`.
 | `POST` | `/api/entries` | Criar/atualizar entrada de produção |
 | `GET` | `/api/entries/{year}/{month}` | Listar entradas do mês |
 | `GET` | `/api/summary` | Resumo do dashboard (mês atual) |
+| `GET`/`PUT` | `/api/config/rates` | Metas por dia (pç/dia) vigentes no mês / salva uma vigência (`PUT` exige `X-API-Key`) |
+| `GET`/`PUT` | `/api/config/shift-minutes` | Minutos produtivos do turno vigentes na data / salva uma vigência (`PUT` exige `X-API-Key`) |
+| `GET` | `/api/config/history` | Vigências cadastradas |
+| `DELETE` | `/api/config/rates/...` e `/api/config/shift-minutes/...` | Remove uma vigência (exige `X-API-Key`) |
 | `GET` | `/tv` | Dashboard para TV |
 
 ---
@@ -137,6 +141,12 @@ A bonificação é calculada por excedente de produção em relação a três n�
 | 3 | Acima de meta 3 | Bônus com multiplicador 3 |
 
 As taxas e multiplicadores são configurados por máquina na tabela `machine_config`.
+
+---
+
+## Metas e horas do turno
+
+A aba **Metas e turnos** do Streamlit grava nas tabelas `machine_rates` (metas por dia, vigentes a partir de um mês) e `shift_minutes` (minutos produtivos do turno, vigentes a partir de uma data; `machine_id = 0` vale para todas as máquinas do turno). Sem registro, valem `machine_config` e os padrões T1 525 min / T2 435 min. As tabelas são criadas pelos scripts `sql/03` a `sql/05`.
 
 ---
 

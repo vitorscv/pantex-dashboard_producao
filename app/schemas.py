@@ -1,7 +1,7 @@
 from datetime import date, time
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ProductionEntry(BaseModel):
@@ -60,3 +60,26 @@ class DashboardSummary(BaseModel):
     grand_meta3: int
     days_recorded: int = 0
     nsm_pct: Optional[float] = None
+
+
+class RatesUpdate(BaseModel):
+    machine_id: int = Field(..., ge=1, le=7)
+    shift: int = Field(..., ge=1, le=2)
+    year: int = Field(..., ge=2020, le=2100)
+    month: int = Field(..., ge=1, le=12)
+    rate1: float = Field(..., gt=0, le=1_000_000)
+    rate2: float = Field(..., gt=0, le=1_000_000)
+    rate3: float = Field(..., gt=0, le=1_000_000)
+
+    @model_validator(mode="after")
+    def check_rate_order(self) -> "RatesUpdate":
+        if not self.rate1 <= self.rate2 <= self.rate3:
+            raise ValueError("As metas devem seguir a ordem meta 1 <= meta 2 <= meta 3")
+        return self
+
+
+class ShiftMinutesUpdate(BaseModel):
+    shift: int = Field(..., ge=1, le=2)
+    machine_id: int = Field(0, ge=0, le=7)  # 0 = todas as máquinas do turno
+    valid_from: date
+    minutes: int = Field(..., ge=30, le=1440)
