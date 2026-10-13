@@ -33,6 +33,9 @@ SQL_DIR  = BASE_DIR / "sql"
 SQL_FILES = [
     SQL_DIR / "01_create_tables.sql",
     SQL_DIR / "02_seed_machine_config.sql",
+    SQL_DIR / "03_shift_minutes.sql",
+    SQL_DIR / "04_machine_rates.sql",
+    SQL_DIR / "05_machine_month_meta.sql",
 ]
 
 #Helpers

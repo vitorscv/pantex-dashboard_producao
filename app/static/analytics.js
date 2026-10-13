@@ -1607,7 +1607,7 @@ function getQualityTone(pct) {
 function summarizeEfficiency(summary) {
   const shifts = summary.machines || [];
   const plannedMinutes = shifts.reduce((sum, item) => {
-    const shiftMinutes = item.shift === 2 ? 435 : 525;
+    const shiftMinutes = item.shift_minutes || (item.shift === 2 ? 435 : 525);
     return sum + (summary.business_days * shiftMinutes);
   }, 0);
   const totalDowntime = shifts.reduce((sum, item) => sum + (item.total_downtime || 0), 0);
@@ -3991,7 +3991,7 @@ function summarizeSixMonth(summary, period) {
   const second = sum('second_quality_qty');
   const nonConforme = repair + second;
   const meta1 = sum('meta1');
-  const planned = rows.reduce((total, row) => total + businessDays * (row.shift === 2 ? 435 : 525), 0);
+  const planned = rows.reduce((total, row) => total + businessDays * (row.shift_minutes || (row.shift === 2 ? 435 : 525)), 0);
   const downtime = sum('total_downtime');
 
   const tiers = [0, 0, 0, 0];

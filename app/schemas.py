@@ -47,6 +47,7 @@ class MachineStatus(BaseModel):
     mult3: float = 0.0
     ba_days: int = 0
     rate1_ba: int = 0
+    shift_minutes: int = 0
 
 
 class DashboardSummary(BaseModel):

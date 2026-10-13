@@ -46,7 +46,56 @@ def get_summary(
         )
         configs: list[dict[str, Any]] = cursor.fetchall()
 
-        
+        # Metas por dia vigentes no mês (sobrepõem as de machine_config)
+        cursor.execute(
+            """
+            SELECT DISTINCT ON (machine_id, shift) machine_id, shift, rate1, rate2, rate3
+            FROM machine_rates
+            WHERE valid_from <= %s
+            ORDER BY machine_id, shift, valid_from DESC
+            """,
+            (date(year, month, 1),),
+        )
+        for r in cursor.fetchall():
+            for cfg in configs:
+                if (cfg["machine_id"], cfg["shift"]) == (r["machine_id"], r["shift"]):
+                    cfg.update(
+                        rate1=float(r["rate1"]),
+                        rate2=float(r["rate2"]),
+                        rate3=float(r["rate3"]),
+                        rate_override=True,
+                    )
+
+        # Metas do mês fixadas manualmente (substituem as calculadas)
+        cursor.execute(
+            """
+            SELECT machine_id, shift, meta1, meta2, meta3, ignore_ba
+            FROM machine_month_meta
+            WHERE year = %s AND month = %s
+            """,
+            (year, month),
+        )
+        fixed_metas: dict[tuple[int, int], dict] = {
+            (r["machine_id"], r["shift"]): r for r in cursor.fetchall()
+        }
+
+        # Minutos produtivos por turno vigentes no início do mês (já descontado 1h almoço);
+        # usado só como referência na tela — a meta usa o turno vigente em cada lançamento
+        cursor.execute(
+            """
+            SELECT DISTINCT ON (shift, machine_id) shift, machine_id, minutes
+            FROM shift_minutes
+            WHERE valid_from <= %s
+            ORDER BY shift, machine_id, valid_from DESC
+            """,
+            (date(year, month, 1),),
+        )
+        # chave (turno, máquina); máquina 0 = padrão do turno
+        shift_minutes: dict[tuple[int, int], int] = {(1, 0): 525, (2, 0): 435}
+        shift_minutes.update(
+            {(r["shift"], r["machine_id"]): r["minutes"] for r in cursor.fetchall()}
+        )
+
         cursor.execute(
             """
             SELECT
@@ -56,6 +105,17 @@ def get_summary(
                 COALESCE(SUM(p.repair_qty), 0)         AS repair_qty,
                 COALESCE(SUM(p.second_quality_qty), 0) AS second_quality_qty,
                 COALESCE(SUM(p.downtime_minutes), 0)   AS total_downtime,
+                -- parada convertida em dias pelo turno vigente na data do lançamento
+                COALESCE(SUM(p.downtime_minutes::numeric / COALESCE(
+                    (SELECT sm.minutes
+                     FROM shift_minutes sm
+                     WHERE sm.shift = p.shift
+                       AND sm.machine_id IN (0, p.machine_id)
+                       AND sm.valid_from <= p.entry_date
+                     ORDER BY (sm.machine_id = p.machine_id) DESC, sm.valid_from DESC
+                     LIMIT 1),
+                    CASE WHEN p.shift = 2 THEN 435 ELSE 525 END
+                )), 0)                                 AS lost_days,
                 COALESCE(SUM(CASE WHEN p.boca_aberta THEN 1 ELSE 0 END), 0) AS ba_days,
                 (SELECT p2.start_time
                  FROM prod_entries p2
@@ -113,20 +173,31 @@ def get_summary(
         total_downtime: int = int(row.get("total_downtime", 0))
         ba_days: int = int(row.get("ba_days", 0))
 
-        # minutos produtivos padrão por turno (já descontado 1h almoço)
-        _shift_minutes = {1: 525, 2: 435}
-        standard_min: int = _shift_minutes.get(shift, 525)
-        effective_days: float = max(0.0, business_days - total_downtime / standard_min)
+        standard_min: int = shift_minutes.get(
+            (shift, mid), shift_minutes.get((shift, 0), 525)
+        )
+        lost_days: float = float(row.get("lost_days", 0))
+        effective_days: float = max(0.0, business_days - lost_days)
 
-        if cfg.get("rate1_ba"):
+        # metas de machine_rates têm decimais: arredonda ao inteiro mais próximo;
+        # as de machine_config mantêm o truncamento original (não altera meses passados)
+        to_meta = (lambda v: int(round(v))) if cfg.get("rate_override") else int
+
+        fixed = fixed_metas.get((mid, shift), {})
+
+        if cfg.get("rate1_ba") and not fixed.get("ignore_ba"):
             normal_days: float = max(0.0, effective_days - ba_days)
-            meta1 = int(normal_days * cfg["rate1"] + ba_days * cfg["rate1_ba"])
-            meta2 = int(normal_days * cfg["rate2"] + ba_days * cfg["rate2_ba"])
-            meta3 = int(normal_days * cfg["rate3"] + ba_days * cfg["rate3_ba"])
+            meta1 = to_meta(normal_days * cfg["rate1"] + ba_days * cfg["rate1_ba"])
+            meta2 = to_meta(normal_days * cfg["rate2"] + ba_days * cfg["rate2_ba"])
+            meta3 = to_meta(normal_days * cfg["rate3"] + ba_days * cfg["rate3_ba"])
         else:
-            meta1 = int(effective_days * cfg["rate1"])
-            meta2 = int(effective_days * cfg["rate2"])
-            meta3 = int(effective_days * cfg["rate3"])
+            meta1 = to_meta(effective_days * cfg["rate1"])
+            meta2 = to_meta(effective_days * cfg["rate2"])
+            meta3 = to_meta(effective_days * cfg["rate3"])
+
+        meta1 = fixed.get("meta1") or meta1
+        meta2 = fixed.get("meta2") or meta2
+        meta3 = fixed.get("meta3") or meta3
         saldo: int = total_produced - meta1
         pct_meta1: float = round(total_produced / meta1 * 100, 1) if meta1 > 0 else 0.0
 
@@ -186,6 +257,7 @@ def get_summary(
                 mult3=float(cfg["mult3"]),
                 ba_days=ba_days,
                 rate1_ba=int(cfg["rate1_ba"] or 0),
+                shift_minutes=standard_min,
             )
         )
 
