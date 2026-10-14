@@ -563,14 +563,18 @@ function calcRanking(machines) {
 function fmtShiftExtra(data) {
   let html = '';
 
-  if (data.start_time && data.end_time) {
+  // carga horária cadastrada da máquina/turno (já sem almoço); sem cadastro, usa início/fim lançados
+  let workMin = data.shift_minutes || 0;
+  if (!workMin && data.start_time && data.end_time) {
     const [sh, sm] = data.start_time.split(':').map(Number);
     const [eh, em] = data.end_time.split(':').map(Number);
     let minStart = sh * 60 + sm;
     let minEnd   = eh * 60 + em;
-    if (minEnd <= minStart) minEnd += 24 * 60; 
-    const diffMin = minEnd - minStart;
-    const workMin = Math.max(diffMin - 60, 0); // desconta 1h de almoço
+    if (minEnd <= minStart) minEnd += 24 * 60;
+    workMin = Math.max(minEnd - minStart - 60, 0); // desconta 1h de almoço
+  }
+
+  if (workMin > 0 && data.last_qty > 0) {
     const h   = Math.floor(workMin / 60);
     const m   = workMin % 60;
     const dur = h && m ? `${h}h ${m}min` : h ? `${h}h` : `${m}min`;
