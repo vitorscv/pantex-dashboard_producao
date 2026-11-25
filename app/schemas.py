@@ -4,6 +4,11 @@ from typing import Optional
 from pydantic import BaseModel, Field, model_validator
 
 
+class DowntimeCause(BaseModel):
+    code: int = Field(..., ge=1, le=7)
+    minutes: int = Field(..., gt=0)
+
+
 class ProductionEntry(BaseModel):
     entry_date: date
     machine_id: int = Field(..., ge=1, le=7)
@@ -14,8 +19,18 @@ class ProductionEntry(BaseModel):
     start_time: Optional[time] = None
     end_time: Optional[time] = None
     downtime_minutes: int = Field(0, ge=0)
+    downtime_causes: list[DowntimeCause] = Field(default_factory=list)
     obs: Optional[str] = None
     boca_aberta: bool = False
+
+    @model_validator(mode="after")
+    def _causes_match_downtime(self) -> "ProductionEntry":
+        if self.downtime_causes:
+            if len({c.code for c in self.downtime_causes}) != len(self.downtime_causes):
+                raise ValueError("Código de parada repetido")
+            if sum(c.minutes for c in self.downtime_causes) != self.downtime_minutes:
+                raise ValueError("A soma das causas deve ser igual a downtime_minutes")
+        return self
 
 
 class MachineStatus(BaseModel):
@@ -42,12 +57,14 @@ class MachineStatus(BaseModel):
     end_time: Optional[str] = None
     last_qty: int = 0
     total_downtime: int = 0
+    bonus_downtime: int = 0
     mult1: float = 0.0
     mult2: float = 0.0
     mult3: float = 0.0
     ba_days: int = 0
     rate1_ba: int = 0
     shift_minutes: int = 0
+    last_shift_minutes: int = 0
 
 
 class DashboardSummary(BaseModel):

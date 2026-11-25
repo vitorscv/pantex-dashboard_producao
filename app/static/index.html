@@ -578,14 +578,16 @@ function fmtShiftExtra(data) {
     const h   = Math.floor(workMin / 60);
     const m   = workMin % 60;
     const dur = h && m ? `${h}h ${m}min` : h ? `${h}h` : `${m}min`;
-    const hDec  = workMin / 60;
+    // pç/h do último lançamento usa as horas vigentes naquele dia
+    const hDec  = (data.last_shift_minutes || workMin) / 60;
     const prodH = hDec > 0 ? Math.round((data.last_qty || 0) / hDec) : 0;
     html += `<div class="se-time">${dur} · ${fmt(prodH)} pç/h</div>`;
   }
 
-  if (data.total_downtime > 0) {
-    const dh = Math.floor(data.total_downtime / 60);
-    const dm = data.total_downtime % 60;
+  // só as paradas que afetam a bonificação (causas 1 a 4); o total completo fica na análise de dados
+  if (data.bonus_downtime > 0) {
+    const dh = Math.floor(data.bonus_downtime / 60);
+    const dm = data.bonus_downtime % 60;
     const dlbl = dh && dm ? `${dh}h ${dm}min` : dh ? `${dh}h` : `${dm}min`;
     html += `<div class="se-downtime">⚠ ${dlbl} parada</div>`;
   }
@@ -708,7 +710,7 @@ function shiftHTMLRank(data) {
       <div class="bar-fill ${BAR_CLS[data.bonus_tier]}" style="width:${barW}%"></div>
     </div>
     <div class="shift-meta">Meta 1: <span>${fmt(data.meta1)}</span></div>
-    ${data.rate1_ba ? `<div class="shift-meta" style="color:#a78bfa">Meta Boca Aberta: <span style="color:#c4b5fd">${fmt(data.rate1_ba)} pç/dia</span></div>` : ''}
+    ${data.rate1_ba ? `<div class="shift-meta" style="color:#a78bfa">${data.machine_id === 5 && data.shift === 2 ? 'Meta quarta (6h)' : 'Meta Boca Aberta'}: <span style="color:#c4b5fd">${fmt(data.rate1_ba)} pç/dia</span></div>` : ''}
     <div class="bonus-row">
       <span class="bonus-badge ${TIER_CLS[data.bonus_tier]}">${TIER_LABEL[data.bonus_tier]}</span>
       ${bonus}

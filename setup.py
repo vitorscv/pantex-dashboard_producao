@@ -36,6 +36,7 @@ SQL_FILES = [
     SQL_DIR / "03_shift_minutes.sql",
     SQL_DIR / "04_machine_rates.sql",
     SQL_DIR / "05_machine_month_meta.sql",
+    SQL_DIR / "06_downtime_code.sql",
 ]
 
 #Helpers

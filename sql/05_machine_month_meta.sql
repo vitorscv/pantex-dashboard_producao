@@ -17,7 +17,7 @@ ALTER TABLE machine_month_meta
 
 INSERT INTO machine_month_meta (machine_id, shift, year, month, meta1, meta2, meta3, ignore_ba)
 VALUES
-    (6, 1, 2026, 10, NULL, NULL, NULL, TRUE)  -- M6 T1: 6.500 / 7.500 / 8.500 pç/dia, sem boca aberta
+    (6, 1, 2026, 10, NULL, NULL, NULL, FALSE)  -- M6 T1: boca aberta volta a contar em outubro
 ON CONFLICT (machine_id, shift, year, month) DO UPDATE
 SET meta1     = EXCLUDED.meta1,
     meta2     = EXCLUDED.meta2,

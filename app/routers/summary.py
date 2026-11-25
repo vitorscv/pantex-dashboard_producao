@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Query
@@ -6,9 +6,13 @@ from fastapi import APIRouter, Query
 from app.database import get_db
 from app.schemas import DashboardSummary, MachineStatus
 from app.services.bonus import build_bonus_display, calculate_bonus
-from app.services.calendar_svc import get_business_days
+from app.services.calendar_svc import count_business_days, get_business_days
 
 router = APIRouter()
+
+# Causas de parada que afetam meta e bonificação: manutenção, falta de MP, reuniões e falta de energia.
+# As demais (falta de OP, troca de bobina, setup...) só aparecem na análise de dados.
+BONUS_DOWNTIME_CODES = (1, 2, 3, 4)
 
 
 @router.get("/summary", response_model=DashboardSummary)
@@ -46,25 +50,50 @@ def get_summary(
         )
         configs: list[dict[str, Any]] = cursor.fetchall()
 
-        # Metas por dia vigentes no mês (sobrepõem as de machine_config)
+        # Metas por dia vigentes no mês (sobrepõem as de machine_config).
+        # Uma vigência com valid_from no meio do mês vale só dali em diante: a meta usa a média
+        # das metas por dia ponderada pelos dias úteis de cada trecho; a tela mostra a meta nova.
+        month_start = date(year, month, 1)
+        month_end = date(year + (month == 12), month % 12 + 1, 1)
         cursor.execute(
             """
-            SELECT DISTINCT ON (machine_id, shift) machine_id, shift, rate1, rate2, rate3
+            SELECT machine_id, shift, valid_from, rate1, rate2, rate3
             FROM machine_rates
-            WHERE valid_from <= %s
-            ORDER BY machine_id, shift, valid_from DESC
+            WHERE valid_from < %s
+            ORDER BY machine_id, shift, valid_from
             """,
-            (date(year, month, 1),),
+            (month_end,),
         )
+        rate_rows: dict[tuple[int, int], list[dict[str, Any]]] = {}
         for r in cursor.fetchall():
-            for cfg in configs:
-                if (cfg["machine_id"], cfg["shift"]) == (r["machine_id"], r["shift"]):
-                    cfg.update(
-                        rate1=float(r["rate1"]),
-                        rate2=float(r["rate2"]),
-                        rate3=float(r["rate3"]),
-                        rate_override=True,
-                    )
+            rate_rows.setdefault((r["machine_id"], r["shift"]), []).append(r)
+        for cfg in configs:
+            cfg["disp_rates"] = (cfg["rate1"], cfg["rate2"], cfg["rate3"])
+            rows = rate_rows.get((cfg["machine_id"], cfg["shift"]), [])
+            if not rows:
+                continue
+            before = [r for r in rows if r["valid_from"] <= month_start]
+            within = [r for r in rows if r["valid_from"] > month_start]
+            # trechos (início, metas) do mês; sem vigência anterior, vale a de machine_config
+            segments = [(month_start, (before[-1]["rate1"], before[-1]["rate2"], before[-1]["rate3"]))] \
+                if before else [(month_start, (cfg["rate1"], cfg["rate2"], cfg["rate3"]))]
+            segments += [(r["valid_from"], (r["rate1"], r["rate2"], r["rate3"])) for r in within]
+            weights = [
+                count_business_days(start, segments[i + 1][0] if i + 1 < len(segments) else month_end)
+                for i, (start, _) in enumerate(segments)
+            ]
+            total_w = sum(weights)
+            if total_w == 0:
+                weights, total_w = [0] * len(segments), 1
+                weights[-1] = 1
+            blended = tuple(
+                sum(float(seg[1][k]) * w for seg, w in zip(segments, weights)) / total_w
+                for k in range(3)
+            )
+            cfg.update(
+                rate1=blended[0], rate2=blended[1], rate3=blended[2], rate_override=True,
+                disp_rates=tuple(float(v) for v in segments[-1][1]),
+            )
 
         # Metas do mês fixadas manualmente (substituem as calculadas)
         cursor.execute(
@@ -79,8 +108,9 @@ def get_summary(
             (r["machine_id"], r["shift"]): r for r in cursor.fetchall()
         }
 
-        # Minutos produtivos por turno vigentes no início do mês (já descontado 1h almoço);
-        # usado só como referência na tela — a meta usa o turno vigente em cada lançamento
+        # Minutos produtivos por turno vigentes hoje (ou no fim do mês, se já passou; já descontado
+        # 1h almoço); usado só como referência na tela — a meta usa o turno vigente em cada lançamento
+        ref_date = max(month_start, min(today, month_end - timedelta(days=1)))
         cursor.execute(
             """
             SELECT DISTINCT ON (shift, machine_id) shift, machine_id, minutes
@@ -88,13 +118,19 @@ def get_summary(
             WHERE valid_from <= %s
             ORDER BY shift, machine_id, valid_from DESC
             """,
-            (date(year, month, 1),),
+            (ref_date,),
         )
         # chave (turno, máquina); máquina 0 = padrão do turno
         shift_minutes: dict[tuple[int, int], int] = {(1, 0): 525, (2, 0): 435}
         shift_minutes.update(
             {(r["shift"], r["machine_id"]): r["minutes"] for r in cursor.fetchall()}
         )
+
+        # Histórico completo de vigências: o pç/h usa os minutos vigentes na data do último lançamento
+        cursor.execute(
+            "SELECT shift, machine_id, valid_from, minutes FROM shift_minutes"
+        )
+        shift_history: list[dict[str, Any]] = cursor.fetchall()
 
         cursor.execute(
             """
@@ -104,9 +140,12 @@ def get_summary(
                 COALESCE(SUM(p.quantity), 0)           AS total_produced,
                 COALESCE(SUM(p.repair_qty), 0)         AS repair_qty,
                 COALESCE(SUM(p.second_quality_qty), 0) AS second_quality_qty,
+                -- total de paradas (todas as causas): usado na análise de dados
                 COALESCE(SUM(p.downtime_minutes), 0)   AS total_downtime,
-                -- parada convertida em dias pelo turno vigente na data do lançamento
-                COALESCE(SUM(p.downtime_minutes::numeric / COALESCE(
+                -- só as causas que afetam a bonificação (lançamentos sem causas contam inteiros)
+                COALESCE(SUM(GREATEST(p.downtime_minutes - ex.minutes, 0)), 0) AS bonus_downtime,
+                -- parada da bonificação convertida em dias pelo turno vigente na data do lançamento
+                COALESCE(SUM(GREATEST(p.downtime_minutes - ex.minutes, 0)::numeric / COALESCE(
                     (SELECT sm.minutes
                      FROM shift_minutes sm
                      WHERE sm.shift = p.shift
@@ -139,13 +178,29 @@ def get_summary(
                    AND p2.shift      = p.shift
                    AND EXTRACT(YEAR  FROM p2.entry_date) = %s
                    AND EXTRACT(MONTH FROM p2.entry_date) = %s
-                 ORDER BY p2.entry_date DESC LIMIT 1) AS last_qty
+                 ORDER BY p2.entry_date DESC LIMIT 1) AS last_qty,
+                (SELECT p2.entry_date
+                 FROM prod_entries p2
+                 WHERE p2.machine_id = p.machine_id
+                   AND p2.shift      = p.shift
+                   AND EXTRACT(YEAR  FROM p2.entry_date) = %s
+                   AND EXTRACT(MONTH FROM p2.entry_date) = %s
+                 ORDER BY p2.entry_date DESC LIMIT 1) AS last_date
             FROM prod_entries p
+            LEFT JOIN LATERAL (
+                -- minutos das causas que não afetam a bonificação (fora de 1 a 4)
+                SELECT COALESCE(SUM(dc.minutes), 0) AS minutes
+                FROM downtime_causes dc
+                WHERE dc.entry_date = p.entry_date
+                  AND dc.machine_id = p.machine_id
+                  AND dc.shift      = p.shift
+                  AND dc.code NOT IN %s
+            ) ex ON TRUE
             WHERE EXTRACT(YEAR  FROM p.entry_date) = %s
               AND EXTRACT(MONTH FROM p.entry_date) = %s
             GROUP BY p.machine_id, p.shift
             """,
-            (year, month, year, month, year, month, year, month),
+            (year, month, year, month, year, month, year, month, BONUS_DOWNTIME_CODES, year, month),
         )
         totals: dict[tuple[int, int], dict] = {
             (r["machine_id"], r["shift"]): r
@@ -176,6 +231,18 @@ def get_summary(
         standard_min: int = shift_minutes.get(
             (shift, mid), shift_minutes.get((shift, 0), 525)
         )
+        last_date = row.get("last_date")
+        last_minutes: int = standard_min
+        if last_date:
+            # registro mais recente vigente na data; máquina específica tem prioridade sobre o padrão (0)
+            valid = [
+                h for h in shift_history
+                if h["shift"] == shift and h["machine_id"] in (0, mid) and h["valid_from"] <= last_date
+            ]
+            if valid:
+                last_minutes = max(
+                    valid, key=lambda h: (h["machine_id"] == mid, h["valid_from"])
+                )["minutes"]
         lost_days: float = float(row.get("lost_days", 0))
         effective_days: float = max(0.0, business_days - lost_days)
 
@@ -213,9 +280,9 @@ def get_summary(
 
         bonus_display = build_bonus_display(
             business_days=business_days,
-            rate1=cfg["rate1"],
-            rate2=cfg["rate2"],
-            rate3=cfg["rate3"],
+            rate1=cfg["disp_rates"][0],
+            rate2=cfg["disp_rates"][1],
+            rate3=cfg["disp_rates"][2],
             mult1=cfg["mult1"],
             mult2=cfg["mult2"],
             mult3=cfg["mult3"],
@@ -239,9 +306,9 @@ def get_summary(
                 saldo=saldo,
                 bonus_tier=bonus_tier,
                 bonus_value=bonus_value,
-                rate1=int(bonus_display["rate1"]),
-                rate2=int(bonus_display["rate2"]),
-                rate3=int(bonus_display["rate3"]),
+                rate1=int(round(bonus_display["rate1"])),
+                rate2=int(round(bonus_display["rate2"])),
+                rate3=int(round(bonus_display["rate3"])),
                 bonus_ref1=str(bonus_display["bonus_ref1"]),
                 bonus_ref2=str(bonus_display["bonus_ref2"]),
                 bonus_ref3=str(bonus_display["bonus_ref3"]),
@@ -252,12 +319,14 @@ def get_summary(
                 end_time=str(end_t) if end_t else None,
                 last_qty=int(row.get("last_qty") or 0),
                 total_downtime=total_downtime,
+                bonus_downtime=int(row.get("bonus_downtime", 0)),
                 mult1=float(cfg["mult1"]),
                 mult2=float(cfg["mult2"]),
                 mult3=float(cfg["mult3"]),
                 ba_days=ba_days,
                 rate1_ba=int(cfg["rate1_ba"] or 0),
                 shift_minutes=standard_min,
+                last_shift_minutes=last_minutes,
             )
         )
 

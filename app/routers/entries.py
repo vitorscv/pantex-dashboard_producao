@@ -39,6 +39,20 @@ def create_entry(
                 entry.downtime_minutes, entry.obs, entry.boca_aberta,
             ),
         )
+        # causas da parada: substitui as do lançamento (relançar corrige o detalhamento)
+        key = (entry.entry_date, entry.machine_id, entry.shift)
+        cursor.execute(
+            "DELETE FROM downtime_causes WHERE entry_date = %s AND machine_id = %s AND shift = %s",
+            key,
+        )
+        for cause in entry.downtime_causes:
+            cursor.execute(
+                """
+                INSERT INTO downtime_causes (entry_date, machine_id, shift, code, minutes)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (*key, cause.code, cause.minutes),
+            )
     return {"ok": True}
 
 

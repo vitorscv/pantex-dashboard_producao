@@ -95,6 +95,12 @@ data_extenso = (
 )
 
 
+DOWNTIME_CODES = {
+    1: "Manutenção", 2: "Falta de MP", 3: "Reuniões", 4: "Falta de energia", 5: "Falta de OP",
+    6: "Troca de bobina", 7: "Setup",
+}
+
+
 def parse_qty(raw: str, label: str) -> tuple[int, str | None]:
     v = raw.strip()
     if not v:
@@ -166,11 +172,21 @@ with tab_lanc:
     downtime_values: dict[tuple[int, int], tuple[str, str]]                              = {}
     ba_values:       dict[tuple[int, int], bool]                                         = {}
 
+    cause_values:    dict[tuple[int, int], dict[int, int]]                               = {}
+
+    COL_WIDTHS = [0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 1.3, 2.0, 0.5]
+
     BA_MACHINES = {6, 7}
+    BA_SLOTS = {(5, 2)}  # máquina/turno específicos com BA (M5 T2: 6h nas quartas)
 
     COL_HDR = (
         "font-size:.72rem;font-weight:700;letter-spacing:.06em;"
         "padding-bottom:.1rem;display:block;"
+    )
+
+    st.caption(
+        "PARADAS: clique no botão da máquina e informe os minutos de cada causa — "
+        + "  ·  ".join(f"{k} = {v}" for k, v in DOWNTIME_CODES.items())
     )
 
     col_t1, col_t2 = st.columns(2)
@@ -184,7 +200,7 @@ with tab_lanc:
             )
 
             # ── Cabeçalho das colunas ───────────────────────────────────────────
-            hc = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.0, 0.5])
+            hc = st.columns(COL_WIDTHS)
             hc[0].markdown(f"<span style='{COL_HDR}color:transparent;'>—</span>", unsafe_allow_html=True)
             hc[1].markdown(f"<span style='{COL_HDR}color:#1D9E75;'>QTD</span>", unsafe_allow_html=True)
             for txt, col in [("REP", hc[2]), ("2ªQ", hc[3]), ("INÍCIO", hc[4]), ("FIM", hc[5])]:
@@ -192,13 +208,13 @@ with tab_lanc:
                     f"<span style='{COL_HDR}color:#EF9F27;'>{txt}</span>",
                     unsafe_allow_html=True,
                 )
-            hc[6].markdown(f"<span style='{COL_HDR}color:#e05252;'>PARADA</span>", unsafe_allow_html=True)
+            hc[6].markdown(f"<span style='{COL_HDR}color:#e05252;'>PARADAS</span>", unsafe_allow_html=True)
             hc[7].markdown(f"<span style='{COL_HDR}color:#e05252;'>OBSERVAÇÃO</span>", unsafe_allow_html=True)
             hc[8].markdown(f"<span style='{COL_HDR}color:#a78bfa;'>BA</span>", unsafe_allow_html=True)
 
             # ── Linha por máquina ───────────────────────────────────────────────
             for i in range(1, 8):
-                c_lbl, c0, c1, c2, c3, c4, c5, c6, c7 = st.columns([0.6, 1.2, 0.8, 0.8, 1.2, 1.2, 0.7, 2.0, 0.5])
+                c_lbl, c0, c1, c2, c3, c4, c5, c6, c7 = st.columns(COL_WIDTHS)
 
                 c_lbl.markdown(
                     f"<p style='color:#6b6a72;font-size:.75rem;font-weight:600;"
@@ -246,13 +262,30 @@ with tab_lanc:
                     )
 
                 with c5:
-                    parada = st.text_input(
-                        f"par_{shift}_{i}",
-                        value="",
-                        placeholder="min",
-                        key=f"t{shift}_m{i}_par",
-                        label_visibility="collapsed",
+                    # o rótulo usa os valores da execução anterior (o widget atualiza ao mudar)
+                    prev_total = sum(
+                        int(st.session_state.get(f"t{shift}_m{i}_p{code}", 0) or 0)
+                        for code in DOWNTIME_CODES
                     )
+                    with st.popover(
+                        f"{prev_total} min" if prev_total else "＋",
+                        use_container_width=True,
+                    ):
+                        st.markdown(f"**Paradas · M{i} T{shift}** (minutos por causa)")
+                        cause_minutes: dict[int, int] = {}
+                        for code, name in DOWNTIME_CODES.items():
+                            cause_minutes[code] = int(st.number_input(
+                                f"{code} · {name}",
+                                min_value=0,
+                                step=5,
+                                value=None,
+                                placeholder="0",
+                                key=f"t{shift}_m{i}_p{code}",
+                            ) or 0)
+                        total_par = sum(cause_minutes.values())
+                        st.caption(f"Total: {total_par} min ({total_par // 60}h {total_par % 60:02d}min)")
+                    cause_values[(i, shift)] = cause_minutes
+                    parada = str(sum(cause_minutes.values()))
                 with c6:
                     obs_txt = st.text_input(
                         f"obs_{shift}_{i}",
@@ -263,7 +296,7 @@ with tab_lanc:
                     )
 
                 with c7:
-                    if i in BA_MACHINES:
+                    if i in BA_MACHINES or (i, shift) in BA_SLOTS:
                         ba_values[(i, shift)] = st.checkbox(
                             f"ba_{shift}_{i}",
                             value=False,
@@ -337,7 +370,12 @@ with tab_lanc:
                     h_ini, h_fim = time_values[(machine_id, shift)]
 
                     par_raw, obs_raw = downtime_values.get((machine_id, shift), ("", ""))
-                    par_min = int(par_raw.strip()) if par_raw.strip().isdigit() else 0
+                    causes = [
+                        {"code": code, "minutes": minutes}
+                        for code, minutes in cause_values.get((machine_id, shift), {}).items()
+                        if minutes > 0
+                    ]
+                    par_min = sum(c["minutes"] for c in causes)
 
                     payload = {
                         "entry_date":          str(entry_date),
@@ -349,6 +387,7 @@ with tab_lanc:
                         "start_time":          str(h_ini) if h_ini else None,
                         "end_time":            str(h_fim) if h_fim else None,
                         "downtime_minutes":    par_min,
+                        "downtime_causes":     causes,
                         "obs":                 obs_raw.strip() or None,
                         "boca_aberta":         ba_values.get((machine_id, shift), False),
                     }
