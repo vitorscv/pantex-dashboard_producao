@@ -3152,7 +3152,7 @@ function buildPreviousDayReportMarkup(data, options = {}) {
                   <div class="prev-print-rank">${index + 1}</div>
                   <div>
                     <strong>${escapeHTML(item.label)}</strong>
-                    <span>${formatPct(item.quality)} de conformidade · ${formatPct(item.nonConformePctByProduced)} não conforme</span>
+                    <span>${group.items.length > 4 ? `${formatPct(item.quality)} conf.` : `${formatPct(item.quality)} conforme · ${formatPct(item.nonConformePctByProduced)} não conf.`}</span>
                     <div class="prev-print-machine-bar">
                       <div class="prev-print-machine-track">
                         <div class="prev-print-machine-fill" style="width:${maxProduced > 0 ? (item.produced / maxProduced) * 100 : 0}%"></div>
