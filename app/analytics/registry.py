@@ -3,6 +3,7 @@ from typing import Callable
 from pydantic import BaseModel
 
 from app.analytics.schemas import StatMeta
+from app.analytics.stats.paradas import get_downtime_stat
 from app.analytics.stats.qualidade import get_quality_stat
 from app.analytics.stats.qualidade_comparativo import get_quality_comparison
 from app.analytics.stats.qualidade_diaria import get_quality_daily
@@ -50,6 +51,14 @@ STATS_REGISTRY: dict[str, tuple[StatMeta, Callable[[int, int], BaseModel]]] = {
             description="Ritmo diario de producao e nao conforme dentro do mes selecionado.",
         ),
         get_quality_daily,
+    ),
+    "paradas": (
+        StatMeta(
+            id="paradas",
+            title="Paradas por Causa",
+            description="Minutos parados no mes por causa, turno, maquina e dia, com comparacao com o mes anterior.",
+        ),
+        get_downtime_stat,
     ),
 }
 

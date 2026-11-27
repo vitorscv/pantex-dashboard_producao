@@ -4,7 +4,8 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from app.analytics.registry import STATS_REGISTRY, list_stats
-from app.analytics.schemas import QualityStat, StatMeta
+from app.analytics.schemas import DowntimeStat, QualityStat, StatMeta
+from app.analytics.stats.paradas import get_downtime_day
 from app.analytics.stats.qualidade import get_quality_stat
 
 router = APIRouter()
@@ -24,6 +25,11 @@ def get_qualidade(
     year = year if year is not None else today.year
     month = month if month is not None else today.month
     return get_quality_stat(year, month)
+
+
+@router.get("/paradas/dia", response_model=DowntimeStat)
+def get_paradas_dia(ref_date: date = Query(alias="date")) -> DowntimeStat:
+    return get_downtime_day(ref_date)
 
 
 @router.get("/{stat_id}", response_model=None)

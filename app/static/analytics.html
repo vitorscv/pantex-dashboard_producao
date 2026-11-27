@@ -165,12 +165,34 @@
           <div id="eff-turn-msg" class="msg" hidden></div>
         </section>
 
+        <section class="panel panel-span" id="panel-eff-causes">
+          <div class="panel-title">Paradas por causa</div>
+          <div id="eff-cause-kpis" class="eff-cause-kpis"></div>
+          <div id="eff-cause-note" class="eff-cause-note" hidden></div>
+          <div class="eff-cause-layout">
+            <div id="eff-cause-list" class="eff-cause-list"></div>
+            <aside class="eff-cause-side">
+              <div class="quality-col-title">Impacto na meta e na bonificação</div>
+              <div id="eff-impact" class="eff-impact"></div>
+              <div class="quality-col-title">Leituras automáticas</div>
+              <ul id="eff-insights" class="eff-insights"></ul>
+            </aside>
+          </div>
+          <div id="eff-cause-msg" class="msg" hidden></div>
+        </section>
+
         <section class="panel panel-span">
-          <div class="panel-title">Paradas acumuladas por máquina</div>
+          <div class="panel-title">Paradas por máquina e causa</div>
           <div id="eff-downtime-summary" class="eff-downtime-summary"></div>
           <div class="chart-wrap chart-wrap-downtime"><canvas id="chart-efficiency-downtime"></canvas></div>
           <div id="eff-downtime-rank" class="eff-downtime-rank" hidden></div>
           <div id="eff-downtime-msg" class="msg" hidden></div>
+        </section>
+
+        <section class="panel panel-span">
+          <div class="panel-title">Quando as paradas aconteceram</div>
+          <div class="chart-wrap"><canvas id="chart-efficiency-downtime-daily"></canvas></div>
+          <div id="eff-daily-msg" class="msg" hidden></div>
         </section>
       </div>
     </section>

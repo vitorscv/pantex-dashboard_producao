@@ -27,24 +27,55 @@ function getYieldStatus(pctConforme) {
 }
 
 function getStatusColor(status) {
-  if (status === 'good') return '#27C77A';
-  if (status === 'warn') return '#EF9F27';
-  return '#e05252';
+  if (status === 'good') return THEME.tone.good;
+  if (status === 'warn') return THEME.tone.warn;
+  return THEME.tone.bad;
 }
 
 const MESES     = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
+/*  Tema — cores lidas no momento de desenhar (gráficos em canvas não enxergam variáveis CSS)  */
+const isLightTheme = () => document.documentElement.classList.contains('light');
+const THEME = {
+  /* texto de destaque (pastéis no escuro, tons fortes no claro) */
+  get good()    { return isLightTheme() ? '#0d7d4c' : '#8df0b2'; },
+  get warn()    { return isLightTheme() ? '#9a5b00' : '#ffd48a'; },
+  get bad()     { return isLightTheme() ? '#b83030' : '#ff9c9c'; },
+  /* texto neutro em gráficos */
+  get soft()    { return isLightTheme() ? '#2f4660' : '#c8d8ea'; },
+  get mute()    { return isLightTheme() ? '#667b93' : '#6888a8'; },
+  get strong()  { return isLightTheme() ? '#0f2036' : '#f3f7fa'; },
+  get grid()    { return isLightTheme() ? 'rgba(96,120,152,.18)' : 'rgba(136,160,184,.12)'; },
+  get surface() { return isLightTheme() ? '#ffffff' : '#0d2040'; },
+  get card()    { return isLightTheme() ? '#ffffff' : '#122338'; },
+  get info()    { return isLightTheme() ? '#3b78d4' : '#8ab8ff'; },
+  /* semáforo de status: serve para texto e para preenchimento */
+  get tone() {
+    return isLightTheme()
+      ? { good: '#12875a', warn: '#b86e00', bad: '#cf3b3b' }
+      : { good: '#27C77A', warn: '#EF9F27', bad: '#e05252' };
+  },
+};
+
+function applyChartTheme() {
+  const light = isLightTheme();
+  Chart.defaults.color = THEME.mute;
+  Chart.defaults.scale.ticks.color = THEME.mute;
+  Chart.defaults.scale.grid.color = light ? 'rgba(96,120,152,.16)' : 'rgba(200,216,234,.08)';
+  Chart.defaults.scale.grid.tickColor = Chart.defaults.scale.grid.color;
+  Chart.defaults.plugins.tooltip.backgroundColor = light ? '#ffffff' : '#0d2040';
+  Chart.defaults.plugins.tooltip.titleColor = THEME.soft;
+  Chart.defaults.plugins.tooltip.bodyColor = light ? '#12875a' : '#27C77A';
+  Chart.defaults.plugins.tooltip.borderColor = light ? '#d3dce8' : '#1a3356';
+}
+applyChartTheme();
+
 /*  Chart.js — configuração global compartilhada por todos os gráficos da página  */
 Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
-Chart.defaults.color = '#6888a8';
 Chart.defaults.interaction = { mode: 'nearest', intersect: false };
 Chart.defaults.plugins.legend.display = false;
-Chart.defaults.plugins.tooltip.backgroundColor = '#0d2040';
-Chart.defaults.plugins.tooltip.titleColor = '#c8d8ea';
-Chart.defaults.plugins.tooltip.bodyColor = '#27C77A';
-Chart.defaults.plugins.tooltip.borderColor = '#1a3356';
 Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.padding = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 8;
@@ -60,11 +91,230 @@ Chart.defaults.elements.point.hoverRadius = 4;
 Chart.defaults.elements.line.borderWidth = 2;
 Chart.defaults.elements.line.tension = .3;
 Chart.defaults.datasets.bar.maxBarThickness = 32;
-Chart.defaults.scale.grid.color = 'rgba(200,216,234,.08)';
-Chart.defaults.scale.grid.tickColor = 'rgba(200,216,234,.08)';
 Chart.defaults.scale.grid.borderDash = [3, 3];
-Chart.defaults.scale.ticks.color = '#6888a8';
 Chart.defaults.scale.ticks.font = { family: "'Inter', system-ui, sans-serif", weight: '500' };
+
+/*  ── Kit de interação dos gráficos ───────────────────────────────────────────
+    Tooltip em HTML, crosshair, realce de barra e donut interativo.
+    Tudo é opt-out/opt-in por opção do gráfico e nada altera os dados exibidos.  */
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// atribuir propriedade a propriedade: o Chart.js lê as chaves de defaults.animation (substituir o objeto quebra as animações de cor)
+Chart.defaults.animation.duration = REDUCED_MOTION ? 0 : 650;
+Chart.defaults.animation.easing = 'easeOutQuart';
+Chart.defaults.transitions.active.animation.duration = REDUCED_MOTION ? 0 : 160;
+
+/* 1) Tooltip: um card HTML para todos os gráficos. Os textos vêm dos callbacks de cada gráfico
+      (já formatados); aqui só mudamos a apresentação. Dados entram por textContent, nunca innerHTML. */
+let chartTipEl = null;
+function getChartTipEl() {
+  if (!chartTipEl) {
+    chartTipEl = document.createElement('div');
+    chartTipEl.className = 'chart-tip';
+    chartTipEl.setAttribute('role', 'tooltip');
+    document.body.appendChild(chartTipEl);
+  }
+  return chartTipEl;
+}
+function hideChartTip() {
+  if (chartTipEl) chartTipEl.classList.remove('show');
+}
+function chartTipRow(parent, color, label, value) {
+  const row = document.createElement('div');
+  row.className = 'chart-tip-row';
+  const key = document.createElement('span');
+  key.className = 'chart-tip-key';
+  if (color) key.style.background = color;
+  const lab = document.createElement('span');
+  lab.className = 'chart-tip-label';
+  lab.textContent = label;
+  const val = document.createElement('span');
+  val.className = 'chart-tip-value';
+  val.textContent = value;
+  row.append(key, lab, val);
+  parent.appendChild(row);
+}
+function externalTooltip(context) {
+  const { chart, tooltip } = context;
+  const el = getChartTipEl();
+  if (!tooltip || tooltip.opacity === 0) { el.classList.remove('show'); return; }
+
+  el.replaceChildren();
+  (tooltip.title || []).filter(Boolean).forEach((t) => {
+    const title = document.createElement('div');
+    title.className = 'chart-tip-title';
+    title.textContent = t;
+    el.appendChild(title);
+  });
+  (tooltip.body || []).forEach((item, i) => {
+    const swatch = tooltip.labelColors && tooltip.labelColors[i];
+    const usable = (c) => (typeof c === 'string' && c !== 'transparent' && !/,\s*0(\.0+)?\)$/.test(c) ? c : null);
+    const dp = tooltip.dataPoints && tooltip.dataPoints[i];
+    const isLine = dp && chart.getDatasetMeta(dp.datasetIndex).type === 'line';
+    // linhas: a cor da série (o "borderColor" do tooltip é a cor do anel do ponto); demais: preenchimento
+    const lineColor = isLine ? usable(chart.data.datasets[dp.datasetIndex].borderColor) : null;
+    const color = swatch
+      ? (lineColor || usable(swatch.backgroundColor) || usable(swatch.borderColor))
+      : null;
+    (item.lines || []).forEach((raw, j) => {
+      const text = String(raw).trim();
+      const cut = text.indexOf(': ');
+      if (cut > 0) chartTipRow(el, j === 0 ? color : null, text.slice(0, cut), text.slice(cut + 2));
+      else chartTipRow(el, j === 0 ? color : null, '', text);
+    });
+  });
+  [...(tooltip.afterBody || []), ...(tooltip.footer || [])].filter(Boolean).forEach((t) => {
+    const foot = document.createElement('div');
+    foot.className = 'chart-tip-foot';
+    foot.textContent = t;
+    el.appendChild(foot);
+  });
+
+  const rect = chart.canvas.getBoundingClientRect();
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  let left = rect.left + tooltip.caretX + 16;
+  if (left + w > window.innerWidth - 8) left = rect.left + tooltip.caretX - w - 16;
+  left = Math.max(8, left);
+  let top = rect.top + tooltip.caretY - h / 2;
+  top = Math.min(Math.max(8, top), window.innerHeight - h - 8);
+  el.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+  el.classList.add('show');
+}
+const keepColorOnHover = (c) => {
+  const bg = c.dataset.backgroundColor;
+  const v = typeof bg === 'function' ? bg(c) : Array.isArray(bg) ? bg[c.dataIndex] : bg;
+  return v ?? Chart.defaults.backgroundColor;
+};
+Chart.defaults.datasets.bar.hoverBackgroundColor = keepColorOnHover;
+Chart.defaults.datasets.doughnut.hoverBackgroundColor = keepColorOnHover;
+Chart.defaults.plugins.tooltip.enabled = false;
+Chart.defaults.plugins.tooltip.external = externalTooltip;
+
+/* 2) Crosshair (gráficos de tempo, modo "index") + realce da barra sob o ponteiro */
+Chart.register({
+  id: 'hoverGuides',
+  afterDatasetsDraw(chart) {
+    const active = chart.getActiveElements();
+    if (!active.length) return;
+    const { ctx, chartArea } = chart;
+    const light = isLightTheme();
+
+    const isTimeChart = chart.options.interaction && chart.options.interaction.mode === 'index'
+      && chart.options.indexAxis !== 'y' && chart.scales.x;
+    if (isTimeChart && chartArea) {
+      const x = active[0].element.x;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = light ? 'rgba(15,32,54,.28)' : 'rgba(215,226,236,.30)';
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if ((chart.options.plugins.hoverGuides || {}).outline !== false) {
+      ctx.save();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = light ? 'rgba(15,32,54,.55)' : 'rgba(243,247,250,.85)';
+      active.forEach(({ element, datasetIndex }) => {
+        if (!element || chart.getDatasetMeta(datasetIndex).type !== 'bar') return;
+        const p = element.getProps(['x', 'y', 'base', 'width', 'height'], true);
+        const horizontal = chart.options.indexAxis === 'y';
+        const left = horizontal ? Math.min(p.x, p.base) : p.x - p.width / 2;
+        const top = horizontal ? p.y - p.height / 2 : Math.min(p.y, p.base);
+        const wid = horizontal ? Math.abs(p.x - p.base) : p.width;
+        const hei = horizontal ? p.height : Math.abs(p.base - p.y);
+        if (wid > 0 && hei > 0) ctx.strokeRect(left + 1, top + 1, wid - 2, hei - 2);
+      });
+      ctx.restore();
+    }
+  },
+});
+
+/* 3) Donut interativo: centro com total/segmento e foco (esmaece as outras fatias).
+      Ative com options.plugins.donutCenter = { unit: 'peças' }. Dataset usa donutFocusColors(). */
+function donutFocusColors(base) {
+  return (c) => {
+    const idx = c.chart._focusIdx;
+    const color = base[c.dataIndex];
+    return idx == null || idx === c.dataIndex ? color : `${color}4D`;
+  };
+}
+function setDonutFocus(chart, idx) {
+  if ((chart._focusIdx ?? null) === idx) return;
+  chart._focusIdx = idx;
+  chart.update();
+}
+Chart.register({
+  id: 'donutCenter',
+  afterEvent(chart, args) {
+    if (!chart.options.plugins.donutCenter || chart.config.type !== 'doughnut') return;
+    if (args.event.type !== 'mousemove' && args.event.type !== 'mouseout') return;
+    if (chart._legendIdx != null) return;
+    // fatia sob o ponteiro, calculada pela posição (não depende do estado de hover, que a legenda também mexe)
+    const hit = args.event.type === 'mouseout'
+      ? null
+      : chart.getElementsAtEventForMode(args.event, 'point', { intersect: true }, true)[0];
+    setDonutFocus(chart, hit ? hit.index : null);
+  },
+  afterDraw(chart) {
+    const opts = chart.options.plugins.donutCenter;
+    if (!opts || chart.config.type !== 'doughnut') return;
+    const arc = chart.getDatasetMeta(0).data[0];
+    if (!arc) return;
+    const values = chart.data.datasets[0].data;
+    const total = values.reduce((a, b) => a + b, 0);
+    const idx = chart._focusIdx;
+    const hasFocus = idx != null && values[idx] != null;
+    const main = hasFocus ? formatNumber(values[idx]) : formatNumber(total);
+    const label = hasFocus ? String(chart.data.labels[idx]) : 'Total';
+    const sub = hasFocus
+      ? formatPct(total > 0 ? (values[idx] / total) * 100 : 0)
+      : (opts.unit || '');
+
+    const { ctx } = chart;
+    const inner = arc.innerRadius;
+    const size = Math.max(15, Math.min(30, inner * 0.3));
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = THEME.mute;
+    ctx.font = `600 ${Math.max(10, size * 0.4)}px 'IBM Plex Sans', system-ui, sans-serif`;
+    ctx.fillText(label.toUpperCase(), arc.x, arc.y - size * 0.95);
+    ctx.fillStyle = THEME.strong;
+    ctx.font = `700 ${size}px 'IBM Plex Mono', ui-monospace, monospace`;
+    ctx.fillText(main, arc.x, arc.y);
+    ctx.fillStyle = THEME.soft;
+    ctx.font = `500 ${Math.max(11, size * 0.42)}px 'IBM Plex Sans', system-ui, sans-serif`;
+    if (sub) ctx.fillText(sub, arc.x, arc.y + size * 0.95);
+    ctx.restore();
+  },
+});
+/* legenda do donut: passar o mouse no item foca a fatia, igual a passar na própria fatia */
+const donutLegendHover = {
+  onHover(_event, item, legend) {
+    const chart = legend.chart;
+    chart._legendIdx = item.index;
+    setDonutFocus(chart, item.index);
+    // o tooltip acompanha a fatia da legenda (senão ficaria o da fatia anterior)
+    const target = [{ datasetIndex: 0, index: item.index }];
+    const arc = chart.getDatasetMeta(0).data[item.index];
+    chart.setActiveElements(target);
+    if (arc) chart.tooltip.setActiveElements(target, arc.tooltipPosition());
+    chart.canvas.style.cursor = 'pointer';
+  },
+  onLeave(_event, _item, legend) {
+    const chart = legend.chart;
+    chart._legendIdx = null;
+    setDonutFocus(chart, null);
+    chart.setActiveElements([]);
+    chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    chart.update();
+    chart.canvas.style.cursor = 'default';
+  },
+};
 
 const MODULES = [
   { id: 'quality', label: 'Qualidade', desc: 'Conformidade, perdas e desempenho por máquina.', status: 'active' },
@@ -264,9 +514,9 @@ function renderKPIs(current, comparison) {
 
   const tiles = [
     { label: 'Produzido', value: formatNumber(current.total_produced) },
-    { label: 'Reparo', value: formatNumber(current.total_repair), sub: formatPct(current.pct_repair), status: 'warn', valueColor: '#ffd48a', borderColor: '#EF9F27' },
-    { label: 'Segunda Qualidade', value: formatNumber(current.total_second_quality), sub: formatPct(current.pct_second_quality), status: 'bad', valueColor: '#ff9c9c', borderColor: '#e05252' },
-    { label: 'Não Conforme', value: `${delta > 0 ? '▲ ' : delta < 0 ? '▼ ' : '— '}${formatNumber(current.total_non_conforme)}`, sub: formatPct(current.pct_non_conforme), status: delta < 0 ? 'good' : delta > 0 ? 'bad' : null, valueColor: delta < 0 ? '#8df0b2' : delta > 0 ? '#ff9c9c' : '#c8d8ea', borderColor: delta < 0 ? '#27C77A' : delta > 0 ? '#e05252' : '#6888a8' },
+    { label: 'Reparo', value: formatNumber(current.total_repair), sub: formatPct(current.pct_repair), status: 'warn', valueColor: THEME.warn, borderColor: '#EF9F27' },
+    { label: 'Segunda Qualidade', value: formatNumber(current.total_second_quality), sub: formatPct(current.pct_second_quality), status: 'bad', valueColor: THEME.bad, borderColor: '#e05252' },
+    { label: 'Não Conforme', value: `${delta > 0 ? '▲ ' : delta < 0 ? '▼ ' : '— '}${formatNumber(current.total_non_conforme)}`, sub: formatPct(current.pct_non_conforme), status: delta < 0 ? 'good' : delta > 0 ? 'bad' : null, valueColor: delta < 0 ? THEME.good : delta > 0 ? THEME.bad : THEME.soft, borderColor: delta < 0 ? '#27C77A' : delta > 0 ? '#e05252' : THEME.mute },
     { label: 'Conformidade', value: formatPct(conformidade), sub: 'aproveitamento geral', status: getYieldStatus(conformidade) },
   ];
 
@@ -275,8 +525,8 @@ function renderKPIs(current, comparison) {
     const border = tile.status ? `${baseColor}55` : 'var(--border)';
     const glow = tile.status ? `${baseColor}14` : 'rgba(2, 8, 23, .18)';
     const valueColor = tile.valueColor || (tile.status
-      ? (tile.status === 'good' ? '#8df0b2' : tile.status === 'warn' ? '#ffd48a' : '#ff9c9c')
-      : '#ffffff');
+      ? (tile.status === 'good' ? THEME.good : tile.status === 'warn' ? THEME.warn : THEME.bad)
+      : 'var(--text-strong)');
     const suffix = tile.label === 'Produzido' || tile.label === 'Conformidade' ? '' : ' do total';
 
     return `
@@ -311,7 +561,7 @@ function renderKPIs(current, comparison) {
       return {
         arrow: '—',
         status: 'warn',
-        color: '#ffd48a',
+        color: THEME.warn,
         borderColor: '#EF9F27',
         deltaLabel: 'estavel vs mes anterior',
       };
@@ -321,7 +571,7 @@ function renderKPIs(current, comparison) {
     return {
       arrow: delta > 0 ? '▲' : '▼',
       status: improved ? 'good' : 'bad',
-      color: improved ? '#8df0b2' : '#ff9c9c',
+      color: improved ? THEME.good : THEME.bad,
       borderColor: improved ? '#27C77A' : '#e05252',
       deltaLabel: `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${direction === 'up_better' ? '%' : ' p.p.'}`,
     };
@@ -404,7 +654,7 @@ function renderKPIs(current, comparison) {
     : 0;
 
   const deltaArrow = deltaNonConforme > 0 ? '▲' : deltaNonConforme < 0 ? '▼' : '—';
-  const deltaColor = deltaNonConforme > 0 ? '#ff9c9c' : deltaNonConforme < 0 ? '#8df0b2' : '#ffd48a';
+  const deltaColor = deltaNonConforme > 0 ? THEME.bad : deltaNonConforme < 0 ? THEME.good : THEME.warn;
   const deltaBorder = deltaNonConforme > 0 ? '#e05252' : deltaNonConforme < 0 ? '#27C77A' : '#EF9F27';
 
   const repairStatus = current.pct_repair <= 1 ? 'warn' : 'bad';
@@ -413,9 +663,9 @@ function renderKPIs(current, comparison) {
   const conformidadeStatus = getYieldStatus(conformidade);
 
   function statusColors(status) {
-    if (status === 'good') return { color: '#8df0b2', border: '#27C77A' };
-    if (status === 'warn') return { color: '#ffd48a', border: '#EF9F27' };
-    return { color: '#ff9c9c', border: '#e05252' };
+    if (status === 'good') return { color: THEME.good, border: '#27C77A' };
+    if (status === 'warn') return { color: THEME.warn, border: '#EF9F27' };
+    return { color: THEME.bad, border: '#e05252' };
   }
 
   const producedColors = { color: '#8ab8ff', border: '#8ab8ff' };
@@ -483,7 +733,7 @@ function renderKPIs(current, comparison, trend) {
     if (absDeltaPct <= warnThresholdPct) {
       return {
         arrow: '—',
-        color: '#ffd48a',
+        color: THEME.warn,
         border: '#EF9F27',
         sub: `na média mensal (${formatter(averageValue)})`,
       };
@@ -492,7 +742,7 @@ function renderKPIs(current, comparison, trend) {
     const improved = direction === 'up_better' ? currentValue > averageValue : currentValue < averageValue;
     return {
       arrow: currentValue > averageValue ? '▲' : '▼',
-      color: improved ? '#8df0b2' : '#ff9c9c',
+      color: improved ? THEME.good : THEME.bad,
       border: improved ? '#27C77A' : '#e05252',
       sub: `${deltaPct > 0 ? '+' : ''}${deltaPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% vs média (${formatter(averageValue)})`,
     };
@@ -561,7 +811,7 @@ function renderTrendChart(months) {
         fill: true,
         pointBackgroundColor: '#27C77A',
         pointHoverBackgroundColor: '#27C77A',
-        pointHoverBorderColor: '#0d2040',
+        pointHoverBorderColor: THEME.surface,
         pointHoverBorderWidth: 2,
       }],
     },
@@ -670,7 +920,7 @@ function renderTrendChart(months) {
           pointRadius: 4,
           pointHoverRadius: 5,
           pointBackgroundColor: qualityLineColor,
-          pointBorderColor: '#0d2040',
+          pointBorderColor: THEME.surface,
           pointBorderWidth: 2,
         },
       ],
@@ -690,7 +940,7 @@ function renderTrendChart(months) {
           title: {
             display: true,
             text: 'Volume produzido',
-            color: '#6888a8',
+            color: THEME.mute,
           },
           ticks: { callback: v => formatNumber(v) },
         },
@@ -701,7 +951,7 @@ function renderTrendChart(months) {
           title: {
             display: true,
             text: '% não conforme',
-            color: '#6888a8',
+            color: THEME.mute,
           },
           ticks: { callback: v => formatPct(v) },
         },
@@ -713,7 +963,7 @@ function renderTrendChart(months) {
           labels: {
             boxWidth: 10,
             padding: 14,
-            color: '#c8d8ea',
+            color: THEME.soft,
             font: { family: "'Inter', system-ui, sans-serif", weight: '500', size: 11 },
           },
         },
@@ -785,7 +1035,7 @@ function renderMachineChart(machines) {
   const ctx = document.getElementById('chart-machine').getContext('2d');
   const labels = machines.map(m => m.label);
   const data   = machines.map(m => m.pct_non_conforme);
-  const colors = machines.map((m, i) => i === 0 ? '#e05252' : '#6888a8');
+  const colors = machines.map((m, i) => i === 0 ? '#e05252' : THEME.mute);
 
   if (machineChart) machineChart.destroy();
   machineChart = new Chart(ctx, {
@@ -810,7 +1060,7 @@ function renderMachineChart(machines) {
           ticks: { callback: v => formatPct(v) },
         },
         y: {
-          ticks: { color: '#c8d8ea', font: { weight: '500' } },
+          ticks: { color: THEME.soft, font: { weight: '500' } },
           grid: { display: false },
         },
       },
@@ -862,7 +1112,7 @@ function renderCompositionChart(current) {
       datasets: [{
         data: [conforme, current.total_repair, current.total_second_quality],
         backgroundColor: ['#27C77A', '#EF9F27', '#F0997B'],
-        borderColor: '#0d2040',
+        borderColor: THEME.surface,
         borderWidth: 2,
       }],
     },
@@ -922,7 +1172,7 @@ function renderMachineChart(machines) {
 
   listEl.innerHTML = ranked.map((item, index) => {
     const status = getQualityStatus(item.pct_non_conforme);
-    const color = status === 'good' ? '#8df0b2' : status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const color = status === 'good' ? THEME.good : status === 'warn' ? THEME.warn : THEME.bad;
     const fill = status === 'good'
       ? 'linear-gradient(90deg, rgba(39,199,122,.88), rgba(138,184,255,.82))'
       : status === 'warn'
@@ -965,7 +1215,8 @@ function renderCompositionChart(current) {
   const conforme = Math.max(current.total_produced - current.total_non_conforme, 0);
   const total = conforme + current.total_repair + current.total_second_quality;
   const pctConforme = total > 0 ? (conforme / total) * 100 : 0;
-  const conformeColor = getStatusColor(getYieldStatus(pctConforme));
+  // preenchimento do donut: sempre o tom vivo (o tom escuro do claro é para texto/linhas)
+  const conformeColor = { good: '#27C77A', warn: '#EF9F27', bad: '#e05252' }[getYieldStatus(pctConforme)];
 
   if (compositionChart) compositionChart.destroy();
   compositionChart = new Chart(ctx, {
@@ -974,29 +1225,33 @@ function renderCompositionChart(current) {
       labels: ['Conforme', 'Reparo', 'Segunda Qualidade'],
       datasets: [{
         data: [conforme, current.total_repair, current.total_second_quality],
-        backgroundColor: [conformeColor, '#EF9F27', '#e05252'],
-        borderColor: '#0d2040',
+        backgroundColor: donutFocusColors([conformeColor, '#EF9F27', '#e05252']),
+        borderColor: THEME.surface,
         borderWidth: 2,
-        hoverOffset: 10,
+        hoverOffset: 8,
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '58%',
+      cutout: '64%',
+      interaction: { mode: 'point', intersect: true },
       plugins: {
+        donutCenter: { unit: 'peças' },
         legend: {
           display: true,
           position: 'bottom',
+          ...donutLegendHover,
           labels: {
             boxWidth: 10,
             padding: 12,
-            color: '#c8d8ea',
+            color: THEME.soft,
             font: { family: "'Inter', system-ui, sans-serif", weight: '500', size: 11 },
           },
         },
         tooltip: {
           callbacks: {
+            title: () => '',
             label: (ctx) => {
               const chartTotal = ctx.dataset.data.reduce((a, b) => a + b, 0);
               const pct = chartTotal > 0 ? (ctx.parsed / chartTotal) * 100 : 0;
@@ -1086,7 +1341,7 @@ function renderDailyChart(days) {
           backgroundColor: lineFillGradient,
           fill: true,
           pointBackgroundColor: lineColor,
-          pointBorderColor: '#0d2040',
+          pointBorderColor: THEME.surface,
           pointBorderWidth: 2,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -1108,7 +1363,7 @@ function renderDailyChart(days) {
           title: {
             display: true,
             text: 'Pecas produzidas',
-            color: '#6888a8',
+            color: THEME.mute,
           },
           ticks: { callback: value => formatNumber(value) },
         },
@@ -1119,7 +1374,7 @@ function renderDailyChart(days) {
           title: {
             display: true,
             text: '% não conforme',
-            color: '#6888a8',
+            color: THEME.mute,
           },
           ticks: { callback: value => formatPct(value) },
         },
@@ -1131,7 +1386,7 @@ function renderDailyChart(days) {
           labels: {
             boxWidth: 10,
             padding: 14,
-            color: '#c8d8ea',
+            color: THEME.soft,
             font: { family: "'Inter', system-ui, sans-serif", weight: '500', size: 11 },
           },
         },
@@ -1192,7 +1447,7 @@ function renderYieldChart(machines) {
   listEl.innerHTML = ranked.map((item, index) => {
     const pctConforme = Number(item.pctConforme.toFixed(2));
     const pctNaoConforme = Number(item.pctNonConforme.toFixed(2));
-    const pctColor = item.status === 'good' ? '#8df0b2' : item.status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const pctColor = item.status === 'good' ? THEME.good : item.status === 'warn' ? THEME.warn : THEME.bad;
 
     return `
       <div class="yield-item ${index === 0 ? 'top-quality' : ''}">
@@ -1307,7 +1562,7 @@ function renderKPIs(current, comparison, trend) {
     if (absDeltaPct <= warnThresholdPct) {
       return {
         arrow: '—',
-        color: '#ffd48a',
+        color: THEME.warn,
         border: '#EF9F27',
         sub: `na média mensal (${formatter(averageValue)})`,
       };
@@ -1316,7 +1571,7 @@ function renderKPIs(current, comparison, trend) {
     const improved = direction === 'up_better' ? currentValue > averageValue : currentValue < averageValue;
     return {
       arrow: currentValue > averageValue ? '▲' : '▼',
-      color: improved ? '#8df0b2' : '#ff9c9c',
+      color: improved ? THEME.good : THEME.bad,
       border: improved ? '#27C77A' : '#e05252',
       sub: `${deltaPct > 0 ? '+' : ''}${deltaPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% vs média (${formatter(averageValue)})`,
     };
@@ -1409,7 +1664,7 @@ function renderMachineChart(machines) {
     const pctRepair = produced ? (repair / produced) * 100 : 0;
     const pctSecond = produced ? (second / produced) * 100 : 0;
     const status = getQualityStatus(pctNc);
-    const color = status === 'good' ? '#8df0b2' : status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const color = status === 'good' ? THEME.good : status === 'warn' ? THEME.warn : THEME.bad;
     const statusLabel = status === 'good' ? 'Controlado' : status === 'warn' ? 'Atenção' : 'Crítico';
     const fill = status === 'good'
       ? 'linear-gradient(90deg, rgba(39,199,122,.88), rgba(138,184,255,.82))'
@@ -1483,7 +1738,7 @@ function renderMachineChart(machines) {
     const pctRepair = produced ? (repair / produced) * 100 : 0;
     const pctSecond = produced ? (second / produced) * 100 : 0;
     const status = tone === 'best' ? 'good' : getQualityStatus(pctNc);
-    const color = status === 'good' ? '#8df0b2' : status === 'warn' ? '#ffd48a' : '#ff9c9c';
+    const color = status === 'good' ? THEME.good : status === 'warn' ? THEME.warn : THEME.bad;
     const statusLabel = tone === 'best'
       ? 'Melhor desempenho'
       : status === 'good' ? 'Controlado' : status === 'warn' ? 'Atenção' : 'Crítico';
@@ -1592,16 +1847,16 @@ function getEfficiencyStatus(pct) {
 
 function getEfficiencyColor(pct) {
   const status = getEfficiencyStatus(pct);
-  if (status === 'good') return '#27C77A';
-  if (status === 'warn') return '#EF9F27';
-  return '#e05252';
+  if (status === 'good') return THEME.tone.good;
+  if (status === 'warn') return THEME.tone.warn;
+  return THEME.tone.bad;
 }
 
 function getQualityTone(pct) {
   const value = Number(pct) || 0;
-  if (value >= 98) return '#27C77A';
-  if (value >= 95) return '#EF9F27';
-  return '#e05252';
+  if (value >= 98) return THEME.tone.good;
+  if (value >= 95) return THEME.tone.warn;
+  return THEME.tone.bad;
 }
 
 function summarizeEfficiency(summary) {
@@ -1732,7 +1987,7 @@ function renderEfficiencyKPIs(data) {
       label: 'Máquinas ativas',
       value: String(data.machines.length),
       sub: `${data.shifts.length} turnos com meta calculada`,
-      color: '#d7e2ec',
+      color: THEME.soft,
     },
   ];
 
@@ -1833,7 +2088,11 @@ function renderEfficiencyTurnChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, position: 'bottom' } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatNumber(c.raw)}` } },
+      },
       scales: {
         x: {
           ticks: { maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 10 } },
@@ -1849,7 +2108,7 @@ function renderEfficiencyTurnChart(data) {
   msgEl.hidden = true;
 }
 
-function renderEfficiencyDowntimeChart(data) {
+function renderEfficiencyDowntimeChart(data, stat) {
   const msgEl = document.getElementById('eff-downtime-msg');
   const summaryEl = document.getElementById('eff-downtime-summary');
   const rankEl = document.getElementById('eff-downtime-rank');
@@ -1907,6 +2166,12 @@ function renderEfficiencyDowntimeChart(data) {
   ` : '';
   rankEl.hidden = !leader;
 
+  if (stat && stat.has_causes && stat.machines.length) {
+    renderDowntimeByMachineStacked(stat);
+    msgEl.hidden = true;
+    return;
+  }
+
   if (efficiencyDowntimeChart) efficiencyDowntimeChart.destroy();
   efficiencyDowntimeChart = new Chart(ctx, {
     type: 'bar',
@@ -1951,14 +2216,14 @@ function renderEfficiencyDowntimeChart(data) {
             font: { size: 10 },
           },
           grid: {
-            color: 'rgba(136,160,184,.12)',
+            color: THEME.grid,
             drawBorder: false,
           },
         },
         y: {
           ticks: {
             font: { size: 11, weight: '600' },
-            color: '#dce6f0',
+            color: THEME.soft,
           },
           grid: { display: false },
         },
@@ -2038,7 +2303,7 @@ function renderPerformanceKPIs(data) {
   const row = document.getElementById('perf-kpi-row');
   const shift1 = data.shifts.find((item) => item.shift === 1) || null;
   const shift2 = data.shifts.find((item) => item.shift === 2) || null;
-  const bestColor = data.betterShift ? getEfficiencyColor(data.betterShift.pctMeta) : '#d7e2ec';
+  const bestColor = data.betterShift ? getEfficiencyColor(data.betterShift.pctMeta) : THEME.soft;
 
   const items = [
     {
@@ -2160,7 +2425,14 @@ function renderPerformanceDailyChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, position: 'bottom' } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: { callbacks: {
+          title: (items) => `Dia ${items[0].label}`,
+          label: (c) => `${c.dataset.label}: ${formatNumber(c.raw)}`,
+        } },
+      },
       scales: {
         x: {
           grid: { display: false },
@@ -2169,7 +2441,7 @@ function renderPerformanceDailyChart(data) {
         y: {
           beginAtZero: true,
           ticks: { callback: (value) => formatNumber(value) },
-          grid: { color: 'rgba(136,160,184,.12)' },
+          grid: { color: THEME.grid },
         },
       },
     },
@@ -2201,7 +2473,7 @@ function renderPerformanceQualityChart(data) {
           type: 'line',
           label: 'Qualidade (%)',
           data: quality,
-          borderColor: '#f3f6fb',
+          borderColor: THEME.surface,
           pointBackgroundColor: quality.map((value) => getQualityTone(value)),
           pointRadius: 4,
           borderWidth: 2,
@@ -2213,7 +2485,15 @@ function renderPerformanceQualityChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, position: 'bottom' } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: { callbacks: {
+          label: (c) => (c.dataset.yAxisID === 'y1'
+            ? `${c.dataset.label}: ${c.raw.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h`
+            : `${c.dataset.label}: ${formatPct(c.raw)}`),
+        } },
+      },
       scales: {
         x: {
           grid: { display: false },
@@ -2223,7 +2503,7 @@ function renderPerformanceQualityChart(data) {
           min: Math.max(0, Math.min(...quality, 90) - 2),
           max: 100,
           ticks: { callback: (value) => `${value}%` },
-          grid: { color: 'rgba(136,160,184,.12)' },
+          grid: { color: THEME.grid },
         },
         y1: {
           position: 'right',
@@ -2544,7 +2824,7 @@ function renderPreviousDaySummary(data) {
   titleEl.textContent = `Fechamento de ${formatDatePt(data.referenceDate)}`;
   textEl.textContent = `${formatNumber(data.totalProduced)} peças registradas no dia, com ${formatPct(data.qualityPct)} de conformidade geral e ${formatPct(data.nonConformePct)} de não conforme.`;
   shiftEl.textContent = bestShift ? bestShift.label : '—';
-  shiftEl.style.color = bestShift ? getQualityTone(bestShift.quality) : '#f3f7fa';
+  shiftEl.style.color = bestShift ? getQualityTone(bestShift.quality) : 'var(--text-strong)';
   shiftSubEl.textContent = bestShift
     ? `${formatPct(bestShift.quality)} de conformidade com ${formatNumber(bestShift.produced)} peças`
     : 'Sem comparação disponível';
@@ -2561,12 +2841,12 @@ function resetPreviousDaySummary() {
   document.getElementById('prev-summary-title').textContent = 'Aguardando consolidado';
   document.getElementById('prev-summary-text').textContent = 'O módulo vai resumir o último dia útil com produção registrada.';
   document.getElementById('prev-summary-shift').textContent = '—';
-  document.getElementById('prev-summary-shift').style.color = '#f3f7fa';
+  document.getElementById('prev-summary-shift').style.color = 'var(--text-strong)';
   document.getElementById('prev-summary-shift-sub').textContent = 'Sem comparação disponível';
   document.getElementById('prev-summary-machines').textContent = '—';
   document.getElementById('prev-summary-machines-sub').textContent = 'Sem registros processados';
   document.getElementById('prev-summary-risk').textContent = '—';
-  document.getElementById('prev-summary-risk').style.color = '#f3f7fa';
+  document.getElementById('prev-summary-risk').style.color = 'var(--text-strong)';
   document.getElementById('prev-summary-risk-sub').textContent = 'Sem leitura de risco';
 }
 
@@ -2575,6 +2855,113 @@ function setPreviousDayReportOpen(isOpen) {
   if (!modal) return;
   modal.hidden = !isOpen;
   document.body.classList.toggle('prev-report-open', isOpen);
+}
+
+/*  ── Relatório impresso › down-time do dia ───────────────────────────────────
+    O cartão "Down-time" e a pizza por causa ficam na mesma linha do resumo (como no rascunho da diretoria).
+    A folha é branca nos dois temas, então usa a paleta clara; e como a impressão pode sair em preto e
+    branco, cada fatia leva um número que se repete na legenda (a cor sozinha não identificaria a causa).  */
+const PRINT_PIE_MAX_SLICES = 6; // as 5 maiores causas + "Outras causas": mais que isso não cabe nem se lê na folha
+const PRINT_PIE_OTHERS_COLOR = '#9aa5b1';
+
+function printDowntimeCauses(dt) {
+  if (!dt || !dt.total_minutes) return [];
+  const rows = dt.causes.filter((c) => c.minutes > 0).map((c) => ({
+    code: c.code,
+    name: c.code === 0 ? 'Sem causa' : c.name, // o nome completo não cabe na legenda da folha
+    minutes: c.minutes,
+    color: CAUSE_PALETTE.light[c.code] || PRINT_PIE_OTHERS_COLOR,
+  }));
+  if (rows.length > PRINT_PIE_MAX_SLICES) {
+    const rest = rows.slice(PRINT_PIE_MAX_SLICES - 1);
+    rows.length = PRINT_PIE_MAX_SLICES - 1;
+    rows.push({
+      code: -1,
+      name: `Outras causas (${rest.length})`,
+      minutes: rest.reduce((sum, c) => sum + c.minutes, 0),
+      color: PRINT_PIE_OTHERS_COLOR,
+    });
+  }
+  return rows.map((row, index) => ({ ...row, index: index + 1 }));
+}
+
+function buildPrintDowntimeSentence(dt) {
+  if (!dt || !dt.total_minutes) return '';
+  const top = dt.causes.find((c) => c.code !== 0 && c.minutes > 0);
+  return `Down-time do dia: ${fmtDuration(dt.total_minutes)}${top ? `, principalmente por ${escapeHTML(top.name.toLowerCase())}` : ''}.`;
+}
+
+function buildPrintDowntimeMetric(dt) {
+  let value = '—';
+  let note = 'Indisponível no momento';
+  if (dt) {
+    value = fmtDuration(dt.total_minutes);
+    const ids = dt.machines.map((m) => m.key).sort((a, b) => a - b);
+    note = !dt.total_minutes
+      ? 'Sem paradas registradas no dia'
+      : `${ids.length} ${ids.length === 1 ? 'máquina parada' : 'máquinas paradas'}: MÁQ. ${ids.join(' · ')}`;
+  }
+  return `
+          <div class="prev-print-metric">
+            <span>Down-time</span>
+            <strong>${value}</strong>
+            <div class="prev-print-metric-bar">
+              <div class="prev-print-metric-note">${note}</div>
+            </div>
+          </div>`;
+}
+
+function buildPrintPie(rows, total) {
+  const cx = 60;
+  const cy = 60;
+  const r = 56;
+  const svgOpen = '<svg class="prev-print-pie" viewBox="0 0 120 120" role="img" aria-label="Down-time por causa">';
+  if (rows.length === 1) {
+    return `${svgOpen}<circle cx="${cx}" cy="${cy}" r="${r}" fill="${rows[0].color}"></circle><text x="${cx}" y="${cy}">100%</text></svg>`;
+  }
+  let angle = -Math.PI / 2;
+  const paths = [];
+  const labels = [];
+  rows.forEach((row) => {
+    const frac = row.minutes / total;
+    const a0 = angle;
+    const a1 = angle + frac * 2 * Math.PI;
+    angle = a1;
+    const point = (a, radius) => `${(cx + radius * Math.cos(a)).toFixed(2)} ${(cy + radius * Math.sin(a)).toFixed(2)}`;
+    paths.push(`<path d="M${cx} ${cy} L${point(a0, r)} A${r} ${r} 0 ${frac > 0.5 ? 1 : 0} 1 ${point(a1, r)} Z" fill="${row.color}"></path>`);
+    if (frac >= 0.09) {
+      const [lx, ly] = point((a0 + a1) / 2, r * 0.64).split(' ');
+      labels.push(`<text x="${lx}" y="${ly}">${Math.round(frac * 100)}%</text>`);
+    }
+  });
+  return `${svgOpen}${paths.join('')}${labels.join('')}</svg>`;
+}
+
+function buildPrintDowntimeBlock(dt) {
+  const shell = (inner) => `
+          <div class="prev-print-metric prev-print-downtime">
+            <span>Down-time por causa</span>${inner}
+          </div>`;
+  if (!dt) return shell('<div class="prev-print-downtime-empty">Detalhamento de paradas indisponível no momento.</div>');
+  if (!dt.total_minutes) return shell('<div class="prev-print-downtime-empty">Sem paradas registradas no dia.</div>');
+
+  const rows = printDowntimeCauses(dt);
+  const total = dt.total_minutes;
+  const legend = rows.map((row) => `
+              <div class="prev-print-downtime-row">
+                <i class="prev-print-downtime-badge" style="background:${row.color}">${row.index}</i>
+                <span class="prev-print-downtime-name">${escapeHTML(row.name)}</span>
+                <b>${fmtDuration(row.minutes)}</b>
+                <span class="prev-print-downtime-pct">${fmtShare((row.minutes / total) * 100)}</span>
+              </div>`).join('');
+  const note = dt.has_causes ? '' : '<div class="prev-print-downtime-note">Causas não informadas no lançamento deste dia.</div>';
+
+  return shell(`
+            <div class="prev-print-downtime-body">
+              ${buildPrintPie(rows, total)}
+              <div class="prev-print-downtime-legend">${legend}
+              </div>
+            </div>${note}`);
 }
 
 function buildPreviousDayReportMarkup(data, options = {}) {
@@ -2587,7 +2974,6 @@ function buildPreviousDayReportMarkup(data, options = {}) {
     .slice(0, 4);
   const machinesByShift = Array.isArray(data.machinesByShift) ? data.machinesByShift : [];
   const generatedAt = new Date().toLocaleString('pt-BR');
-  const riskClass = risk.label === 'Crítico' ? 'bad' : risk.label === 'Atenção' ? 'warn' : 'good';
   const bestMachine = volumeList[0] || null;
   const maxProduced = Math.max(...data.machines.map((item) => item.produced), 1);
   const maxNonConforme = Math.max(...data.machines.map((item) => item.nonConforme), 1);
@@ -2615,6 +3001,9 @@ function buildPreviousDayReportMarkup(data, options = {}) {
     },
   ];
 
+  const downtimeMetric = buildPrintDowntimeMetric(data.downtime);
+  const downtimeBlock = buildPrintDowntimeBlock(data.downtime);
+
   return `
     <article class="prev-print-sheet">
       <header class="prev-print-header">
@@ -2639,31 +3028,19 @@ function buildPreviousDayReportMarkup(data, options = {}) {
         </div>
       </header>
 
-      <section class="prev-print-overview">
+      <section class="prev-print-overview is-single">
         <div class="prev-print-highlight">
           <div class="prev-print-highlight-kicker">Leitura rápida</div>
           <div class="prev-print-highlight-title">${formatPct(data.qualityPct)} de conformidade no fechamento</div>
           <div class="prev-print-highlight-text">
-            ${formatNumber(data.totalProduced)} peças registradas no dia. ${bestShift ? `${escapeHTML(bestShift.label)} liderou os turnos com ${formatPct(bestShift.quality)} de conformidade.` : 'Sem destaque de turno suficiente para comparação.'} ${bestMachine ? `${escapeHTML(bestMachine.label)} puxou o maior volume do dia com ${formatNumber(bestMachine.produced)} peças.` : ''}
-          </div>
-        </div>
-        <div class="prev-print-status-stack">
-          <div class="prev-print-status-card ${riskClass}">
-            <div class="prev-print-status-label">Risco do dia</div>
-            <div class="prev-print-status-value" style="color:${risk.color}">${risk.label}</div>
-            <div class="prev-print-status-sub">${risk.sub}</div>
-          </div>
-          <div class="prev-print-status-card ${data.totalProduced >= data.averageProduced ? 'good' : 'warn'}">
-            <div class="prev-print-status-label">Ritmo x média mensal</div>
-            <div class="prev-print-status-value">${data.totalProduced >= data.averageProduced ? 'Acima da média' : 'Abaixo da média'}</div>
-            <div class="prev-print-status-sub">Dia fechou com ${formatNumber(data.totalProduced)} peças versus média de ${formatNumber(Math.round(data.averageProduced || 0))}.</div>
+            ${formatNumber(data.totalProduced)} peças registradas no dia. ${bestShift ? `${escapeHTML(bestShift.label)} liderou os turnos com ${formatPct(bestShift.quality)} de conformidade.` : 'Sem destaque de turno suficiente para comparação.'} ${bestMachine ? `${escapeHTML(bestMachine.label)} puxou o maior volume do dia com ${formatNumber(bestMachine.produced)} peças.` : ''} ${buildPrintDowntimeSentence(data.downtime)}
           </div>
         </div>
       </section>
 
       <section class="prev-print-block">
         <h4>Resumo do fechamento</h4>
-        <div class="prev-print-grid">
+        <div class="prev-print-grid cols-dt">
           <div class="prev-print-metric">
             <span>Produzido</span>
             <strong>${formatNumber(data.totalProduced)}</strong>
@@ -2694,26 +3071,8 @@ function buildPreviousDayReportMarkup(data, options = {}) {
               <div class="prev-print-metric-note">${formatNumber(data.totalNonConforme)} peças fora do padrão</div>
             </div>
           </div>
-          <div class="prev-print-metric">
-            <span>Melhor turno</span>
-            <strong>${bestShift ? escapeHTML(bestShift.label) : '—'}</strong>
-            <div class="prev-print-metric-bar">
-              <div class="prev-print-metric-track">
-                <div class="prev-print-metric-fill good" style="width:${bestShift ? Math.min(bestShift.quality, 100) : 0}%"></div>
-              </div>
-              <div class="prev-print-metric-note">${bestShift ? `${formatPct(bestShift.quality)} de conformidade` : 'Sem comparação disponível'}</div>
-            </div>
-          </div>
-          <div class="prev-print-metric">
-            <span>Risco do dia</span>
-            <strong style="color:${risk.color}">${risk.label}</strong>
-            <div class="prev-print-metric-bar">
-              <div class="prev-print-metric-track">
-                <div class="prev-print-metric-fill ${riskClass}" style="width:${risk.label === 'Crítico' ? 100 : risk.label === 'Atenção' ? 62 : 28}%"></div>
-              </div>
-              <div class="prev-print-metric-note">${risk.sub}</div>
-            </div>
-          </div>
+          ${downtimeMetric}
+          ${downtimeBlock}
         </div>
       </section>
 
@@ -2782,23 +3141,13 @@ function buildPreviousDayReportMarkup(data, options = {}) {
       </section>
 
       <section class="prev-print-block">
-        <h4>Máquinas do dia</h4>
-        <div class="prev-print-machine-summary">
-          <div class="prev-print-summary-chip">
-            <span>Máquina líder em volume</span>
-            <strong>${bestMachine ? `${escapeHTML(bestMachine.label)} · ${formatNumber(bestMachine.produced)} peças` : 'Sem destaque'}</strong>
-          </div>
-          <div class="prev-print-summary-chip">
-            <span>Maior ponto de atenção</span>
-            <strong>${alertList[0] ? `${escapeHTML(alertList[0].label)} · ${formatPct(alertList[0].nonConformePctByProduced)} não conforme` : 'Sem ponto crítico'}</strong>
-          </div>
-        </div>
+        <h4>Todas as máquinas</h4>
         <div class="prev-print-split">
           ${splitMachinesByShift ? machinesByShift.map((group) => `
             <div class="prev-print-column">
               <div class="prev-print-column-title">${group.label}</div>
-              <div class="prev-print-list">
-              ${group.items.length ? group.items.slice(0, 4).map((item, index) => `
+              <div class="prev-print-list${group.items.length > 4 ? ' is-dense' : ''}">
+              ${group.items.length ? group.items.map((item, index) => `
                 <div class="prev-print-item">
                   <div class="prev-print-rank">${index + 1}</div>
                   <div>
@@ -3090,7 +3439,7 @@ function renderPreviousDayCompositionChart(data) {
           stacked: true,
           beginAtZero: true,
           ticks: { callback: (value) => formatNumber(value) },
-          grid: { color: 'rgba(136,160,184,.12)' },
+          grid: { color: THEME.grid },
         },
       },
     },
@@ -3199,6 +3548,7 @@ function renderPreviousDayMachineChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: true, position: 'bottom' },
         tooltip: {
@@ -3219,7 +3569,7 @@ function renderPreviousDayMachineChart(data) {
         y: {
           beginAtZero: true,
           ticks: { callback: (value) => formatNumber(value) },
-          grid: { color: 'rgba(136,160,184,.12)' },
+          grid: { color: THEME.grid },
         },
         y1: {
           position: 'right',
@@ -3285,6 +3635,7 @@ async function loadPreviousDayAll() {
     }
 
     const data = summarizePreviousDay(entries, referenceDate);
+    data.downtime = await fetchJSON(`/analytics/paradas/dia?date=${referenceDate}`).catch(() => null);
     const yesterdayIso = getYesterdayIso();
     const today = new Date();
     const isCurrentPeriod = state.year === today.getFullYear() && state.month === (today.getMonth() + 1);
@@ -3383,8 +3734,8 @@ function formatSignedRelPct(current, baseline) {
 }
 
 function getDeltaColor(delta, higherIsBetter = true) {
-  if (Math.abs(delta) < 0.005) return '#8ab8ff';
-  return (delta > 0) === higherIsBetter ? '#27C77A' : '#e05252';
+  if (Math.abs(delta) < 0.005) return THEME.info;
+  return (delta > 0) === higherIsBetter ? THEME.tone.good : THEME.tone.bad;
 }
 
 function renderPreviousMonthSummary(cur, prev, labels) {
@@ -3398,7 +3749,7 @@ function renderPreviousMonthSummary(cur, prev, labels) {
 
   const paceEl = document.getElementById('pm-summary-pace');
   paceEl.textContent = formatSignedRelPct(cur.avgPerDay, prev.avgPerDay);
-  paceEl.style.color = prev.avgPerDay ? getDeltaColor(paceDelta, true) : '#f3f7fa';
+  paceEl.style.color = prev.avgPerDay ? getDeltaColor(paceDelta, true) : 'var(--text-strong)';
   document.getElementById('pm-summary-pace-sub').textContent =
     `${formatNumber(Math.round(cur.avgPerDay))} vs ${formatNumber(Math.round(prev.avgPerDay))} peças/dia`;
 
@@ -3510,7 +3861,7 @@ function renderPreviousMonthCompositionChart(cur, prev, labels) {
           min: 0,
           max: 100,
           ticks: { callback: (value) => `${value}%` },
-          grid: { color: 'rgba(136,160,184,.12)' },
+          grid: { color: THEME.grid },
         },
       },
     },
@@ -3547,13 +3898,14 @@ function renderPreviousMonthMachines(cur, prev, labels) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: true, position: 'bottom' },
         tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatNumber(context.raw)}` } },
       },
       scales: {
         x: { grid: { display: false } },
-        y: { beginAtZero: true, ticks: { callback: (value) => formatNumber(value) }, grid: { color: 'rgba(136,160,184,.12)' } },
+        y: { beginAtZero: true, ticks: { callback: (value) => formatNumber(value) }, grid: { color: THEME.grid } },
       },
     },
   });
@@ -3865,7 +4217,7 @@ function resetPreviousMonthView(message, isError = false) {
   ['pace', 'quality', 'days'].forEach((key) => {
     const el = document.getElementById(`pm-summary-${key}`);
     el.textContent = '—';
-    el.style.color = '#f3f7fa';
+    el.style.color = 'var(--text-strong)';
     document.getElementById(`pm-summary-${key}-sub`).textContent = 'Sem comparação disponível';
   });
 }
@@ -3931,7 +4283,10 @@ function getLastSixEnd() {
 /* premiação do pódio mensal (ranking por % da meta 1, igual ao dashboard TV): 1º ouro, 2º prata, 3º bronze */
 const S6_PODIUM_PRIZES = [200, 150, 100];
 const S6_PODIUM_NAMES = ['Ouro', 'Prata', 'Bronze'];
-const S6_PODIUM_COLORS = ['#EF9F27', '#B4B2A9', '#CD7F32'];
+/* no claro, prata e bronze precisam de tons mais escuros para ter contraste sobre o branco */
+const s6PodiumColors = () => (isLightTheme()
+  ? ['#b8740a', '#6b7685', '#9a5a22']
+  : ['#EF9F27', '#B4B2A9', '#CD7F32']);
 
 function s6Avg(values) {
   return values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : 0;
@@ -3965,6 +4320,7 @@ function s6Options({ stacked = false, yTick = formatNumber, tooltip = formatNumb
   return {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: true, position: 'bottom' },
       tooltip: {
@@ -3975,7 +4331,7 @@ function s6Options({ stacked = false, yTick = formatNumber, tooltip = formatNumb
     },
     scales: {
       x: { stacked, grid: { display: false } },
-      y: { stacked, beginAtZero: true, ticks: { callback: (value) => yTick(value) }, grid: { color: 'rgba(136,160,184,.12)' }, ...y },
+      y: { stacked, beginAtZero: true, ticks: { callback: (value) => yTick(value) }, grid: { color: THEME.grid }, ...y },
     },
   };
 }
@@ -4150,7 +4506,7 @@ function renderLastSixSummary(model) {
 
   const bestEl = document.getElementById('s6-summary-best');
   bestEl.textContent = best ? best.label : '—';
-  bestEl.style.color = best ? '#27C77A' : '#f3f7fa';
+  bestEl.style.color = best ? THEME.tone.good : 'var(--text-strong)';
   document.getElementById('s6-summary-best-sub').textContent = best
     ? `${formatNumber(Math.round(best.avgPerDay))} peças/dia · ${formatPct(best.qualityPct)} conformidade`
     : 'Sem comparação disponível';
@@ -4164,7 +4520,7 @@ function renderLastSixSummary(model) {
       `${formatNumber(Math.round(paceTrend.last))} vs ${formatNumber(Math.round(paceTrend.prior))} peças/dia`;
   } else {
     paceEl.textContent = '—';
-    paceEl.style.color = '#f3f7fa';
+    paceEl.style.color = 'var(--text-strong)';
     document.getElementById('s6-summary-pace-sub').textContent = 'Histórico insuficiente';
   }
 
@@ -4177,7 +4533,7 @@ function renderLastSixSummary(model) {
       `${formatPct(qualityTrend.last)} vs ${formatPct(qualityTrend.prior)}`;
   } else {
     qualityEl.textContent = '—';
-    qualityEl.style.color = '#f3f7fa';
+    qualityEl.style.color = 'var(--text-strong)';
     document.getElementById('s6-summary-quality-sub').textContent = 'Histórico insuficiente';
   }
 
@@ -4280,7 +4636,7 @@ function renderLastSixCharts(model) {
   });
 
   const tierDefs = [
-    { label: 'Sem bônus', color: '#6888a8' },
+    { label: 'Sem bônus', color: THEME.mute },
     { label: 'Nível 1', color: '#EF9F27' },
     { label: 'Nível 2', color: '#8ab8ff' },
     { label: 'Nível 3', color: '#27C77A' },
@@ -4336,7 +4692,7 @@ function renderLastSixTable(model) {
         <div style="color:${getQualityTone(m.qualityPct)}">${formatPct(m.qualityPct)}</div>
         <div>${formatPct(m.availability)}</div>
         <div>${s6Money(m.bonusTotal)}<small>B1 ${m.tiers[1]} · B2 ${m.tiers[2]} · B3 ${m.tiers[3]}</small></div>
-        <div style="color:${delta === null ? '#8ab8ff' : getDeltaColor(delta, true)}">${delta === null ? '—' : `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</div>
+        <div style="color:${delta === null ? THEME.info : getDeltaColor(delta, true)}">${delta === null ? '—' : `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</div>
       </div>
     `;
   }).join('');
@@ -4344,7 +4700,7 @@ function renderLastSixTable(model) {
 
 function renderLastSixPodium(model) {
   const place = (item) => (item
-    ? `<div><strong style="color:${S6_PODIUM_COLORS[item.place - 1]}">${item.label}</strong><small>${formatPct(item.pct)} da meta 1 · ${s6Money(item.prize)}</small></div>`
+    ? `<div><strong style="color:${s6PodiumColors()[item.place - 1]}">${item.label}</strong><small>${formatPct(item.pct)} da meta 1 · ${s6Money(item.prize)}</small></div>`
     : '<div>—</div>');
   document.getElementById('s6-podium-body').innerHTML = model.data.map((m) => `
     <div class="s6-row podium">
@@ -4393,7 +4749,7 @@ function renderLastSixMachines(model) {
           </div>
         </div>
         <div class="prev-machine-value">
-          <strong style="color:${item.trendPct === null ? '#8ab8ff' : getDeltaColor(item.trendPct, true)}">${item.trendPct === null ? '—' : `${item.trendPct > 0 ? '+' : ''}${item.trendPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</strong>
+          <strong style="color:${item.trendPct === null ? THEME.info : getDeltaColor(item.trendPct, true)}">${item.trendPct === null ? '—' : `${item.trendPct > 0 ? '+' : ''}${item.trendPct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}</strong>
           <span>ritmo</span>
         </div>
       </div>
@@ -4688,7 +5044,7 @@ function resetLastSixView(message, isError = false) {
   ['best', 'pace', 'quality'].forEach((key) => {
     const el = document.getElementById(`s6-summary-${key}`);
     el.textContent = '—';
-    el.style.color = '#f3f7fa';
+    el.style.color = 'var(--text-strong)';
     document.getElementById(`s6-summary-${key}-sub`).textContent = 'Sem comparação disponível';
   });
 }
@@ -4723,9 +5079,334 @@ async function loadLastSixAll() {
   }
 }
 
+/*  ── Eficiência › paradas por causa ───────────────────────────────────────────
+    Dados de /analytics/paradas (minutos por causa, máquina e dia). A cor segue a causa (nunca a posição),
+    para que a mesma causa tenha a mesma cor na lista, na pilha por máquina e na evolução diária.  */
+let efficiencyDowntimeDailyChart = null;
+let causeFocus = null; // código da causa em destaque (hover na lista ou na legenda); null = nenhuma
+
+const CAUSE_ORDER = [1, 2, 3, 4, 5, 6, 7, 0]; // 0 = "sem causa informada", sempre por último na pilha
+// 7 matizes da paleta categórica validada (ordem do código) + cinza neutro para "sem causa informada"
+const CAUSE_PALETTE = {
+  light: { 1: '#257de0', 2: '#f47230', 3: '#00b894', 4: '#f2a600', 5: '#ee7fac', 6: '#008a17', 7: '#6a4ce2', 0: '#b4c0cf' },
+  dark:  { 1: '#338ced', 2: '#e76624', 3: '#00a888', 4: '#d28e05', 5: '#e24d8b', 6: '#0aac23', 7: '#9887ef', 0: '#5f748a' },
+};
+function causeColor(code) {
+  return (isLightTheme() ? CAUSE_PALETTE.light : CAUSE_PALETTE.dark)[code] || THEME.mute;
+}
+
+function fmtDuration(minutes) {
+  const m = Math.round(Number(minutes) || 0);
+  if (m > 0 && m < 60) return `${m} min`;
+  return `${(m / 60).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h`;
+}
+function fmtShare(pct) {
+  return `${(Number(pct) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%`;
+}
+function fmtPP(delta) {
+  const v = Number(delta) || 0;
+  return `${v > 0 ? '+' : ''}${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} p.p.`;
+}
+
+/* foco cruzado: passar o mouse numa causa (lista ou legenda) esmaece as demais em todos os gráficos */
+function setCauseFocus(code) {
+  if (causeFocus === code) return;
+  causeFocus = code;
+  [efficiencyDowntimeChart, efficiencyDowntimeDailyChart].forEach((chart) => {
+    if (chart && chart.data.datasets.some((d) => d.causeCode !== undefined)) chart.update('active');
+  });
+  document.querySelectorAll('#eff-cause-list .eff-cause-row').forEach((row) => {
+    row.classList.toggle('is-dim', code !== null && Number(row.dataset.code) !== code);
+  });
+}
+const causeBackground = (code) => () => {
+  const color = causeColor(code);
+  return causeFocus === null || causeFocus === code ? color : `${color}38`;
+};
+
+function buildCauseDatasets(stat, buckets, extra = {}) {
+  const present = new Set(stat.causes.filter((c) => c.minutes > 0).map((c) => c.code));
+  const names = new Map(stat.causes.map((c) => [c.code, c.name]));
+  const maps = buckets.map((b) => new Map(b.causes.map((c) => [c.code, c.minutes])));
+  return CAUSE_ORDER.filter((code) => present.has(code)).map((code) => ({
+    label: names.get(code),
+    causeCode: code,
+    data: maps.map((m) => Number(((m.get(code) || 0) / 60).toFixed(2))),
+    backgroundColor: causeBackground(code),
+    borderColor: THEME.card, // fresta de 1,5px entre os segmentos
+    borderWidth: 1.5,
+    borderSkipped: false,
+    stack: 'paradas',
+    ...extra,
+  }));
+}
+
+function causeChartOptions({ horizontal, titleFn }) {
+  const hoursAxis = {
+    stacked: true,
+    beginAtZero: true,
+    grace: '6%',
+    ticks: { callback: (value) => `${value} h`, font: { size: 10 } },
+    grid: { color: THEME.grid },
+  };
+  const categoryAxis = horizontal
+    ? { stacked: true, ticks: { font: { size: 11, weight: '600' }, color: THEME.soft }, grid: { display: false } }
+    : { stacked: true, ticks: { maxRotation: 0, minRotation: 0, autoSkip: true, font: { size: 10 } }, grid: { display: false } };
+  return {
+    indexAxis: horizontal ? 'y' : 'x',
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', axis: horizontal ? 'y' : 'x', intersect: false },
+    plugins: {
+      hoverGuides: { outline: false },
+      legend: {
+        display: true,
+        position: 'bottom',
+        onHover: (_e, item, legend) => setCauseFocus(legend.chart.data.datasets[item.datasetIndex].causeCode),
+        onLeave: () => setCauseFocus(null),
+        labels: { boxWidth: 10, padding: 12, color: THEME.soft },
+      },
+      tooltip: {
+        filter: (item) => item.raw > 0,
+        itemSort: (a, b) => b.raw - a.raw,
+        callbacks: {
+          title: titleFn,
+          label: (c) => `${c.dataset.label}: ${fmtDuration(c.raw * 60)}`,
+          footer: (items) => [`Total: ${fmtDuration(items.reduce((sum, i) => sum + i.raw, 0) * 60)}`],
+        },
+      },
+    },
+    scales: horizontal ? { x: hoursAxis, y: categoryAxis } : { x: categoryAxis, y: hoursAxis },
+  };
+}
+
+function renderDowntimeByMachineStacked(stat) {
+  const ctx = document.getElementById('chart-efficiency-downtime').getContext('2d');
+  const rows = stat.machines;
+  if (efficiencyDowntimeChart) efficiencyDowntimeChart.destroy();
+  efficiencyDowntimeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map((m) => getMachineShortLabel(m.key)),
+      datasets: buildCauseDatasets(stat, rows, { barThickness: 18 }),
+    },
+    options: causeChartOptions({ horizontal: true, titleFn: (items) => items[0].label }),
+  });
+}
+
+function renderDowntimeDaily(stat) {
+  const msgEl = document.getElementById('eff-daily-msg');
+  const canvas = document.getElementById('chart-efficiency-downtime-daily');
+  if (efficiencyDowntimeDailyChart) { efficiencyDowntimeDailyChart.destroy(); efficiencyDowntimeDailyChart = null; }
+
+  if (!stat || !stat.total_minutes) {
+    msgEl.hidden = false;
+    msgEl.className = 'msg';
+    msgEl.textContent = stat ? 'Sem paradas registradas no período.' : 'Detalhamento diário indisponível no momento.';
+    return;
+  }
+  msgEl.hidden = true;
+
+  const daysInMonth = new Date(stat.year, stat.month, 0).getDate();
+  const byDay = new Map(stat.days.map((d) => [d.key, d]));
+  const buckets = Array.from({ length: daysInMonth }, (_, i) => byDay.get(i + 1) || { key: i + 1, total_minutes: 0, causes: [] });
+
+  efficiencyDowntimeDailyChart = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: buckets.map((b) => String(b.key).padStart(2, '0')),
+      datasets: buildCauseDatasets(stat, buckets, { maxBarThickness: 26 }),
+    },
+    options: causeChartOptions({ horizontal: false, titleFn: (items) => `Dia ${items[0].label}` }),
+  });
+}
+
+/* leituras automáticas: frases calculadas dos próprios dados (sem inventar causa que não foi lançada) */
+function buildDowntimeInsights(stat, prevHasCauses) {
+  const total = stat.total_minutes;
+  const out = [];
+  const named = stat.causes.filter((c) => c.code !== 0 && c.minutes > 0);
+
+  if (named.length) {
+    const top = named[0];
+    out.push(`<strong>${escapeHTML(top.name)}</strong> é a principal causa: ${fmtDuration(top.minutes)}, ${fmtShare(top.pct)} das paradas.`);
+
+    let acc = 0;
+    let count = 0;
+    for (const c of stat.causes) {
+      acc += c.minutes;
+      count += 1;
+      if (acc / total >= 0.8) break;
+    }
+    if (stat.causes.length > 2) {
+      out.push(`${count} ${count === 1 ? 'causa concentra' : 'causas concentram'} ${fmtShare((acc / total) * 100)} das horas paradas.`);
+    }
+
+    const leader = stat.machines
+      .map((m) => ({ key: m.key, mins: (m.causes.find((c) => c.code === top.code) || {}).minutes || 0 }))
+      .sort((a, b) => b.mins - a.mins)[0];
+    if (leader && leader.mins > 0 && stat.machines.length > 1) {
+      out.push(`<strong>${escapeHTML(getMachineShortLabel(leader.key))}</strong> responde por ${fmtShare((leader.mins / top.minutes) * 100)} das paradas por ${escapeHTML(top.name.toLowerCase())}.`);
+    }
+
+    if (prevHasCauses && stat.prev_total_minutes > 0) {
+      const moves = named
+        .map((c) => ({ c, pp: (c.minutes / total - c.prev_minutes / stat.prev_total_minutes) * 100 }))
+        .sort((a, b) => b.pp - a.pp);
+      const up = moves[0];
+      if (up && up.pp >= 1) out.push(`<strong>${escapeHTML(up.c.name)}</strong> ganhou participação: ${fmtPP(up.pp)} vs mês anterior.`);
+      const down = moves[moves.length - 1];
+      if (down && down !== up && down.pp <= -1) out.push(`<strong>${escapeHTML(down.c.name)}</strong> perdeu participação: ${fmtPP(down.pp)} vs mês anterior.`);
+    }
+  }
+
+  const worstDay = [...stat.days].sort((a, b) => b.total_minutes - a.total_minutes)[0];
+  if (worstDay && worstDay.total_minutes > 0 && stat.days.length > 1) {
+    const dayTop = [...worstDay.causes].sort((a, b) => b.minutes - a.minutes)[0];
+    const dayCause = dayTop && dayTop.code !== 0 ? ` (principal causa: ${escapeHTML(causeName(stat, dayTop.code))})` : '';
+    out.push(`Pior dia: <strong>${String(worstDay.key).padStart(2, '0')}</strong>, com ${fmtDuration(worstDay.total_minutes)} parados${dayCause}.`);
+  }
+  return out;
+}
+function causeName(stat, code) {
+  const hit = stat.causes.find((c) => c.code === code);
+  return hit ? hit.name : `Causa ${code}`;
+}
+
+function renderDowntimeCauses(stat, errorMessage) {
+  const kpiEl = document.getElementById('eff-cause-kpis');
+  const noteEl = document.getElementById('eff-cause-note');
+  const listEl = document.getElementById('eff-cause-list');
+  const impactEl = document.getElementById('eff-impact');
+  const insightsEl = document.getElementById('eff-insights');
+  const msgEl = document.getElementById('eff-cause-msg');
+  [kpiEl, listEl, impactEl, insightsEl].forEach((el) => { el.innerHTML = ''; });
+  noteEl.hidden = true;
+  setCauseFocus(null);
+
+  if (!stat || !stat.total_minutes) {
+    msgEl.hidden = false;
+    msgEl.className = errorMessage ? 'msg msg-error' : 'msg';
+    msgEl.textContent = errorMessage
+      ? `Não foi possível carregar o detalhamento das paradas (${errorMessage}).`
+      : 'Sem paradas registradas no período.';
+    return;
+  }
+  msgEl.hidden = true;
+
+  const total = stat.total_minutes;
+  const unclassifiedRow = stat.causes.find((c) => c.code === 0);
+  const prevUnclassified = unclassifiedRow ? unclassifiedRow.prev_minutes : 0;
+  const prevHasCauses = stat.prev_total_minutes - prevUnclassified > 0;
+  const named = stat.causes.filter((c) => c.code !== 0 && c.minutes > 0);
+  const top = named[0];
+  const bonusShare = (stat.bonus_minutes / total) * 100;
+  const unclassifiedShare = (stat.unclassified_minutes / total) * 100;
+
+  /* KPIs */
+  const diff = stat.prev_total_minutes > 0 ? total - stat.prev_total_minutes : null;
+  const today = new Date();
+  const monthInProgress = stat.year === today.getFullYear() && stat.month === today.getMonth() + 1;
+  const tiles = [
+    {
+      label: 'Total parado',
+      value: fmtDuration(total),
+      sub: diff === null ? 'sem mês anterior para comparar'
+        : `${diff > 0 ? '▲' : diff < 0 ? '▼' : '—'} ${fmtDuration(Math.abs(diff))} vs ${fmtDuration(stat.prev_total_minutes)} no mês anterior${monthInProgress ? ' (este mês ainda está em andamento)' : ''}`,
+      color: 'var(--text-strong)',
+    },
+    {
+      label: 'Principal causa',
+      value: top ? escapeHTML(top.name) : '—',
+      sub: top ? `${fmtDuration(top.minutes)} · ${fmtShare(top.pct)} das paradas` : 'nenhuma causa informada ainda',
+      color: top ? causeColorText(top.code) : 'var(--text-mute)',
+    },
+    {
+      label: 'Descontam meta e bonificação',
+      value: fmtDuration(stat.bonus_minutes),
+      sub: `${fmtShare(bonusShare)} do total parado`,
+      color: THEME.warn,
+    },
+    {
+      label: 'Sem causa informada',
+      value: fmtDuration(stat.unclassified_minutes),
+      sub: stat.unclassified_minutes > 0 ? `${fmtShare(unclassifiedShare)} dos minutos` : 'tudo detalhado',
+      color: stat.unclassified_minutes > 0 ? THEME.warn : THEME.good,
+    },
+  ];
+  kpiEl.innerHTML = tiles.map((t) => `
+    <div class="eff-kpi">
+      <div class="eff-kpi-label">${t.label}</div>
+      <div class="eff-kpi-value eff-cause-kpi-value" style="color:${t.color}">${t.value}</div>
+      <div class="eff-kpi-sub">${t.sub}</div>
+    </div>
+  `).join('');
+
+  if (!stat.has_causes) {
+    noteEl.hidden = false;
+    noteEl.innerHTML = '<strong>Ainda não há paradas com causa informada neste mês.</strong> '
+      + 'No lançamento, clique no botão da máquina e informe os minutos de cada causa: o detalhamento passa a aparecer aqui automaticamente. '
+      + 'Por enquanto, todo o tempo parado aparece como "sem causa informada".';
+  }
+
+  /* ranking de causas (barras proporcionais à maior causa; sem eixo duplo) */
+  const rows = stat.causes.filter((c) => c.minutes > 0);
+  const maxMinutes = Math.max(...rows.map((c) => c.minutes), 1);
+  listEl.innerHTML = rows.map((c) => {
+    const color = causeColor(c.code);
+    let delta = '<span class="eff-cause-delta" title="Sem causas lançadas no mês anterior para comparar">—</span>';
+    if (prevHasCauses && c.code !== 0 && stat.prev_total_minutes > 0) {
+      const pp = (c.minutes / total - c.prev_minutes / stat.prev_total_minutes) * 100;
+      const cls = pp > 0.05 ? 'is-up' : pp < -0.05 ? 'is-down' : '';
+      const arrow = pp > 0.05 ? '▲' : pp < -0.05 ? '▼' : '—';
+      delta = `<span class="eff-cause-delta ${cls}" title="Variação da participação no total vs mês anterior">${arrow} ${fmtPP(pp)}</span>`;
+    }
+    const split = (c.shift1_minutes || c.shift2_minutes)
+      ? `<span class="eff-cause-sub">T1 ${fmtDuration(c.shift1_minutes)} · T2 ${fmtDuration(c.shift2_minutes)}</span>` : '';
+    return `
+      <div class="eff-cause-row" data-code="${c.code}">
+        <div class="eff-cause-name">
+          <span class="eff-cause-title"><i class="eff-cause-dot" style="background:${color}"></i><strong>${escapeHTML(c.name)}</strong></span>
+          ${split}
+        </div>
+        <div class="eff-cause-bar"><div class="eff-cause-fill" style="width:${(c.minutes / maxMinutes) * 100}%; background:${color}"></div></div>
+        <div class="eff-cause-hours">${fmtDuration(c.minutes)}</div>
+        <div class="eff-cause-pct">${fmtShare(c.pct)}</div>
+        ${delta}
+        <span class="eff-cause-tag ${c.affects_bonus ? 'is-hit' : ''}">${c.affects_bonus ? 'Desconta meta' : 'Não desconta'}</span>
+      </div>`;
+  }).join('');
+  listEl.querySelectorAll('.eff-cause-row').forEach((row) => {
+    row.addEventListener('pointerenter', () => setCauseFocus(Number(row.dataset.code)));
+    row.addEventListener('pointerleave', () => setCauseFocus(null));
+  });
+
+  /* impacto na meta: quanto da parada desconta e quanto não */
+  const notBonus = total - stat.bonus_minutes;
+  impactEl.innerHTML = `
+    <div class="eff-impact-bar" role="img" aria-label="${fmtShare(bonusShare)} das paradas descontam meta e bonificação">
+      <span class="eff-impact-seg is-hit" style="width:${bonusShare}%"></span>
+      <span class="eff-impact-seg" style="width:${100 - bonusShare}%"></span>
+    </div>
+    <div class="eff-impact-legend">
+      <div><i class="is-hit"></i><span>Descontam meta e bonificação</span><strong>${fmtDuration(stat.bonus_minutes)}</strong></div>
+      <div><i></i><span>Não descontam</span><strong>${fmtDuration(notBonus)}</strong></div>
+    </div>`;
+
+  insightsEl.innerHTML = buildDowntimeInsights(stat, prevHasCauses).map((line) => `<li>${line}</li>`).join('');
+}
+/* cor da causa para uso em TEXTO: no claro, o tom do gráfico é claro demais para ler; usa o texto forte */
+function causeColorText(code) {
+  return isLightTheme() ? 'var(--text-strong)' : causeColor(code);
+}
+
 async function loadEfficiencyAll() {
   try {
-    const summary = await fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`);
+    const [summary, downtimeResult] = await Promise.all([
+      fetchJSON(`/api/summary?year=${state.year}&month=${state.month}`),
+      fetchJSON(`/analytics/paradas?year=${state.year}&month=${state.month}`).catch((err) => ({ loadError: err.message })),
+    ]);
+    const downtimeStat = downtimeResult && !downtimeResult.loadError ? downtimeResult : null;
     if (!summary.machines?.length) {
       document.getElementById('eff-kpi-row').innerHTML = '<div class="msg">Sem dados suficientes para eficiência no período.</div>';
       document.getElementById('eff-machine-list').innerHTML = '';
@@ -4748,7 +5429,9 @@ async function loadEfficiencyAll() {
     renderEfficiencyMachineList(data);
     renderEfficiencyTables(data);
     renderEfficiencyTurnChart(data);
-    renderEfficiencyDowntimeChart(data);
+    renderEfficiencyDowntimeChart(data, downtimeStat);
+    renderDowntimeCauses(downtimeStat, downtimeResult && downtimeResult.loadError);
+    renderDowntimeDaily(downtimeStat);
   } catch (err) {
     document.getElementById('eff-kpi-row').innerHTML = `<div class="msg msg-error">Não foi possível carregar a eficiência (${escapeHTML(err.message)}).</div>`;
     document.getElementById('eff-machine-list').innerHTML = '';
@@ -4791,12 +5474,16 @@ function toggleTheme() {
   const isLight = root.classList.toggle('light');
   btn.textContent = isLight ? '☀️' : '🌙';
   localStorage.setItem('pantex-theme', isLight ? 'light' : 'dark');
+  hideChartTip();
+  applyChartTheme();
+  loadAll(); // redesenha os gráficos com as cores do novo tema
 }
 
 (function () {
   if (localStorage.getItem('pantex-theme') === 'light') {
     document.documentElement.classList.add('light');
     document.getElementById('theme-btn').textContent = '☀️';
+    applyChartTheme();
   }
 })();
 
