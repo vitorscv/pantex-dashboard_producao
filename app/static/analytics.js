@@ -2864,13 +2864,26 @@ function setPreviousDayReportOpen(isOpen) {
 const PRINT_PIE_MAX_SLICES = 6; // as 5 maiores causas + "Outras causas": mais que isso não cabe nem se lê na folha
 const PRINT_PIE_OTHERS_COLOR = '#9aa5b1';
 
+/* mistura a cor com branco (t = parte de branco): fatias claras deixam o texto preto legível, mesmo impresso em P&B */
+function printTint(hex, t = 0.42) {
+  const n = parseInt(String(hex).replace('#', ''), 16);
+  const mix = (c) => Math.round(c * (1 - t) + 255 * t).toString(16).padStart(2, '0');
+  return `#${mix((n >> 16) & 255)}${mix((n >> 8) & 255)}${mix(n & 255)}`;
+}
+
 function printDowntimeCauses(dt) {
   if (!dt || !dt.total_minutes) return [];
+  const machinesOf = new Map(); // causa -> máquinas que pararam por ela
+  dt.machines.forEach((m) => m.causes.forEach((c) => {
+    if (!machinesOf.has(c.code)) machinesOf.set(c.code, []);
+    machinesOf.get(c.code).push(m.key);
+  }));
   const rows = dt.causes.filter((c) => c.minutes > 0).map((c) => ({
     code: c.code,
+    machines: [...(machinesOf.get(c.code) || [])].sort((a, b) => a - b),
     name: c.code === 0 ? 'Sem causa' : c.name, // o nome completo não cabe na legenda da folha
     minutes: c.minutes,
-    color: CAUSE_PALETTE.light[c.code] || PRINT_PIE_OTHERS_COLOR,
+    color: printTint(CAUSE_PALETTE.light[c.code] || PRINT_PIE_OTHERS_COLOR),
   }));
   if (rows.length > PRINT_PIE_MAX_SLICES) {
     const rest = rows.slice(PRINT_PIE_MAX_SLICES - 1);
@@ -2878,8 +2891,9 @@ function printDowntimeCauses(dt) {
     rows.push({
       code: -1,
       name: `Outras causas (${rest.length})`,
+      machines: [...new Set(rest.flatMap((c) => c.machines))].sort((a, b) => a - b),
       minutes: rest.reduce((sum, c) => sum + c.minutes, 0),
-      color: PRINT_PIE_OTHERS_COLOR,
+      color: printTint(PRINT_PIE_OTHERS_COLOR),
     });
   }
   return rows.map((row, index) => ({ ...row, index: index + 1 }));
@@ -2917,7 +2931,8 @@ function buildPrintPie(rows, total) {
   const r = 56;
   const svgOpen = '<svg class="prev-print-pie" viewBox="0 0 120 120" role="img" aria-label="Down-time por causa">';
   if (rows.length === 1) {
-    return `${svgOpen}<circle cx="${cx}" cy="${cy}" r="${r}" fill="${rows[0].color}"></circle><text x="${cx}" y="${cy}">100%</text></svg>`;
+    return `${svgOpen}<circle cx="${cx}" cy="${cy}" r="${r}" fill="${rows[0].color}"></circle>`
+      + `<text class="pie-n" x="${cx}" y="${cy - 7}">1</text><text class="pie-p" x="${cx}" y="${cy + 10}">100%</text></svg>`;
   }
   let angle = -Math.PI / 2;
   const paths = [];
@@ -2927,11 +2942,19 @@ function buildPrintPie(rows, total) {
     const a0 = angle;
     const a1 = angle + frac * 2 * Math.PI;
     angle = a1;
-    const point = (a, radius) => `${(cx + radius * Math.cos(a)).toFixed(2)} ${(cy + radius * Math.sin(a)).toFixed(2)}`;
-    paths.push(`<path d="M${cx} ${cy} L${point(a0, r)} A${r} ${r} 0 ${frac > 0.5 ? 1 : 0} 1 ${point(a1, r)} Z" fill="${row.color}"></path>`);
-    if (frac >= 0.09) {
-      const [lx, ly] = point((a0 + a1) / 2, r * 0.64).split(' ');
-      labels.push(`<text x="${lx}" y="${ly}">${Math.round(frac * 100)}%</text>`);
+    const point = (a, radius) => [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
+    const [x0, y0] = point(a0, r);
+    const [x1, y1] = point(a1, r);
+    paths.push(`<path d="M${cx} ${cy} L${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${frac > 0.5 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z" fill="${row.color}"></path>`);
+    // a identificação da fatia é o NÚMERO (igual ao da legenda): a cor sozinha não resolve na impressão em P&B
+    if (frac >= 0.05) {
+      const [lx, ly] = point((a0 + a1) / 2, r * (frac >= 0.12 ? 0.6 : 0.74));
+      if (frac >= 0.12) {
+        labels.push(`<text class="pie-n" x="${lx.toFixed(2)}" y="${(ly - 6).toFixed(2)}">${row.index}</text>`
+          + `<text class="pie-p" x="${lx.toFixed(2)}" y="${(ly + 8).toFixed(2)}">${Math.round(frac * 100)}%</text>`);
+      } else {
+        labels.push(`<text class="pie-n" x="${lx.toFixed(2)}" y="${ly.toFixed(2)}">${row.index}</text>`);
+      }
     }
   });
   return `${svgOpen}${paths.join('')}${labels.join('')}</svg>`;
@@ -2953,6 +2976,7 @@ function buildPrintDowntimeBlock(dt) {
                 <span class="prev-print-downtime-name">${escapeHTML(row.name)}</span>
                 <b>${fmtDuration(row.minutes)}</b>
                 <span class="prev-print-downtime-pct">${fmtShare((row.minutes / total) * 100)}</span>
+                <span class="prev-print-downtime-machines">${row.machines.length ? `MÁQ. ${row.machines.slice(0, 6).join(' · ')}${row.machines.length > 6 ? ` +${row.machines.length - 6}` : ''}` : ''}</span>
               </div>`).join('');
   const note = dt.has_causes ? '' : '<div class="prev-print-downtime-note">Causas não informadas no lançamento deste dia.</div>';
 
@@ -3146,13 +3170,13 @@ function buildPreviousDayReportMarkup(data, options = {}) {
           ${splitMachinesByShift ? machinesByShift.map((group) => `
             <div class="prev-print-column">
               <div class="prev-print-column-title">${group.label}</div>
-              <div class="prev-print-list${group.items.length > 4 ? ' is-dense' : ''}">
+              <div class="prev-print-list${group.items.length > 3 ? ' is-dense' : ''}">
               ${group.items.length ? group.items.map((item, index) => `
                 <div class="prev-print-item">
                   <div class="prev-print-rank">${index + 1}</div>
                   <div>
                     <strong>${escapeHTML(item.label)}</strong>
-                    <span>${group.items.length > 4 ? `${formatPct(item.quality)} conf.` : `${formatPct(item.quality)} conforme · ${formatPct(item.nonConformePctByProduced)} não conf.`}</span>
+                    <span>${group.items.length > 3 ? `${formatPct(item.quality)} conf.` : `${formatPct(item.quality)} conforme · ${formatPct(item.nonConformePctByProduced)} não conf.`}</span>
                     <div class="prev-print-machine-bar">
                       <div class="prev-print-machine-track">
                         <div class="prev-print-machine-fill" style="width:${maxProduced > 0 ? (item.produced / maxProduced) * 100 : 0}%"></div>
