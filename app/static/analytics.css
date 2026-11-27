@@ -701,20 +701,20 @@
     gap: .18rem;
   }
   .prev-print-brand-kicker {
-    font-size: .54rem;
+    font-size: calc(.54rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .16em;
     text-transform: uppercase;
     color: #60748a;
   }
   .prev-print-brand-title {
-    font-size: 1.02rem;
+    font-size: calc(1.02rem * var(--print-fs, 1));
     font-weight: 800;
     letter-spacing: -.02em;
     color: #0f172a;
   }
   .prev-print-brand-text {
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     line-height: 1.32;
     color: #60748a;
     max-width: 420px;
@@ -736,14 +736,14 @@
     border: 1px solid #dde5ef;
   }
   .prev-print-meta-row span {
-    font-size: .52rem;
+    font-size: calc(.52rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .12em;
     text-transform: uppercase;
     color: #60748a;
   }
   .prev-print-meta-row strong {
-    font-size: .62rem;
+    font-size: calc(.62rem * var(--print-fs, 1));
     color: #111827;
     text-align: right;
   }
@@ -752,7 +752,7 @@
     border-radius: 10px;
     background: #f8fbff;
     border: 1px solid #dbe7f3;
-    font-size: .68rem;
+    font-size: calc(.68rem * var(--print-fs, 1));
     line-height: 1.5;
     color: #334155;
   }
@@ -768,7 +768,7 @@
     padding: .58rem .62rem;
   }
   .prev-print-highlight-kicker {
-    font-size: .54rem;
+    font-size: calc(.54rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .14em;
     text-transform: uppercase;
@@ -776,13 +776,13 @@
     margin-bottom: .24rem;
   }
   .prev-print-highlight-title {
-    font-size: .9rem;
+    font-size: calc(.9rem * var(--print-fs, 1));
     font-weight: 800;
     color: #0f172a;
   }
   .prev-print-highlight-text {
     margin-top: .18rem;
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     line-height: 1.32;
     color: #475569;
   }
@@ -809,7 +809,7 @@
     background: #fff6f6;
   }
   .prev-print-status-label {
-    font-size: .52rem;
+    font-size: calc(.52rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .12em;
     text-transform: uppercase;
@@ -817,17 +817,17 @@
     margin-bottom: .14rem;
   }
   .prev-print-status-value {
-    font-size: .72rem;
+    font-size: calc(.72rem * var(--print-fs, 1));
     font-weight: 800;
     color: #111827;
   }
   .prev-print-status-sub {
     margin-top: .08rem;
-    font-size: .55rem;
+    font-size: calc(.55rem * var(--print-fs, 1));
     color: #60748a;
   }
   .prev-print-section-title {
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .14em;
     text-transform: uppercase;
@@ -841,7 +841,7 @@
     padding: .58rem .62rem;
   }
   .prev-print-block h4 {
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .14em;
     text-transform: uppercase;
@@ -912,11 +912,11 @@
     background: #e05252;
   }
   .prev-print-legend-row strong {
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     color: #111827;
   }
   .prev-print-legend-row span {
-    font-size: .55rem;
+    font-size: calc(.55rem * var(--print-fs, 1));
     color: #60748a;
     text-align: right;
   }
@@ -928,14 +928,14 @@
   }
   .prev-print-metric span {
     display: block;
-    font-size: .54rem;
+    font-size: calc(.54rem * var(--print-fs, 1));
     color: #60748a;
     margin-bottom: .08rem;
   }
   .prev-print-metric strong {
     display: block;
     font-family: var(--font-mono);
-    font-size: .66rem;
+    font-size: calc(.66rem * var(--print-fs, 1));
     color: #111827;
   }
   .prev-print-metric-bar {
@@ -969,7 +969,7 @@
     background: #e05252;
   }
   .prev-print-metric-note {
-    font-size: .5rem;
+    font-size: calc(.5rem * var(--print-fs, 1));
     color: #60748a;
   }
   .prev-print-table {
@@ -995,11 +995,11 @@
     margin-bottom: .28rem;
   }
   .prev-print-turn-card strong {
-    font-size: .76rem;
+    font-size: calc(.76rem * var(--print-fs, 1));
     color: #111827;
   }
   .prev-print-turn-card span {
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     color: #60748a;
   }
   .prev-print-turn-card-grid {
@@ -1020,7 +1020,7 @@
   }
   .prev-print-turn-bar-row span,
   .prev-print-turn-bar-row strong {
-    font-size: .5rem;
+    font-size: calc(.5rem * var(--print-fs, 1));
     color: #60748a;
   }
   .prev-print-turn-bar-row strong {
@@ -1049,12 +1049,12 @@
   }
   .prev-print-turn-mini label {
     display: block;
-    font-size: .5rem;
+    font-size: calc(.5rem * var(--print-fs, 1));
     color: #60748a;
     margin-bottom: .06rem;
   }
   .prev-print-turn-mini b {
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--print-fs, 1));
     color: #0f172a;
   }
   .prev-print-machine-summary {
@@ -1071,13 +1071,13 @@
   }
   .prev-print-summary-chip span {
     display: block;
-    font-size: .48rem;
+    font-size: calc(.48rem * var(--print-fs, 1));
     color: #60748a;
     margin-bottom: .08rem;
   }
   .prev-print-summary-chip strong {
     display: block;
-    font-size: .64rem;
+    font-size: calc(.64rem * var(--print-fs, 1));
     color: #111827;
   }
   .prev-print-split {
@@ -1090,7 +1090,7 @@
     gap: .24rem;
   }
   .prev-print-column-title {
-    font-size: .54rem;
+    font-size: calc(.54rem * var(--print-fs, 1));
     font-weight: 700;
     letter-spacing: .12em;
     text-transform: uppercase;
@@ -1116,7 +1116,7 @@
     display: grid;
     place-items: center;
     border-radius: 999px;
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--print-fs, 1));
     font-weight: 700;
     color: #37506d;
     background: #e9f1fb;
@@ -1124,30 +1124,30 @@
   }
   .prev-print-item strong {
     display: block;
-    font-size: .61rem;
+    font-size: calc(.61rem * var(--print-fs, 1));
     color: #111827;
   }
   .prev-print-item span {
     display: block;
     margin-top: .08rem;
-    font-size: .54rem;
+    font-size: calc(.54rem * var(--print-fs, 1));
     color: #60748a;
   }
   .prev-print-value {
     font-family: var(--font-mono);
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--print-fs, 1));
     color: #111827;
     text-align: right;
   }
   .prev-print-value strong {
     display: block;
-    font-size: .65rem;
+    font-size: calc(.65rem * var(--print-fs, 1));
     color: #111827;
   }
   .prev-print-value span {
     display: block;
     margin-top: .08rem;
-    font-size: .5rem;
+    font-size: calc(.5rem * var(--print-fs, 1));
     color: #60748a;
   }
   .prev-print-machine-bar {
@@ -1182,7 +1182,7 @@
     padding-top: .1rem;
   }
   .prev-print-note {
-    font-size: .48rem;
+    font-size: calc(.48rem * var(--print-fs, 1));
     line-height: 1.2;
     color: #60748a;
   }
@@ -1196,7 +1196,7 @@
     height: 1px;
   }
   .prev-print-signature span {
-    font-size: .56rem;
+    font-size: calc(.56rem * var(--print-fs, 1));
     color: #60748a;
     text-align: center;
   }
@@ -2501,19 +2501,19 @@
   /*  RELATÓRIO DO DIA ANTERIOR › down-time (folha branca nos dois temas: cores fixas de papel)  */
   .prev-print-overview.is-single { grid-template-columns: 1fr; }
   /* resumo: Produzido, Conformidade, Não conforme, Down-time e a pizza (cartão mais largo) na mesma linha */
-  .prev-print-grid.cols-dt { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 2.7fr); }
+  .prev-print-grid.cols-dt { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 3.1fr); }
   .prev-print-downtime { break-inside: avoid; }
   .prev-print-downtime-body {
     display: grid;
-    grid-template-columns: 24mm minmax(0, 1fr);
+    grid-template-columns: 22mm minmax(0, 1fr);
     gap: .35rem;
     align-items: center;
     margin-top: .2rem;
   }
-  .prev-print-pie { display: block; width: 24mm; height: 24mm; }
+  .prev-print-pie { display: block; width: 22mm; height: 22mm; }
   .prev-print-pie path, .prev-print-pie circle { stroke: #ffffff; stroke-width: 1.5; }
   .prev-print-pie text {
-    font: 700 9px 'IBM Plex Sans', system-ui, sans-serif;
+    font: 700 11px 'IBM Plex Sans', system-ui, sans-serif;
     fill: #111827;
     stroke: #ffffff;
     stroke-width: 2.5px;
@@ -2527,7 +2527,7 @@
     grid-template-columns: .9rem minmax(0, 1fr) auto 2.1rem;
     align-items: center;
     gap: .25rem;
-    font-size: .56rem;
+    font-size: calc(.56rem * var(--print-fs, 1));
     line-height: 1.3;
     color: #111827;
   }
@@ -2539,7 +2539,7 @@
     height: .9rem;
     border-radius: 3px;
     font-style: normal;
-    font-size: .54rem;
+    font-size: calc(.54rem * var(--print-fs, 1));
     font-weight: 700;
     color: #111827;
     text-shadow: 0 0 2px #ffffff, 0 0 2px #ffffff, 0 0 2px #ffffff;
@@ -2549,16 +2549,22 @@
   .prev-print-downtime-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
   .prev-print-downtime-row b { font-variant-numeric: tabular-nums; }
   .prev-print-downtime-pct { text-align: right; color: #4b5563; font-variant-numeric: tabular-nums; }
-  .prev-print-downtime-empty, .prev-print-downtime-note { margin-top: .2rem; font-size: .52rem; color: #4b5563; }
+  .prev-print-downtime-empty, .prev-print-downtime-note { margin-top: .2rem; font-size: calc(.52rem * var(--print-fs, 1)); color: #4b5563; }
 
   /* lista com muitas máquinas (mais de 4 no turno): linhas mais compactas para a folha continuar em 1 página */
-  .prev-print-list.is-dense { gap: .16rem; }
-  .prev-print-list.is-dense .prev-print-item { padding: .16rem .3rem; grid-template-columns: 20px minmax(0, 1fr) auto; }
-  .prev-print-list.is-dense .prev-print-rank { width: 18px; height: 18px; font-size: .54rem; }
-  .prev-print-list.is-dense .prev-print-machine-bar { margin-top: .1rem; }
+  .prev-print-list.is-dense { gap: .1rem; }
+  .prev-print-list.is-dense .prev-print-item { padding: .08rem .3rem; grid-template-columns: 20px minmax(0, 1fr) auto; }
+  .prev-print-list.is-dense .prev-print-rank { width: 18px; height: 18px; font-size: calc(.54rem * var(--print-fs, 1)); }
+  .prev-print-list.is-dense .prev-print-machine-bar { margin-top: .04rem; }
 
   /* na impressão a folha tem largura fixa (210mm): Turno 1 e Turno 2 ficam lado a lado.
      Sem isto, o @media (max-width: 1100px) acima empilha os dois (o layout de impressão tem ~790px). */
   @media print {
     .prev-print-split { grid-template-columns: 1fr 1fr !important; }
   }
+
+  /* relatório do dia anterior: letras maiores (a folha tinha 8 a 11px e sobra espaço). Os outros relatórios ficam em 1. */
+  .prev-print-day { --print-fs: 1.2; }
+
+  /* coluna/lista de máquinas: linhas no topo, sem esticar quando o outro turno tem mais máquinas */
+  .prev-print-column, .prev-print-list { align-content: start; }

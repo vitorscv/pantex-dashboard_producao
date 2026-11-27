@@ -3005,7 +3005,7 @@ function buildPreviousDayReportMarkup(data, options = {}) {
   const downtimeBlock = buildPrintDowntimeBlock(data.downtime);
 
   return `
-    <article class="prev-print-sheet">
+    <article class="prev-print-sheet prev-print-day">
       <header class="prev-print-header">
         <div class="prev-print-brand">
           <div class="prev-print-brand-kicker">Painel Analítico</div>
